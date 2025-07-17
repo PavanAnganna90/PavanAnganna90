@@ -12,7 +12,8 @@ import httpx
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 
-from app.core.logger import logger
+from app.core.enhanced_logging import get_logger
+logger = get_logger(__name__)
 from app.core.cache import CacheService
 from app.core.security_monitor import SecurityMonitor
 

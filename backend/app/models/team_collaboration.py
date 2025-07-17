@@ -59,7 +59,7 @@ class TeamCollaboration(Base):
     end_date = Column(DateTime(timezone=True), nullable=True)
     
     # Collaboration metadata
-    metadata = Column(JSON, nullable=True)
+    collaboration_metadata = Column(JSON, nullable=True)
     shared_resources = Column(JSON, nullable=True)  # List of resource IDs/types being shared
     collaboration_goals = Column(JSON, nullable=True)  # Goals and objectives
     success_metrics = Column(JSON, nullable=True)  # How to measure success
@@ -136,7 +136,7 @@ class CollaborationActivity(Base):
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
     
     # Metadata
-    metadata = Column(JSON, nullable=True)
+    activity_metadata = Column(JSON, nullable=True)
     attachments = Column(JSON, nullable=True)  # File attachments or links
     
     # Timeline

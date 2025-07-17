@@ -305,24 +305,48 @@ class ErrorLogger {
         });
       }
 
-      // Send to Sentry if configured (disabled for now due to optional dependency)
-      // TODO: Add Sentry integration when @sentry/nextjs is installed
-      // if (process.env.SENTRY_DSN && typeof window !== 'undefined') {
-      //   try {
-      //     const { captureException } = await import('@sentry/nextjs');
-      //     captureException(new Error(error.message), {
-      //       tags: { category: error.category, severity: error.severity, errorId: error.id },
-      //       extra: error.context,
-      //     });
-      //   } catch {
-      //     console.warn('[Error Logger] Sentry integration not available');
-      //   }
-      // }
+      // Send to Sentry if configured
+      if (process.env.SENTRY_DSN) {
+        try {
+          // Dynamic import to handle optional dependency
+          const Sentry = await import('@sentry/nextjs').catch(() => null);
+          if (Sentry) {
+            Sentry.captureException(new Error(error.message), {
+              tags: { 
+                category: error.category, 
+                severity: error.severity, 
+                errorId: error.id,
+                service: 'opssight-frontend'
+              },
+              extra: error.context,
+              level: this.mapSeverityToSentryLevel(error.severity),
+              fingerprint: [error.category, error.message],
+            });
+          }
+        } catch (sentryError) {
+          console.warn('[Error Logger] Sentry integration failed:', sentryError);
+        }
+      }
     }
 
     // Critical errors need immediate attention
     if (error.severity === ErrorSeverity.CRITICAL) {
       await this.sendCriticalAlert(error);
+    }
+  }
+
+  private mapSeverityToSentryLevel(severity: ErrorSeverity): 'error' | 'warning' | 'info' | 'fatal' {
+    switch (severity) {
+      case ErrorSeverity.CRITICAL:
+        return 'fatal';
+      case ErrorSeverity.HIGH:
+        return 'error';
+      case ErrorSeverity.MEDIUM:
+        return 'warning';
+      case ErrorSeverity.LOW:
+        return 'info';
+      default:
+        return 'error';
     }
   }
 

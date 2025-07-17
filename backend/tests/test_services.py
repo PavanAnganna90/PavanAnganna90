@@ -34,22 +34,22 @@ from app.models.alert import Alert, AlertStatus, AlertSeverity
 class TestUserService:
     """Test UserService functionality."""
 
-    def test_create_user(self, db_session):
+    @pytest.mark.asyncio
+    async def test_create_user(self, async_db_session_factory):
         """Test user creation through service."""
-        service = UserService(db_session)
+        async with async_db_session_factory() as session:
+            user_data = {
+                "github_id": 12345,
+                "username": "testuser",
+                "email": "test@example.com",
+                "full_name": "Test User",
+            }
 
-        user_data = {
-            "github_id": 12345,
-            "username": "testuser",
-            "email": "test@example.com",
-            "full_name": "Test User",
-        }
+            user = await UserService.create_user(session, user_data)
 
-        user = service.create_user(user_data)
-
-        assert user.id is not None
-        assert user.username == "testuser"
-        assert user.email == "test@example.com"
+            assert user.id is not None
+            assert user.username == "testuser"
+            assert user.email == "test@example.com"
 
     def test_get_user_by_github_id(self, db_session, sample_users):
         """Test retrieving user by GitHub ID."""

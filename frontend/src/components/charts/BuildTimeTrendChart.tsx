@@ -22,7 +22,7 @@ import {
   ReferenceLine,
   Dot
 } from 'recharts';
-import { format, subDays, startOfDay, parseISO } from 'date-fns';
+import { format, subDays, startOfDay, parseISO, startOfWeek, getWeek, getYear } from 'date-fns';
 import { useResponsive } from '../../hooks/useResponsive';
 
 // Types
@@ -46,6 +46,7 @@ interface Pipeline {
 interface TrendDataPoint {
   date: string;
   dateLabel: string;
+  weekLabel?: string;
   averageDuration: number;
   medianDuration: number;
   minDuration: number;
@@ -103,14 +104,14 @@ const BuildTimeTrendChart: React.FC<BuildTimeTrendChartProps> = ({
       }
     });
 
-    // Group runs by date
+    // Group runs by date or week
     const groupedData = new Map<string, Array<PipelineRun & { pipelineName: string }>>();
     
     allRuns.forEach(run => {
       const runDate = parseISO(run.finished_at!);
       const dateKey = granularity === 'daily' 
         ? format(startOfDay(runDate), 'yyyy-MM-dd')
-        : format(startOfDay(runDate), 'yyyy-MM-dd'); // TODO: Implement weekly grouping
+        : `${getYear(runDate)}-W${getWeek(runDate).toString().padStart(2, '0')}`;
       
       if (!groupedData.has(dateKey)) {
         groupedData.set(dateKey, []);
@@ -118,61 +119,133 @@ const BuildTimeTrendChart: React.FC<BuildTimeTrendChartProps> = ({
       groupedData.get(dateKey)!.push(run);
     });
 
-    // Calculate statistics for each date
+    // Calculate statistics for each period (daily or weekly)
     const trendPoints: TrendDataPoint[] = [];
     
-    for (let i = 0; i < timeRange; i++) {
-      const currentDate = subDays(endDate, timeRange - 1 - i);
-      const dateKey = format(startOfDay(currentDate), 'yyyy-MM-dd');
-      const runsForDate = groupedData.get(dateKey) || [];
-      
-      if (runsForDate.length > 0) {
-        const durations = runsForDate.map(run => run.duration_seconds!);
-        durations.sort((a, b) => a - b);
+    if (granularity === 'daily') {
+      // Daily grouping logic
+      for (let i = 0; i < timeRange; i++) {
+        const currentDate = subDays(endDate, timeRange - 1 - i);
+        const dateKey = format(startOfDay(currentDate), 'yyyy-MM-dd');
+        const runsForDate = groupedData.get(dateKey) || [];
         
-        const average = durations.reduce((sum, d) => sum + d, 0) / durations.length;
-        const median = durations[Math.floor(durations.length / 2)];
-        const min = durations[0];
-        const max = durations[durations.length - 1];
-        
-        // Detect outliers using IQR method
-        const q1 = durations[Math.floor(durations.length * 0.25)];
-        const q3 = durations[Math.floor(durations.length * 0.75)];
-        const iqr = q3 - q1;
-        const lowerBound = q1 - 1.5 * iqr;
-        const upperBound = q3 + 1.5 * iqr;
-        
-        const outliers = runsForDate
-          .filter(run => run.duration_seconds! < lowerBound || run.duration_seconds! > upperBound)
-          .map(run => ({
-            duration: run.duration_seconds!,
-            pipelineName: run.pipelineName,
-            runId: run.id
-          }));
+        if (runsForDate.length > 0) {
+          const durations = runsForDate.map(run => run.duration_seconds!);
+          durations.sort((a, b) => a - b);
+          
+          const average = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+          const median = durations[Math.floor(durations.length / 2)];
+          const min = durations[0];
+          const max = durations[durations.length - 1];
+          
+          // Detect outliers using IQR method
+          const q1 = durations[Math.floor(durations.length * 0.25)];
+          const q3 = durations[Math.floor(durations.length * 0.75)];
+          const iqr = q3 - q1;
+          const lowerBound = q1 - 1.5 * iqr;
+          const upperBound = q3 + 1.5 * iqr;
+          
+          const outliers = runsForDate
+            .filter(run => run.duration_seconds! < lowerBound || run.duration_seconds! > upperBound)
+            .map(run => ({
+              duration: run.duration_seconds!,
+              pipelineName: run.pipelineName,
+              runId: run.id
+            }));
 
-        trendPoints.push({
-          date: dateKey,
-          dateLabel: format(currentDate, isMobile ? 'MM/dd' : 'MMM dd'),
-          averageDuration: Math.round(average),
-          medianDuration: Math.round(median),
-          minDuration: min,
-          maxDuration: max,
-          runCount: runsForDate.length,
-          outliers
-        });
-      } else {
-        // Add empty data point to maintain continuity
-        trendPoints.push({
-          date: dateKey,
-          dateLabel: format(currentDate, isMobile ? 'MM/dd' : 'MMM dd'),
-          averageDuration: 0,
-          medianDuration: 0,
-          minDuration: 0,
-          maxDuration: 0,
-          runCount: 0,
-          outliers: []
-        });
+          trendPoints.push({
+            date: dateKey,
+            dateLabel: format(currentDate, isMobile ? 'MM/dd' : 'MMM dd'),
+            averageDuration: Math.round(average),
+            medianDuration: Math.round(median),
+            minDuration: min,
+            maxDuration: max,
+            runCount: runsForDate.length,
+            outliers
+          });
+        } else {
+          // Add empty data point to maintain continuity
+          trendPoints.push({
+            date: dateKey,
+            dateLabel: format(currentDate, isMobile ? 'MM/dd' : 'MMM dd'),
+            averageDuration: 0,
+            medianDuration: 0,
+            minDuration: 0,
+            maxDuration: 0,
+            runCount: 0,
+            outliers: []
+          });
+        }
       }
+    } else {
+      // Weekly grouping logic
+      const weeksToShow = Math.ceil(timeRange / 7);
+      const weekSet = new Set<string>();
+      
+      // Generate week keys for the time range
+      for (let i = 0; i < timeRange; i++) {
+        const currentDate = subDays(endDate, i);
+        const weekKey = `${getYear(currentDate)}-W${getWeek(currentDate).toString().padStart(2, '0')}`;
+        weekSet.add(weekKey);
+      }
+      
+      // Sort weeks chronologically
+      const sortedWeeks = Array.from(weekSet).sort();
+      
+      sortedWeeks.forEach(weekKey => {
+        const runsForWeek = groupedData.get(weekKey) || [];
+        const [year, weekNum] = weekKey.split('-W');
+        const weekStart = startOfWeek(new Date(parseInt(year), 0, 1 + (parseInt(weekNum) - 1) * 7));
+        
+        if (runsForWeek.length > 0) {
+          const durations = runsForWeek.map(run => run.duration_seconds!);
+          durations.sort((a, b) => a - b);
+          
+          const average = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+          const median = durations[Math.floor(durations.length / 2)];
+          const min = durations[0];
+          const max = durations[durations.length - 1];
+          
+          // Detect outliers using IQR method
+          const q1 = durations[Math.floor(durations.length * 0.25)];
+          const q3 = durations[Math.floor(durations.length * 0.75)];
+          const iqr = q3 - q1;
+          const lowerBound = q1 - 1.5 * iqr;
+          const upperBound = q3 + 1.5 * iqr;
+          
+          const outliers = runsForWeek
+            .filter(run => run.duration_seconds! < lowerBound || run.duration_seconds! > upperBound)
+            .map(run => ({
+              duration: run.duration_seconds!,
+              pipelineName: run.pipelineName,
+              runId: run.id
+            }));
+
+          trendPoints.push({
+            date: weekKey,
+            dateLabel: `Week ${weekNum}`,
+            weekLabel: format(weekStart, 'MMM dd'),
+            averageDuration: Math.round(average),
+            medianDuration: Math.round(median),
+            minDuration: min,
+            maxDuration: max,
+            runCount: runsForWeek.length,
+            outliers
+          });
+        } else {
+          trendPoints.push({
+            date: weekKey,
+            dateLabel: `Week ${weekNum}`,
+            weekLabel: format(weekStart, 'MMM dd'),
+            averageDuration: 0,
+            medianDuration: 0,
+            minDuration: 0,
+            maxDuration: 0,
+            runCount: 0,
+            outliers: []
+          });
+        }
+      });
     }
 
     return trendPoints;
@@ -222,7 +295,12 @@ const BuildTimeTrendChart: React.FC<BuildTimeTrendChartProps> = ({
       const data = payload[0].payload as TrendDataPoint;
       return (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
-          <p className="font-semibold text-gray-900 dark:text-white">{label}</p>
+          <div className="mb-2">
+            <p className="font-semibold text-gray-900 dark:text-white">{label}</p>
+            {granularity === 'weekly' && data.weekLabel && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">Starting {data.weekLabel}</p>
+            )}
+          </div>
           <div className="space-y-1 text-sm">
             <p className="text-blue-600 dark:text-blue-400">
               Average: {formatDuration(data.averageDuration)}
@@ -233,6 +311,11 @@ const BuildTimeTrendChart: React.FC<BuildTimeTrendChartProps> = ({
             <p className="text-gray-600 dark:text-gray-400">
               Runs: {data.runCount}
             </p>
+            {data.runCount > 0 && (
+              <p className="text-gray-600 dark:text-gray-400">
+                Range: {formatDuration(data.minDuration)} - {formatDuration(data.maxDuration)}
+              </p>
+            )}
             {data.outliers.length > 0 && (
               <p className="text-orange-600 dark:text-orange-400">
                 Outliers: {data.outliers.length}
@@ -276,7 +359,31 @@ const BuildTimeTrendChart: React.FC<BuildTimeTrendChartProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+        <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-0">
+          {/* Granularity selector */}
+          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-md p-1">
+            <button
+              onClick={() => setGranularity('daily')}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                granularity === 'daily'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Daily
+            </button>
+            <button
+              onClick={() => setGranularity('weekly')}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                granularity === 'weekly'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Weekly
+            </button>
+          </div>
+
           {/* Trend indicator */}
           <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
             overallStats.trend === 'improving' 

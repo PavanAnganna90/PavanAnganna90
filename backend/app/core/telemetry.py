@@ -10,25 +10,67 @@ import logging
 from typing import Dict, Optional, Any
 from contextlib import contextmanager
 
-from opentelemetry import trace, metrics, baggage
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.prometheus import PrometheusMetricReader
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from opentelemetry.propagate import set_global_textmap
-from opentelemetry.propagators.b3 import B3MultiFormat
-from opentelemetry.propagators.jaeger import JaegerPropagator
-from opentelemetry.propagators.composite import CompositePropagator
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.semconv.trace import SpanAttributes
-from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+try:
+    from opentelemetry import trace, metrics, baggage
+    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.exporter.prometheus import PrometheusMetricReader
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+    from opentelemetry.instrumentation.redis import RedisInstrumentor
+    from opentelemetry.instrumentation.requests import RequestsInstrumentor
+    from opentelemetry.propagate import set_global_textmap
+    from opentelemetry.propagators.b3 import B3MultiFormat
+    from opentelemetry.propagators.jaeger import JaegerPropagator
+    from opentelemetry.propagators.composite import CompositePropagator
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.semconv.trace import SpanAttributes
+    from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+    TELEMETRY_AVAILABLE = True
+except ImportError:
+    TELEMETRY_AVAILABLE = False
+    # Create dummy classes for when telemetry is not available
+    class DummySpan:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def set_attribute(self, key, value):
+            pass
+        def add_event(self, name, attributes=None):
+            pass
+        def record_exception(self, exception):
+            pass
+        def set_status(self, status):
+            pass
+    
+    class DummyTracer:
+        def start_span(self, name, **kwargs):
+            return DummySpan()
+        def start_as_current_span(self, name, **kwargs):
+            return DummySpan()
+    
+    class DummyMeter:
+        def create_counter(self, name, **kwargs):
+            return lambda **kwargs: None
+        def create_histogram(self, name, **kwargs):
+            return lambda **kwargs: None
+        def create_gauge(self, name, **kwargs):
+            return lambda **kwargs: None
+    
+    class DummyResource:
+        @staticmethod
+        def create(attributes):
+            return DummyResource()
+    
+    # Set dummy implementations
+    Resource = DummyResource
+    SERVICE_NAME = "service.name"
+    SERVICE_VERSION = "service.version"
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +114,13 @@ class TelemetryManager:
         """Initialize OpenTelemetry tracing and metrics."""
         if self._initialized:
             logger.warning("Telemetry already initialized")
+            return True
+        
+        if not TELEMETRY_AVAILABLE:
+            logger.info("OpenTelemetry not available - using dummy implementation")
+            self.tracer = DummyTracer()
+            self.meter = DummyMeter()
+            self._initialized = True
             return True
         
         try:

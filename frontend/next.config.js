@@ -27,12 +27,61 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   
+  // External packages that should not be bundled
+  serverExternalPackages: ['@prisma/client', 'bcryptjs'],
+  
   // Experimental features for performance
   experimental: {
     webpackBuildWorker: true,
     optimizeCss: true,
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', 'recharts'],
-    turbopack: true,
+  },
+
+  // Performance optimizations (swcMinify is enabled by default in Next.js 15)
+  compress: true,
+  
+  // Bundle optimization
+  webpack: (config, { dev, isServer }) => {
+    // Enable tree shaking
+    config.optimization.usedExports = true;
+    
+    // Code splitting optimizations
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+            reuseExistingChunk: true,
+          },
+          common: {
+            minChunks: 2,
+            priority: 5,
+            reuseExistingChunk: true,
+          },
+          recharts: {
+            test: /[\\/]node_modules[\\/]recharts[\\/]/,
+            name: 'recharts',
+            priority: 20,
+          },
+          radix: {
+            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+            name: 'radix',
+            priority: 20,
+          },
+        },
+      };
+    }
+    
+    // Alias for better tree shaking
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    };
+    
+    return config;
   },
   
   // Image optimization

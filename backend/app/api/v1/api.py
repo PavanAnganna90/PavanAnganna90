@@ -26,6 +26,8 @@ from app.api.v1.endpoints import (
     push_tokens,
     cache,
     monitoring,
+    errors,
+    analytics,
 )
 from app.api.v1 import webhooks
 
@@ -78,4 +80,6 @@ api_router.include_router(audit_log.router)
 api_router.include_router(audit.router, prefix="/audit", tags=["Audit Logs"])
 api_router.include_router(cache.router, prefix="/cache", tags=["Cache Management"])
 api_router.include_router(monitoring.router, prefix="/monitoring", tags=["Monitoring & Observability"])
+api_router.include_router(errors.router, tags=["Error Tracking"])
+api_router.include_router(analytics.router, tags=["Analytics"])
 api_router.include_router(infrastructure.router)

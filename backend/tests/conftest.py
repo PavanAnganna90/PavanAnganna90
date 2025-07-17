@@ -83,6 +83,18 @@ def async_db_session_factory():
     return _session
 
 
+@pytest.fixture(scope="function")
+def db_session(engine):
+    """Create a synchronous database session for testing."""
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()
+
+
 @pytest_asyncio.fixture
 async def sample_users(async_db_session_factory):
     """Create sample users for testing."""

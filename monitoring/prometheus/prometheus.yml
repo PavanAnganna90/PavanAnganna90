@@ -1,83 +1,130 @@
-# Global settings for Prometheus
-# Reason: Define core behavior and intervals
+# =============================================================================
+# Prometheus Configuration for OpsSight Platform
+# =============================================================================
+# Production-ready monitoring configuration with service discovery
+# =============================================================================
+
 global:
-  scrape_interval: 15s     # How frequently to scrape targets
-  evaluation_interval: 15s  # How frequently to evaluate rules
-  scrape_timeout: 10s      # Timeout for scrape requests
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'opssight-production'
+    environment: 'production'
 
-# Scrape configurations
-# Reason: Define what metrics to collect and from where
-scrape_configs:
-  # Backend API metrics
-  # Reason: Monitor application performance and health
-  - job_name: 'backend'
-    metrics_path: '/api/v1/metrics'
-    scrape_interval: 10s  # More frequent for critical service
-    scrape_timeout: 5s    # Shorter timeout for responsiveness
-    scheme: 'http'
-    static_configs:
-      - targets: ['backend:9090']  # Updated to new metrics port
-        labels:
-          service: 'api'
-          environment: 'development'
-    metric_relabel_configs:
-      - source_labels: [__name__]
-        regex: 'python_gc_.*'
-        action: drop
-      - source_labels: [__name__]
-        regex: 'python_info'
-        action: keep
-      - source_labels: [__name__]
-        regex: 'process_.*'
-        action: keep
-      - source_labels: [__name__]
-        regex: 'http_.*'
-        action: keep
-
-  # Backend process metrics
-  # Reason: Monitor application resource usage
-  - job_name: 'backend-process'
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-    static_configs:
-      - targets: ['backend:9090']
-        labels:
-          service: 'api-process'
-          environment: 'development'
-
-  # Prometheus self-monitoring
-  # Reason: Monitor the monitoring system itself
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-  # Node metrics for host-level monitoring
-  # Reason: Monitor system resources and health
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter:9100']
-    scrape_interval: 30s  # Less frequent for system metrics
-
-  # Frontend metrics (via Next.js custom metrics)
-  # Reason: Monitor client-side performance
-  - job_name: 'frontend'
-    static_configs:
-      - targets: ['frontend:3000']
-    metrics_path: '/_next/metrics'
-    scheme: 'http'
-
-# Alerting configuration
-# Reason: Define where to send alerts
+# Alertmanager configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          - 'alertmanager:9093'
-    # Reason: Ensure alerts are reliable
-    timeout: 10s
-    scheme: 'http'
+          - alertmanager:9093
 
-# Rules configuration
-# Reason: Define alerting and recording rules
-rule_files:
-  - 'rules/*.yml'  # Load all rule files from rules directory 
+# Load alerting rules (disabled for local development)
+# rule_files:
+#   - "alert_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # OpsSight Backend API
+  - job_name: 'opssight-backend'
+    static_configs:
+      - targets: ['backend:8000']
+    scrape_interval: 15s
+    metrics_path: /api/v1/metrics
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # OpsSight Frontend (if metrics enabled)
+  - job_name: 'opssight-frontend'
+    static_configs:
+      - targets: ['frontend:3000']
+    scrape_interval: 30s
+    metrics_path: /api/metrics
+    scrape_timeout: 10s
+
+  # PostgreSQL Database
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Nginx Reverse Proxy
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # cAdvisor (Container Metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # Blackbox Exporter (External Monitoring)
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://your-domain.com
+        - https://your-domain.com/api/v1/health
+        - https://your-domain.com/api/v1/metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Alertmanager
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+    scrape_interval: 30s
+
+# Storage configuration is handled via command line arguments
+# See docker-compose.yml for --storage.tsdb.path and --storage.tsdb.retention.time
+
+# Remote write configuration (for long-term storage)
+# remote_write:
+#   - url: "https://your-remote-storage/api/v1/write"
+#     basic_auth:
+#       username: "username"
+#       password: "password"
+
+# Remote read configuration
+# remote_read:
+#   - url: "https://your-remote-storage/api/v1/read"
+#     basic_auth:
+#       username: "username"
+#       password: "password"

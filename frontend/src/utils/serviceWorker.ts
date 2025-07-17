@@ -1,15 +1,14 @@
 /**
  * Service Worker Registration and Management
- * 
+ *
  * Handles service worker registration, updates, and communication
  */
 
 const isLocalhost = Boolean(
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '[::1]' ||
-  window.location.hostname.match(
-    /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-  )
+  typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '[::1]' ||
+      window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/))
 );
 
 export interface ServiceWorkerConfig {
@@ -25,7 +24,7 @@ export interface ServiceWorkerConfig {
 export function registerServiceWorker(config: ServiceWorkerConfig = {}) {
   if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
     const publicUrl = new URL(process.env.PUBLIC_URL || '', window.location.href);
-    
+
     if (publicUrl.origin !== window.location.origin) {
       return;
     }
@@ -36,9 +35,7 @@ export function registerServiceWorker(config: ServiceWorkerConfig = {}) {
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
         navigator.serviceWorker.ready.then(() => {
-          console.log(
-            'This web app is being served cache-first by a service worker.'
-          );
+          console.log('This web app is being served cache-first by a service worker.');
         });
       } else {
         registerValidServiceWorker(swUrl, config);
@@ -66,13 +63,13 @@ function registerValidServiceWorker(swUrl: string, config: ServiceWorkerConfig) 
     .register(swUrl)
     .then((registration) => {
       console.log('Service Worker registered successfully');
-      
+
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
           return;
         }
-        
+
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
@@ -249,7 +246,7 @@ export async function clearAllCaches() {
   if ('caches' in window) {
     try {
       const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
       console.log('All caches cleared');
     } catch (error) {
       console.error('Failed to clear caches:', error);

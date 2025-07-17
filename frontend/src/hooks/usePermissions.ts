@@ -113,6 +113,7 @@ export function useNavigationPermissions() {
     canViewSettings: hasPermission('view_settings'),
     canViewAdmin: isAdmin(),
     canViewMonitoring: hasPermission('view_monitoring'),
+    canViewLogs: hasPermission('view_logs'),
     canViewReports: hasPermission('view_reports'),
     canViewAuditLogs: hasPermission('view_audit_logs'),
     isManagerOrAbove: hasAnyRole(['manager', 'devops_admin', 'organization_owner', 'super_admin']),

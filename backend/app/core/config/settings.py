@@ -5,9 +5,9 @@ This module uses Pydantic's BaseSettings for type-safe configuration
 management, loading values from environment variables.
 """
 
-from typing import List, Union
+from typing import List
 from pydantic_settings import BaseSettings
-from pydantic import PostgresDsn, RedisDsn, HttpUrl, validator, Field
+from pydantic import PostgresDsn, RedisDsn, HttpUrl, field_validator, Field
 import json
 import os
 
@@ -106,9 +106,7 @@ class Settings(BaseSettings):
     REDIS_URL: RedisDsn
 
     # Security Settings
-    CORS_ORIGINS: List[str] = Field(
-        default_factory=lambda: ["http://localhost:3000"]
-    )  # Default for local/test
+    CORS_ORIGINS: List[str] = ["http://localhost:3000"]  # Default for local/test
     CSRF_SECRET: str
 
     # API Settings
@@ -132,7 +130,8 @@ class Settings(BaseSettings):
     # New field
     ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
 
-    @validator("CORS_ORIGINS", pre=True)
+    @field_validator("CORS_ORIGINS", mode='before')
+    @classmethod
     def assemble_cors_origins(cls, v):
         print(f"[DEBUG] Raw CORS_ORIGINS from env: {os.environ.get('CORS_ORIGINS')}")
         if isinstance(v, str):

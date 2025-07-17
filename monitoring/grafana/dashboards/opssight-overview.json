@@ -1,0 +1,17 @@
+{
+  "dashboard": {
+    "title": "OpsSight Platform Overview",
+    "panels": [
+      {
+        "title": "API Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "http_request_duration_seconds",
+            "legendFormat": "{{ method }} {{ handler }}"
+          }
+        ]
+      }
+    ]
+  }
+}

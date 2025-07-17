@@ -8,6 +8,7 @@ import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ServiceWorkerProvider } from '@/components/providers/ServiceWorkerProvider';
 import { SecurityProvider } from '@/components/providers/SecurityProvider';
 import { MonitoringProvider } from '@/components/providers/MonitoringProvider';
+import { TouchGestureProvider } from '@/components/touch';
 import Navigation from '../components/Navigation';
 import CommandPalette from '../components/CommandPalette';
 
@@ -17,14 +18,34 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "OpsSight - DevOps Visibility Platform",
   description: "Monitor and manage your DevOps workflows with ease",
-  // Add more metadata for better SEO
   keywords: "DevOps, monitoring, infrastructure, kubernetes, CI/CD",
   authors: [{ name: "OpsSight Team" }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "OpsSight",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#007ACC',
 };
 
 /**
@@ -41,6 +62,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="color-scheme" content="light dark" />
         <meta name="csrf-token" content="generated-by-security-provider" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className={`${inter.className} h-full bg-gray-50 dark:bg-gray-900`}>
         <QueryProvider>
@@ -50,13 +75,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ThemeProvider>
                   <ToastProvider>
                     <ServiceWorkerProvider>
-                      <div className="min-h-full">
-                        <Navigation />
-                        <main className="bg-gray-50 dark:bg-gray-900">
-                          {children}
-                        </main>
-                        <CommandPalette />
-                      </div>
+                      <TouchGestureProvider 
+                        initialConfig={{
+                          enableSwipeNavigation: true,
+                          enablePinchZoom: true,
+                          enablePullToRefresh: true,
+                          enableHapticFeedback: true,
+                        }}
+                      >
+                        <div className="min-h-full">
+                          <Navigation />
+                          <main className="bg-gray-50 dark:bg-gray-900">
+                            {children}
+                          </main>
+                          <CommandPalette />
+                        </div>
+                      </TouchGestureProvider>
                     </ServiceWorkerProvider>
                   </ToastProvider>
                 </ThemeProvider>

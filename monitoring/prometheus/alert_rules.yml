@@ -1,0 +1,353 @@
+# =============================================================================
+# OpsSight Platform - Prometheus Alert Rules
+# =============================================================================
+# Production-ready alerting rules for infrastructure and application monitoring
+# =============================================================================
+
+groups:
+  # =============================================================================
+  # Infrastructure Alerts
+  # =============================================================================
+  - name: infrastructure.rules
+    rules:
+      # Instance down alerts
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
+          runbook_url: "https://docs.opssight.com/runbooks/instance-down"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for more than 5 minutes. Current value: {{ $value }}%"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% for more than 5 minutes. Current value: {{ $value }}%"
+
+      # High disk usage
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage on {{ $labels.device }} is above 85%. Current value: {{ $value }}%"
+
+      # Critical disk usage
+      - alert: CriticalDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 95
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Critical disk usage on {{ $labels.instance }}"
+          description: "Disk usage on {{ $labels.device }} is above 95%. Current value: {{ $value }}%"
+
+  # =============================================================================
+  # Application Alerts
+  # =============================================================================
+  - name: application.rules
+    rules:
+      # Backend API health
+      - alert: BackendAPIDown
+        expr: up{job="opssight-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: application
+          service: backend
+        annotations:
+          summary: "OpsSight Backend API is down"
+          description: "The OpsSight Backend API has been unreachable for more than 1 minute."
+          runbook_url: "https://docs.opssight.com/runbooks/backend-down"
+
+      # Frontend application health
+      - alert: FrontendDown
+        expr: up{job="opssight-frontend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: application
+          service: frontend
+        annotations:
+          summary: "OpsSight Frontend is down"
+          description: "The OpsSight Frontend application has been unreachable for more than 2 minutes."
+
+      # High API response time
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="opssight-backend"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+          service: backend
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile API response time is above 1 second for more than 5 minutes. Current value: {{ $value }}s"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="opssight-backend",status=~"5.."}[5m]) / rate(http_requests_total{job="opssight-backend"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+          service: backend
+        annotations:
+          summary: "High error rate in backend API"
+          description: "Error rate is above 5% for more than 5 minutes. Current value: {{ $value | humanizePercentage }}"
+
+      # Critical error rate
+      - alert: CriticalErrorRate
+        expr: rate(http_requests_total{job="opssight-backend",status=~"5.."}[5m]) / rate(http_requests_total{job="opssight-backend"}[5m]) > 0.20
+        for: 2m
+        labels:
+          severity: critical
+          category: application
+          service: backend
+        annotations:
+          summary: "Critical error rate in backend API"
+          description: "Error rate is above 20% for more than 2 minutes. Current value: {{ $value | humanizePercentage }}"
+
+  # =============================================================================
+  # Database Alerts
+  # =============================================================================
+  - name: database.rules
+    rules:
+      # PostgreSQL down
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been unreachable for more than 1 minute."
+          runbook_url: "https://docs.opssight.com/runbooks/postgresql-down"
+
+      # High database connections
+      - alert: HighDatabaseConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections{setting="max_connections"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          service: postgresql
+        annotations:
+          summary: "High number of database connections"
+          description: "Database connections are above 80% of the maximum. Current: {{ $value | humanizePercentage }}"
+
+      # Long running queries
+      - alert: LongRunningQueries
+        expr: max(pg_stat_activity_max_tx_duration{state="active"}) > 300
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          service: postgresql
+        annotations:
+          summary: "Long running database queries detected"
+          description: "There are queries running for more than 5 minutes. Longest query: {{ $value }}s"
+
+      # Database replication lag
+      - alert: DatabaseReplicationLag
+        expr: pg_stat_replication_pg_wal_lsn_diff > 16777216  # 16MB
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          service: postgresql
+        annotations:
+          summary: "High database replication lag"
+          description: "Replication lag is above 16MB. Current lag: {{ $value | humanizeBytes }}"
+
+  # =============================================================================
+  # Cache Alerts
+  # =============================================================================
+  - name: cache.rules
+    rules:
+      # Redis down
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: cache
+          service: redis
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis cache has been unreachable for more than 1 minute."
+
+      # High Redis memory usage
+      - alert: HighRedisMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+          service: redis
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is above 90%. Current: {{ $value | humanizePercentage }}"
+
+      # Redis connection failures
+      - alert: RedisConnectionFailures
+        expr: increase(redis_rejected_connections_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+          category: cache
+          service: redis
+        annotations:
+          summary: "Redis connection failures detected"
+          description: "{{ $value }} Redis connections were rejected in the last 5 minutes."
+
+  # =============================================================================
+  # Container Alerts
+  # =============================================================================
+  - name: container.rules
+    rules:
+      # Container down
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name=~"opssight.*"})
+        for: 1m
+        labels:
+          severity: critical
+          category: container
+        annotations:
+          summary: "Container {{ $labels.name }} is down"
+          description: "Container {{ $labels.name }} has been down for more than 1 minute."
+
+      # High container CPU usage
+      - alert: HighContainerCPU
+        expr: rate(container_cpu_usage_seconds_total{name=~"opssight.*"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: container
+        annotations:
+          summary: "High CPU usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} CPU usage is above 80%. Current: {{ $value }}%"
+
+      # High container memory usage
+      - alert: HighContainerMemory
+        expr: container_memory_usage_bytes{name=~"opssight.*"} / container_spec_memory_limit_bytes{name=~"opssight.*"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: container
+        annotations:
+          summary: "High memory usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} memory usage is above 90%. Current: {{ $value | humanizePercentage }}"
+
+      # Container restart
+      - alert: ContainerRestart
+        expr: increase(container_start_time_seconds{name=~"opssight.*"}[10m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          category: container
+        annotations:
+          summary: "Container {{ $labels.name }} restarted"
+          description: "Container {{ $labels.name }} has restarted {{ $value }} times in the last 10 minutes."
+
+  # =============================================================================
+  # External Monitoring Alerts
+  # =============================================================================
+  - name: external.rules
+    rules:
+      # Website down
+      - alert: WebsiteDown
+        expr: probe_success{job="blackbox"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: external
+        annotations:
+          summary: "Website {{ $labels.instance }} is down"
+          description: "Website {{ $labels.instance }} has been unreachable for more than 1 minute."
+
+      # High website response time
+      - alert: HighWebsiteResponseTime
+        expr: probe_duration_seconds{job="blackbox"} > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: external
+        annotations:
+          summary: "High response time for {{ $labels.instance }}"
+          description: "Website {{ $labels.instance }} response time is above 5 seconds. Current: {{ $value }}s"
+
+      # SSL certificate expiry
+      - alert: SSLCertificateExpiry
+        expr: probe_ssl_earliest_cert_expiry{job="blackbox"} - time() < 86400 * 7  # 7 days
+        for: 1h
+        labels:
+          severity: warning
+          category: external
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."
+
+  # =============================================================================
+  # Security Alerts
+  # =============================================================================
+  - name: security.rules
+    rules:
+      # High authentication failures
+      - alert: HighAuthFailures
+        expr: increase(auth_failures_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High number of authentication failures"
+          description: "{{ $value }} authentication failures in the last 5 minutes."
+
+      # Suspicious user activity
+      - alert: SuspiciousUserActivity
+        expr: increase(suspicious_activity_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Suspicious user activity detected"
+          description: "{{ $value }} suspicious activities detected in the last 10 minutes."
+
+      # Rate limit breaches
+      - alert: RateLimitBreach
+        expr: increase(rate_limit_exceeded_total[5m]) > 50
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High number of rate limit breaches"
+          description: "{{ $value }} rate limit breaches in the last 5 minutes."

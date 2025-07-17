@@ -3,7 +3,8 @@ Configuration settings for the application
 """
 import os
 from typing import Optional, List
-from pydantic import BaseSettings, Field, validator
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -100,7 +101,8 @@ class Settings(BaseSettings):
     # Domain Restrictions
     ALLOWED_EMAIL_DOMAINS: Optional[List[str]] = None
     
-    @validator('ALLOWED_EMAIL_DOMAINS', pre=True)
+    @field_validator('ALLOWED_EMAIL_DOMAINS', mode='before')
+    @classmethod
     def parse_allowed_domains(cls, v):
         if isinstance(v, str):
             return [domain.strip() for domain in v.split(',') if domain.strip()]

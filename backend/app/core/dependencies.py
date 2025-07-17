@@ -123,6 +123,53 @@ async def get_current_user(
         raise credentials_exception
 
 
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    db: AsyncSession = Depends(get_async_db),
+):
+    """
+    Get the current authenticated user from JWT token (optional).
+    
+    Returns None if no token is provided or token is invalid.
+    Useful for endpoints that work both with and without authentication.
+
+    Args:
+        credentials: HTTP Bearer token credentials (optional)
+        db: Database session
+
+    Returns:
+        User or None: The authenticated user object or None
+    """
+    if credentials is None:
+        return None
+        
+    try:
+        # Import here to avoid circular imports
+        from app.models.user import User
+        from app.repositories.user import UserRepository
+
+        # Verify JWT token and extract payload
+        payload = verify_token(credentials.credentials)
+        user_id = payload.get("sub")
+        
+        if user_id is None:
+            return None
+
+        # Look up user in database
+        user_repository = UserRepository(db)
+        user = await user_repository.get_by_id(int(user_id))
+        
+        if user is None or not user.is_active:
+            return None
+
+        return user
+
+    except Exception as e:
+        # Log but don't raise exception for optional auth
+        logger.debug(f"Optional authentication failed: {e}")
+        return None
+
+
 # Type alias for current user dependency
 CurrentUserDep = Annotated[object, Depends(get_current_user)]
 

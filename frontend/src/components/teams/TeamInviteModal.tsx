@@ -143,11 +143,20 @@ export const TeamInviteModal: React.FC<TeamInviteModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="invite-modal-title"
+      aria-describedby="invite-modal-description"
+    >
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h2 
+            id="invite-modal-title"
+            className="text-lg font-semibold text-gray-900 dark:text-white"
+          >
             Invite to {teamName}
           </h2>
           <button
@@ -155,6 +164,7 @@ export const TeamInviteModal: React.FC<TeamInviteModalProps> = ({
             disabled={submitting}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 
                      disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Close invitation modal"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -164,9 +174,16 @@ export const TeamInviteModal: React.FC<TeamInviteModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
+          <p id="invite-modal-description" className="sr-only">
+            Send an invitation to join the {teamName} team. Fill in the email address and select a role for the new member.
+          </p>
           {/* General Error */}
           {errors.general && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+            <div 
+              className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md"
+              role="alert"
+              aria-live="polite"
+            >
               <p className="text-sm text-red-600 dark:text-red-400">{errors.general}</p>
             </div>
           )}
@@ -192,9 +209,13 @@ export const TeamInviteModal: React.FC<TeamInviteModalProps> = ({
                        }`}
               placeholder="Enter email address"
               required
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              <p id="email-error" className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
+                {errors.email}
+              </p>
             )}
           </div>
 
@@ -217,6 +238,8 @@ export const TeamInviteModal: React.FC<TeamInviteModalProps> = ({
                          : 'border-gray-300 dark:border-gray-600'
                        }`}
               required
+              aria-invalid={!!errors.role}
+              aria-describedby={errors.role ? 'role-error' : 'role-description'}
             >
               {availableRoles.map((role) => (
                 <option key={role} value={role}>
@@ -225,12 +248,14 @@ export const TeamInviteModal: React.FC<TeamInviteModalProps> = ({
               ))}
             </select>
             {formData.role && (
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p id="role-description" className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {getRoleDescription(formData.role)}
               </p>
             )}
             {errors.role && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.role}</p>
+              <p id="role-error" className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
+                {errors.role}
+              </p>
             )}
           </div>
 
@@ -250,7 +275,11 @@ export const TeamInviteModal: React.FC<TeamInviteModalProps> = ({
                        disabled:opacity-50 disabled:cursor-not-allowed
                        focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Add a personal message to the invitation..."
+              aria-describedby="message-help"
             />
+            <p id="message-help" className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              This message will be included in the invitation email (optional)
+            </p>
           </div>
 
           {/* Actions */}

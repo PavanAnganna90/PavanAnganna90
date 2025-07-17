@@ -9,7 +9,10 @@ import asyncio
 import json
 import gzip
 import time
-import aiofiles
+try:
+    import aiofiles
+except ImportError:
+    aiofiles = None
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Callable, Union
 from dataclasses import dataclass, asdict

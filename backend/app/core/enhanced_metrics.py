@@ -636,7 +636,22 @@ class EnhancedMetricsCollector:
 
 
 # Global enhanced metrics collector
-enhanced_metrics = EnhancedMetricsCollector()
+_enhanced_metrics_instance = None
+
+def _get_or_create_enhanced_metrics():
+    """Get or create the singleton enhanced metrics collector."""
+    global _enhanced_metrics_instance
+    if _enhanced_metrics_instance is None:
+        try:
+            _enhanced_metrics_instance = EnhancedMetricsCollector()
+        except ValueError as e:
+            # Registry already exists, create with new registry
+            from prometheus_client import CollectorRegistry
+            new_registry = CollectorRegistry()
+            _enhanced_metrics_instance = EnhancedMetricsCollector(registry=new_registry)
+    return _enhanced_metrics_instance
+
+enhanced_metrics = _get_or_create_enhanced_metrics()
 
 
 def get_enhanced_metrics() -> EnhancedMetricsCollector:

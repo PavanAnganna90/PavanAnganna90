@@ -5,14 +5,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useNavigationPermissions } from '../hooks/usePermissions';
 import { PermissionGuard } from './rbac/PermissionGuard';
+import RealTimeIndicator from './realtime/RealTimeIndicator';
+import NotificationCenter from './realtime/NotificationCenter';
+import { useRealTimeNotifications } from '../hooks/useRealTimeData';
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const pathname = usePathname();
   const navPerms = useNavigationPermissions();
+  const { unreadCount } = useRealTimeNotifications();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,6 +112,16 @@ export default function Navigation() {
       ) 
     },
     { 
+      href: '/collaboration', 
+      label: 'Collaboration',
+      show: navPerms.canViewTeams,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      ) 
+    },
+    { 
       href: '/teams', 
       label: 'Teams',
       show: navPerms.canViewTeams,
@@ -134,6 +149,26 @@ export default function Navigation() {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ) 
+    },
+    { 
+      href: '/cost-analytics', 
+      label: 'Cost Analytics',
+      show: navPerms.canViewReports,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ) 
+    },
+    { 
+      href: '/logs', 
+      label: 'Logs',
+      show: navPerms.canViewLogs,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       ) 
     },
@@ -173,13 +208,22 @@ export default function Navigation() {
             ? 'bg-slate-900/95 backdrop-blur-md border-b border-slate-700/50 shadow-lg' 
             : 'bg-transparent'
         }`}
+        role="navigation"
+        aria-label="Main navigation"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             
             {/* Left: Minimal Logo */}
-            <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+            <Link 
+              href="/" 
+              className="flex items-center space-x-2 sm:space-x-3 group"
+              aria-label="OpsSight home page"
+            >
+              <div 
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
+                aria-hidden="true"
+              >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -190,7 +234,7 @@ export default function Navigation() {
             </Link>
 
             {/* Center: Navigation Items - Hidden on mobile */}
-            <div className="hidden lg:flex items-center space-x-1">
+            <div className="hidden lg:flex items-center space-x-1" role="menubar">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -202,6 +246,9 @@ export default function Navigation() {
                       ? 'text-white bg-slate-800/80'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
                   }`}
+                  role="menuitem"
+                  aria-current={isActive(item.href) ? 'page' : undefined}
+                  aria-label={`Navigate to ${item.label} page`}
                 >
                   <div className="group-hover:scale-110 transition-transform duration-200">
                     {item.icon}
@@ -218,28 +265,51 @@ export default function Navigation() {
             <div className="flex items-center space-x-2 sm:space-x-4">
               
               {/* Theme Toggle */}
-              <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation">
+              <button 
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation"
+                aria-label="Toggle dark mode"
+                type="button"
+              >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                 </svg>
               </button>
 
-              {/* Alerts - Ambient Alert Style - Hidden on small mobile */}
+              {/* Real-time Status Indicator */}
+              <div className="hidden sm:block">
+                <RealTimeIndicator className="mr-2" />
+              </div>
+
+              {/* Notifications - Real-time Notifications */}
               <PermissionGuard permission="view_alerts">
-                <button className="hidden xs:block relative p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation">
+                <button 
+                  onClick={() => setIsNotificationCenterOpen(true)}
+                  className="hidden xs:block relative p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation"
+                  aria-label={`Open notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                  type="button"
+                >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM12 17h-5l5 5v-5zM12 1V6m0 0V1m0 5a5 5 0 100 10V6z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5V3a1 1 0 012 0v14z" />
                   </svg>
-                  {/* Animated badge with subtle pulse */}
-                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-amber-500 rounded-full animate-pulse">
-                    <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-75"></div>
-                  </div>
+                  {/* Notification badge */}
+                  {unreadCount > 0 && (
+                    <div 
+                      className="absolute -top-1 -right-1 min-w-[1.25rem] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1"
+                      aria-hidden="true"
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </div>
+                  )}
                 </button>
               </PermissionGuard>
 
               {/* Settings - Hidden on small mobile */}
               <PermissionGuard permission="view_settings">
-                <button className="hidden sm:block p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation">
+                <button 
+                  className="hidden sm:block p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation"
+                  aria-label="Open settings"
+                  type="button"
+                >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -248,7 +318,11 @@ export default function Navigation() {
               </PermissionGuard>
 
               {/* Profile/Logout - Hidden on small mobile */}
-              <button className="hidden sm:block p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 touch-manipulation">
+              <button 
+                className="hidden sm:block p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 touch-manipulation"
+                aria-label="Open user profile"
+                type="button"
+              >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -359,6 +433,12 @@ export default function Navigation() {
           </div>
         </div>
       </div>
+
+      {/* Notification Center */}
+      <NotificationCenter 
+        isOpen={isNotificationCenterOpen}
+        onClose={() => setIsNotificationCenterOpen(false)}
+      />
     </>
   );
 }

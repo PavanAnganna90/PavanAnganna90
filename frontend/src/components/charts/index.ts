@@ -31,6 +31,14 @@ export { default as GitActivityFilters } from './GitActivityFilters';
 export { default as GitActivityDashboard } from './GitActivityDashboard';
 export { default as GitActivityDetailView } from './GitActivityDetailView';
 
+// Basic Chart Components
+export { LineChart } from './LineChart';
+export { BarChart } from './BarChart';
+export { DonutChart } from './DonutChart';
+export { AreaChart } from './AreaChart';
+export { ProgressRing } from './ProgressRing';
+export { Sparkline } from './Sparkline';
+
 // Export types
 export type { ExecutionStatus } from './ExecutionProgressBar';
 export type { PipelineStage, PipelineJob, PipelineStep } from './PipelineGanttChart';

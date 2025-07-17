@@ -1,0 +1,298 @@
+# =============================================================================
+# OpsSight Platform - Alertmanager Configuration
+# =============================================================================
+# Production-ready alerting configuration with multiple notification channels
+# =============================================================================
+
+global:
+  # SMTP configuration for email alerts
+  smtp_smarthost: '${SMTP_HOST}:${SMTP_PORT}'
+  smtp_from: '${EMAIL_FROM}'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+# Templates for custom alert formatting
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route configuration
+route:
+  # Root route
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  
+  # Sub-routes for different alert types
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      group_interval: 5s
+      repeat_interval: 5m
+      routes:
+        # Database critical alerts
+        - match:
+            category: database
+          receiver: 'database-critical'
+        # Application critical alerts
+        - match:
+            category: application
+          receiver: 'application-critical'
+        # Security critical alerts
+        - match:
+            category: security
+          receiver: 'security-critical'
+    
+    # Warning alerts - less frequent notifications
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+    
+    # Infrastructure alerts
+    - match:
+        category: infrastructure
+      receiver: 'infrastructure-alerts'
+      group_wait: 30s
+      group_interval: 10m
+      repeat_interval: 4h
+    
+    # Database alerts
+    - match:
+        category: database
+      receiver: 'database-alerts'
+    
+    # Application alerts
+    - match:
+        category: application
+      receiver: 'application-alerts'
+    
+    # Security alerts
+    - match:
+        category: security
+      receiver: 'security-alerts'
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 15m
+
+# Inhibition rules - prevent spam during outages
+inhibit_rules:
+  # Inhibit any warning if the same alert is already critical
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+  
+  # Inhibit instance alerts if the entire job is down
+  - source_match:
+      alertname: 'InstanceDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['job']
+
+# Receivers configuration
+receivers:
+  # Default receiver
+  - name: 'default'
+    email_configs:
+      - to: '${ALERT_EMAIL_DEFAULT}'
+        subject: '[OpsSight] {{ .GroupLabels.alertname }} - {{ .Status | title }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Labels: {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts'
+        username: 'OpsSight Alertmanager'
+        icon_emoji: ':warning:'
+        title: '[{{ .Status | title }}] {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          {{ if .Labels.runbook_url }}*Runbook:* <{{ .Labels.runbook_url }}|View Runbook>{{ end }}
+          {{ end }}
+
+  # Critical alerts receiver
+  - name: 'critical-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_CRITICAL}'
+        subject: '[CRITICAL] OpsSight Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          🚨 CRITICAL ALERT 🚨
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Time: {{ .StartsAt }}
+          {{ if .Labels.runbook_url }}
+          Runbook: {{ .Labels.runbook_url }}
+          {{ end }}
+          Labels: {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#critical-alerts'
+        username: 'OpsSight Critical Alerts'
+        icon_emoji: ':rotating_light:'
+        color: 'danger'
+        title: '🚨 [CRITICAL] {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Time:* {{ .StartsAt }}
+          {{ if .Labels.runbook_url }}*Runbook:* <{{ .Labels.runbook_url }}|View Runbook>{{ end }}
+          {{ end }}
+    
+    # PagerDuty for critical alerts
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_INTEGRATION_KEY}'
+        description: '{{ .GroupLabels.alertname }}: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+
+  # Warning alerts receiver
+  - name: 'warning-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_WARNING}'
+        subject: '[WARNING] OpsSight Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          ⚠️ WARNING ALERT ⚠️
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts'
+        username: 'OpsSight Alerts'
+        icon_emoji: ':warning:'
+        color: 'warning'
+        title: '⚠️ [WARNING] {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # Infrastructure alerts
+  - name: 'infrastructure-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_INFRASTRUCTURE}'
+        subject: '[Infrastructure] OpsSight Alert: {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#infrastructure'
+        username: 'OpsSight Infrastructure'
+        icon_emoji: ':computer:'
+        title: '[Infrastructure] {{ .GroupLabels.alertname }}'
+
+  # Database alerts
+  - name: 'database-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_DATABASE}'
+        subject: '[Database] OpsSight Alert: {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database'
+        username: 'OpsSight Database'
+        icon_emoji: ':floppy_disk:'
+        title: '[Database] {{ .GroupLabels.alertname }}'
+
+  # Database critical alerts
+  - name: 'database-critical'
+    email_configs:
+      - to: '${ALERT_EMAIL_DATABASE_CRITICAL}'
+        subject: '[CRITICAL DATABASE] OpsSight Alert: {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database-critical'
+        username: 'OpsSight Database Critical'
+        icon_emoji: ':rotating_light:'
+        color: 'danger'
+        title: '🚨 [CRITICAL DATABASE] {{ .GroupLabels.alertname }}'
+    
+    # SMS for critical database alerts
+    webhook_configs:
+      - url: '${SMS_WEBHOOK_URL}'
+        send_resolved: false
+
+  # Application alerts
+  - name: 'application-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_APPLICATION}'
+        subject: '[Application] OpsSight Alert: {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#application'
+        username: 'OpsSight Application'
+        icon_emoji: ':gear:'
+        title: '[Application] {{ .GroupLabels.alertname }}'
+
+  # Application critical alerts
+  - name: 'application-critical'
+    email_configs:
+      - to: '${ALERT_EMAIL_APPLICATION_CRITICAL}'
+        subject: '[CRITICAL APPLICATION] OpsSight Alert: {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#application-critical'
+        username: 'OpsSight Application Critical'
+        icon_emoji: ':rotating_light:'
+        color: 'danger'
+        title: '🚨 [CRITICAL APPLICATION] {{ .GroupLabels.alertname }}'
+
+  # Security alerts
+  - name: 'security-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_SECURITY}'
+        subject: '[SECURITY] OpsSight Alert: {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security'
+        username: 'OpsSight Security'
+        icon_emoji: ':shield:'
+        color: 'danger'
+        title: '[SECURITY] {{ .GroupLabels.alertname }}'
+
+  # Security critical alerts
+  - name: 'security-critical'
+    email_configs:
+      - to: '${ALERT_EMAIL_SECURITY_CRITICAL}'
+        subject: '[CRITICAL SECURITY] OpsSight Alert: {{ .GroupLabels.alertname }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security-critical'
+        username: 'OpsSight Security Critical'
+        icon_emoji: ':rotating_light:'
+        color: 'danger'
+        title: '🚨 [CRITICAL SECURITY] {{ .GroupLabels.alertname }}'
+    
+    # Immediate notification for security incidents
+    webhook_configs:
+      - url: '${SECURITY_INCIDENT_WEBHOOK_URL}'
+        send_resolved: true

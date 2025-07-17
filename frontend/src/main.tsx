@@ -5,6 +5,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+// Note: Next.js handles routing differently, so this file might not be used in production
 import App from './App';
 
 /**

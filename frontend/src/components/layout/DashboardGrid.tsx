@@ -105,24 +105,24 @@ export function DashboardCard({
   accentSide = 'none'
 }: DashboardCardProps) {
   const variantClasses = {
-    default: 'bg-slate-800/40 border-slate-700/50',
-    accent: 'bg-slate-800/40 border-blue-500/30',
-    warning: 'bg-slate-800/40 border-amber-500/30',
-    success: 'bg-slate-800/40 border-emerald-500/30',
-    error: 'bg-slate-800/40 border-red-500/30'
+    default: 'bg-kassow-darker/80 border-gray-700/50',
+    accent: 'bg-kassow-darker/80 border-kassow-accent/50',
+    warning: 'bg-kassow-darker/80 border-amber-500/50',
+    success: 'bg-kassow-darker/80 border-emerald-500/50',
+    error: 'bg-kassow-darker/80 border-red-500/50'
   };
 
   const accentClasses = {
     left: {
       default: '',
-      accent: 'border-l-4 border-l-blue-500',
+      accent: 'border-l-4 border-l-kassow-accent',
       warning: 'border-l-4 border-l-amber-500',
       success: 'border-l-4 border-l-emerald-500',
       error: 'border-l-4 border-l-red-500'
     },
     top: {
       default: '',
-      accent: 'border-t-4 border-t-blue-500',
+      accent: 'border-t-4 border-t-kassow-accent',
       warning: 'border-t-4 border-t-amber-500',
       success: 'border-t-4 border-t-emerald-500',
       error: 'border-t-4 border-t-red-500'
@@ -137,7 +137,7 @@ export function DashboardCard({
   };
 
   const hoverClasses = hoverable 
-    ? 'hover:bg-slate-800/60 hover:border-slate-600/50 md:hover:scale-105 transition-all duration-300 transform cursor-pointer active:scale-95'
+    ? 'hover:bg-kassow-darker hover:border-gray-600/50 md:hover:scale-[1.01] transition-all duration-300 transform cursor-pointer active:scale-95'
     : '';
 
   return (
@@ -203,7 +203,7 @@ export function MetricWidget({
         </div>
       </div>
       
-      <h3 className="text-white font-medium mb-2 text-sm md:text-base truncate">{name}</h3>
+      <h3 className="text-kassow-light font-semibold mb-2 text-sm md:text-base truncate tracking-wide">{name}</h3>
       
       {/* Responsive progress ring layout */}
       <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-3">

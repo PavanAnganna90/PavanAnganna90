@@ -222,6 +222,15 @@ class JWTTokenClaims(BaseModel):
     aud: str = Field(default="opssight-api", description="Token audience")
 
 
+class SSOLoginRequest(BaseModel):
+    """SSO login request."""
+    provider: str = Field(..., description="SSO provider name")
+    redirect_url: Optional[str] = Field(default=None, description="Redirect URL after login")
+    state: Optional[str] = Field(default=None, description="State parameter for OAuth flow")
+    code: Optional[str] = Field(default=None, description="Authorization code for OAuth flow")
+    saml_response: Optional[str] = Field(default=None, description="SAML response for SAML flow")
+
+
 class SSOLoginResponse(BaseModel):
     """SSO login response."""
     success: bool = Field(..., description="Whether login was successful")

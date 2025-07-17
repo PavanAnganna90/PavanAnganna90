@@ -557,3 +557,7 @@ async def close_cache_manager():
     if _cache_manager_instance:
         await _cache_manager_instance.redis_cache.disconnect()
         _cache_manager_instance = None
+
+
+# Alias for backward compatibility
+CacheService = EnhancedCacheManager

@@ -6,11 +6,12 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { TeamMember, TeamRole, Team } from '@/types/team';
+import { TeamMember, TeamRole, Team, TeamInvitationRequest } from '@/types/team';
 import { teamApi } from '@/services/teamApi';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
+import { TeamInviteModal } from './TeamInviteModal';
 
 interface TeamMembersListProps {
   team: Team;
@@ -44,6 +45,7 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<{[key: number]: boolean}>({});
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   /**
    * Fetch team members
@@ -95,6 +97,29 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
       alert(message); // Simple error display - could be improved with toast notifications
     } finally {
       setActionLoading(prev => ({ ...prev, [member.user_id]: false }));
+    }
+  };
+
+  /**
+   * Handle team invitation
+   */
+  const handleInviteMember = async (invitation: TeamInvitationRequest) => {
+    try {
+      setInviteLoading(true);
+      const newMember = await teamApi.inviteTeamMember(team.id, invitation);
+      
+      // If the invitation returns a member object, add it to the list
+      if (newMember) {
+        setMembers(prev => [...prev, newMember]);
+        onMemberAdded?.(newMember);
+      }
+      
+      setShowInviteModal(false);
+    } catch (err) {
+      // Re-throw error to let the modal handle it
+      throw err;
+    } finally {
+      setInviteLoading(false);
     }
   };
 
@@ -349,25 +374,15 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
         </div>
       )}
 
-      {/* TODO: Add InviteModal component */}
-      {showInviteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium mb-4">Invite Team Member</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Invite modal implementation needed here.
-            </p>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowInviteModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => setShowInviteModal(false)}>
-                Send Invite
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Team Invite Modal */}
+      <TeamInviteModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        onInvite={handleInviteMember}
+        teamName={team.name}
+        availableRoles={[TeamRole.VIEWER, TeamRole.MEMBER, TeamRole.ADMIN]}
+        loading={inviteLoading}
+      />
     </div>
   );
 }; 

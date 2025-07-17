@@ -20,6 +20,38 @@ const API_BASE_URL = __DEV__
   ? 'http://localhost:8000/api/v1'
   : 'https://api.opssight.com/api/v1';
 
+// Backend endpoints
+const ENDPOINTS = {
+  // Authentication
+  LOGIN: '/auth/login',
+  LOGOUT: '/auth/logout',
+  REFRESH: '/auth/refresh',
+  OAUTH_GITHUB: '/auth/github',
+  
+  // Metrics
+  METRICS_HEALTH: '/metrics/health',
+  METRICS_LIVE: '/metrics/api/metrics/live',
+  METRICS_SYSTEM: '/metrics/api/metrics/system',
+  METRICS_EVENTS: '/metrics/api/events',
+  METRICS_INSIGHTS: '/metrics/api/insights',
+  
+  // Alerts
+  ALERTS: '/alerts',
+  ALERTS_SUMMARY: '/alerts/summary',
+  
+  // Teams
+  TEAMS: '/teams',
+  TEAM_MEMBERS: '/teams/{teamId}/members',
+  
+  // User
+  USER_PROFILE: '/users/me',
+  USER_PREFERENCES: '/users/me/preferences',
+  
+  // Notifications
+  PUSH_TOKENS: '/push-tokens',
+  NOTIFICATIONS: '/notifications',
+} as const;
+
 const API_TIMEOUT = 30000; // 30 seconds
 const CACHE_TTL = 300; // 5 minutes default TTL
 
@@ -350,6 +382,153 @@ class ApiService {
 
   async clearCache() {
     await AsyncStorage.removeItem(STORAGE_KEYS.API_CACHE);
+  }
+
+  // ============================================================================
+  // Backend API Methods
+  // ============================================================================
+
+  // Authentication
+  async login(credentials: { email: string; password: string }) {
+    return this.post(ENDPOINTS.LOGIN, credentials);
+  }
+
+  async logout() {
+    return this.post(ENDPOINTS.LOGOUT);
+  }
+
+  async githubOAuth(code: string) {
+    return this.post(ENDPOINTS.OAUTH_GITHUB, { code });
+  }
+
+  // Metrics
+  async getSystemHealth() {
+    return this.get(ENDPOINTS.METRICS_HEALTH);
+  }
+
+  async getLiveMetrics() {
+    return this.get(ENDPOINTS.METRICS_LIVE);
+  }
+
+  async getSystemMetrics() {
+    return this.get(ENDPOINTS.METRICS_SYSTEM);
+  }
+
+  async getEvents() {
+    return this.get(ENDPOINTS.METRICS_EVENTS);
+  }
+
+  async getInsights() {
+    return this.get(ENDPOINTS.METRICS_INSIGHTS);
+  }
+
+  // Alerts
+  async getAlerts(params?: { status?: string; severity?: string; page?: number; limit?: number }) {
+    return this.get(ENDPOINTS.ALERTS, { params });
+  }
+
+  async getAlertsSummary() {
+    return this.get(ENDPOINTS.ALERTS_SUMMARY);
+  }
+
+  async acknowledgeAlert(alertId: string) {
+    return this.post(`${ENDPOINTS.ALERTS}/${alertId}/acknowledge`);
+  }
+
+  async resolveAlert(alertId: string) {
+    return this.post(`${ENDPOINTS.ALERTS}/${alertId}/resolve`);
+  }
+
+  // Teams
+  async getTeams() {
+    return this.get(ENDPOINTS.TEAMS);
+  }
+
+  async getTeamMembers(teamId: string) {
+    return this.get(ENDPOINTS.TEAM_MEMBERS.replace('{teamId}', teamId));
+  }
+
+  async joinTeam(teamId: string) {
+    return this.post(`${ENDPOINTS.TEAMS}/${teamId}/join`);
+  }
+
+  async leaveTeam(teamId: string) {
+    return this.post(`${ENDPOINTS.TEAMS}/${teamId}/leave`);
+  }
+
+  // User
+  async getUserProfile() {
+    return this.get(ENDPOINTS.USER_PROFILE);
+  }
+
+  async updateUserProfile(data: any) {
+    return this.put(ENDPOINTS.USER_PROFILE, data);
+  }
+
+  async getUserPreferences() {
+    return this.get(ENDPOINTS.USER_PREFERENCES);
+  }
+
+  async updateUserPreferences(preferences: any) {
+    return this.put(ENDPOINTS.USER_PREFERENCES, preferences);
+  }
+
+  // Push Notifications
+  async registerPushToken(token: string, platform: 'ios' | 'android') {
+    return this.post(ENDPOINTS.PUSH_TOKENS, { token, platform });
+  }
+
+  async unregisterPushToken(token: string) {
+    return this.delete(`${ENDPOINTS.PUSH_TOKENS}/${token}`);
+  }
+
+  async getNotifications(params?: { unread?: boolean; page?: number; limit?: number }) {
+    return this.get(ENDPOINTS.NOTIFICATIONS, { params });
+  }
+
+  async markNotificationAsRead(notificationId: string) {
+    return this.post(`${ENDPOINTS.NOTIFICATIONS}/${notificationId}/read`);
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.post(`${ENDPOINTS.NOTIFICATIONS}/mark-all-read`);
+  }
+
+  // Dashboard Data
+  async getDashboardData() {
+    const [health, metrics, alerts, events] = await Promise.all([
+      this.getSystemHealth(),
+      this.getLiveMetrics(),
+      this.getAlertsSummary(),
+      this.getEvents(),
+    ]);
+
+    return {
+      health,
+      metrics,
+      alerts,
+      events,
+    };
+  }
+
+  // Batch operations for better performance
+  async batchRequest(requests: Array<{ method: string; url: string; data?: any }>) {
+    const promises = requests.map(req => {
+      switch (req.method.toUpperCase()) {
+        case 'GET':
+          return this.get(req.url);
+        case 'POST':
+          return this.post(req.url, req.data);
+        case 'PUT':
+          return this.put(req.url, req.data);
+        case 'DELETE':
+          return this.delete(req.url);
+        default:
+          throw new Error(`Unsupported method: ${req.method}`);
+      }
+    });
+
+    return Promise.allSettled(promises);
   }
 }
 

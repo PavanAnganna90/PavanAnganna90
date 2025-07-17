@@ -1,29 +1,65 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { LoadingSpinner } from '../ui/LoadingStates';
+import { useRealTimeData } from '@/hooks/useRealTimeData';
+import { format } from 'date-fns';
 
 interface Message {
   id: string;
-  type: 'user' | 'assistant';
+  type: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
   suggestions?: string[];
+  attachments?: CopilotAttachment[];
+  context?: CopilotContext;
+  metadata?: Record<string, any>;
+}
+
+interface CopilotAttachment {
+  type: 'code' | 'chart' | 'config' | 'log' | 'metric' | 'link';
+  title: string;
+  content: string;
+  language?: string;
+  actions?: Array<{
+    label: string;
+    action: string;
+    data?: any;
+  }>;
+}
+
+interface CopilotContext {
+  currentPage: string;
+  selectedResources: string[];
+  recentActions: string[];
+  userProfile: {
+    role: string;
+    expertise: string[];
+    preferences: Record<string, any>;
+  };
+  systemState: {
+    alerts: number;
+    deployments: number;
+    incidents: number;
+    performance: Record<string, number>;
+  };
 }
 
 interface OpsCopilotProps {
   className?: string;
   isOpen: boolean;
   onClose: () => void;
+  context?: CopilotContext;
+  onActionRequested?: (action: string, data?: any) => void;
 }
 
 const QUICK_COMMANDS = [
-  { label: 'What caused the spike yesterday?', category: 'analysis' },
-  { label: 'Show deployment trends', category: 'metrics' },
-  { label: 'Check cost optimization opportunities', category: 'cost' },
-  { label: 'Rollback last failed deploy', category: 'action' },
-  { label: 'Show system health summary', category: 'health' },
-  { label: 'Predict resource needs', category: 'prediction' },
+  { label: 'Analyze system performance', category: 'analysis' },
+  { label: 'Check security vulnerabilities', category: 'security' },
+  { label: 'Generate deployment script', category: 'code' },
+  { label: 'Show cost optimization', category: 'cost' },
+  { label: 'Predict resource usage', category: 'prediction' },
+  { label: 'Review recent alerts', category: 'monitoring' },
 ];
 
 const SUGGESTED_RESPONSES = {
@@ -44,20 +80,67 @@ const SUGGESTED_RESPONSES = {
   ]
 };
 
-export const OpsCopilot: React.FC<OpsCopilotProps> = ({ className = '', isOpen, onClose }) => {
+export const OpsCopilot: React.FC<OpsCopilotProps> = ({ 
+  className = '', 
+  isOpen, 
+  onClose, 
+  context = {
+    currentPage: 'dashboard',
+    selectedResources: [],
+    recentActions: [],
+    userProfile: {
+      role: 'DevOps Engineer',
+      expertise: ['kubernetes', 'aws', 'monitoring'],
+      preferences: {}
+    },
+    systemState: {
+      alerts: 0,
+      deployments: 0,
+      incidents: 0,
+      performance: {}
+    }
+  },
+  onActionRequested = () => {}
+}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'assistant',
-      content: "Hi! I'm your OpsCopilot. I can help you analyze system performance, troubleshoot issues, optimize costs, and predict resource needs. What would you like to know?",
+      content: `Hello! I'm OpsCopilot, your AI-powered DevOps assistant. I can help you with:
+
+• **Infrastructure troubleshooting** - Diagnose and resolve issues
+• **Performance optimization** - Identify bottlenecks and improvements  
+• **Security analysis** - Detect vulnerabilities and suggest fixes
+• **Code generation** - Create configs, scripts, and automation
+• **Predictive insights** - Forecast trends and potential issues
+• **Best practices** - Recommend industry standards and patterns
+
+What would you like to work on today?`,
       timestamp: new Date(),
-      suggestions: ['System Health', 'Cost Analysis', 'Recent Issues', 'Predictions']
+      suggestions: ['Analyze system performance', 'Check for security vulnerabilities', 'Generate deployment script', 'Optimize database queries', 'Review recent alerts'],
+      context
     }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [capabilities] = useState({
+    codeGeneration: true,
+    troubleshooting: true,
+    optimization: true,
+    monitoring: true,
+    security: true,
+    prediction: true,
+    learning: true
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Real-time system monitoring for context
+  const { data: systemData } = useRealTimeData({
+    endpoint: '/api/system/status',
+    enabled: true,
+    interval: 30000,
+  });
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -69,30 +152,145 @@ export const OpsCopilot: React.FC<OpsCopilotProps> = ({ className = '', isOpen, 
     }
   }, [isOpen]);
 
-  const simulateAIResponse = (userMessage: string): string => {
+  // Enhanced AI processing with context awareness
+  const processAIRequest = useCallback(async (userMessage: string): Promise<Message> => {
+    try {
+      const response = await fetch('/api/ai/copilot/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          context,
+          conversationHistory: messages.slice(-10), // Last 10 messages for context
+          capabilities,
+          systemData,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to get AI response');
+
+      const aiResponse = await response.json();
+
+      return {
+        id: `assistant_${Date.now()}`,
+        type: 'assistant',
+        content: aiResponse.content,
+        timestamp: new Date(),
+        context,
+        suggestions: aiResponse.suggestions,
+        attachments: aiResponse.attachments,
+        metadata: aiResponse.metadata,
+      };
+    } catch (error) {
+      console.error('AI response failed:', error);
+      return {
+        id: `error_${Date.now()}`,
+        type: 'system',
+        content: 'I apologize, but I encountered an error processing your request. Please try again or rephrase your question.',
+        timestamp: new Date(),
+        context,
+      };
+    }
+  }, [context, messages, capabilities, systemData]);
+
+  // Fallback simulation for development
+  const simulateAIResponse = (userMessage: string): Message => {
     const lowerMessage = userMessage.toLowerCase();
     
+    let content = '';
+    let attachments: CopilotAttachment[] = [];
+    let suggestions: string[] = [];
+    
     if (lowerMessage.includes('spike') || lowerMessage.includes('yesterday')) {
-      return "I found a significant traffic spike yesterday at 2:47 PM EST. Analysis shows it was triggered by a marketing campaign launch. The spike reached 340% of normal traffic levels. Here's what happened:\n\n• Campaign went live on social media\n• Payment service response time increased by 200ms\n• Auto-scaling kicked in after 3 minutes\n• No service degradation occurred\n\nRecommendation: Consider pre-scaling before scheduled campaigns.";
+      content = "I found a significant traffic spike yesterday at 2:47 PM EST. Analysis shows it was triggered by a marketing campaign launch. The spike reached 340% of normal traffic levels. Here's what happened:\n\n• Campaign went live on social media\n• Payment service response time increased by 200ms\n• Auto-scaling kicked in after 3 minutes\n• No service degradation occurred\n\nRecommendation: Consider pre-scaling before scheduled campaigns.";
+      attachments = [{
+        type: 'chart',
+        title: 'Traffic Spike Analysis',
+        content: 'Chart showing traffic patterns and spike details',
+        actions: [{ label: 'View Details', action: 'view_traffic_details' }]
+      }];
+      suggestions = ['Set up pre-scaling', 'Create alert for campaigns', 'View full analysis'];
+    }
+    else if (lowerMessage.includes('script') || lowerMessage.includes('generate')) {
+      content = "I'll generate a deployment script for you. Based on your current setup, here's a Kubernetes deployment script:";
+      attachments = [{
+        type: 'code',
+        title: 'Kubernetes Deployment Script',
+        language: 'yaml',
+        content: `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: app
+        image: myapp:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"`,
+        actions: [
+          { label: 'Apply', action: 'apply_deployment' },
+          { label: 'Copy', action: 'copy_code' },
+          { label: 'Save', action: 'save_script' }
+        ]
+      }];
+      suggestions = ['Generate service config', 'Create ingress', 'Add health checks'];
+    }
+    else if (lowerMessage.includes('security') || lowerMessage.includes('vulnerability')) {
+      content = "Security analysis complete! I found several areas that need attention:\n\n🔒 **Critical Issues**:\n• Outdated dependencies with known CVEs\n• Missing security headers in API responses\n• Weak password policies\n\n⚠️ **Recommendations**:\n• Update Node.js to latest LTS version\n• Implement Content Security Policy\n• Enable 2FA for all admin accounts\n• Regular security audits\n\nShould I create a security remediation plan?";
+      attachments = [{
+        type: 'config',
+        title: 'Security Headers Configuration',
+        content: `helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+})`,
+        actions: [{ label: 'Apply Config', action: 'apply_security_config' }]
+      }];
+      suggestions = ['Run vulnerability scan', 'Update dependencies', 'Enable 2FA'];
+    }
+    else {
+      content = "I understand you're asking about: " + userMessage + "\n\nBased on current system data, I can help you with:\n• Performance analysis and troubleshooting\n• Cost optimization recommendations\n• Deployment and rollback assistance\n• Resource usage predictions\n• Security and compliance insights\n\nCould you be more specific about what you'd like to analyze?";
+      suggestions = ['System health check', 'Performance analysis', 'Cost optimization', 'Security scan'];
     }
     
-    if (lowerMessage.includes('cost') || lowerMessage.includes('optimization')) {
-      return "Cost optimization analysis complete! I found several opportunities:\n\n💰 **Immediate savings ($1,240/month)**:\n• 3 unused Application Load Balancers ($340/month)\n• Over-provisioned RDS instances ($420/month)\n• Idle Elastic IPs ($480/month)\n\n🎯 **Optimization opportunities**:\n• Switch dev/staging to Spot instances (25% savings)\n• Implement auto-shutdown for non-prod environments\n• Optimize data transfer with CloudFront\n\nShould I create a cost optimization plan?";
-    }
-    
-    if (lowerMessage.includes('health') || lowerMessage.includes('summary')) {
-      return "System Health Summary 🏥\n\n✅ **All Critical Services Healthy**\n\n📊 **Current Status**:\n• API Gateway: 99.9% uptime\n• Database: 45ms avg response time\n• Cache hit ratio: 94%\n• Active deployments: 2 in progress\n\n⚠️ **Attention Needed**:\n• API latency p99: 1.2s (threshold: 1s)\n• Memory usage trending up 15% this week\n• SSL cert expires in 12 days\n\nWould you like me to dive deeper into any area?";
-    }
-    
-    if (lowerMessage.includes('rollback') || lowerMessage.includes('deploy')) {
-      return "🔄 Deployment Analysis:\n\n**Last Failed Deploy**: payment-service v2.3.1\n• Failed at: 14:32 EST\n• Reason: Database migration timeout\n• Impact: 3 minutes downtime\n• Status: Auto-rolled back\n\n**Available Actions**:\n1. Roll back to v2.2.9 (stable)\n2. Retry with hotfix v2.3.2\n3. View detailed error logs\n\nWhich action would you like me to execute?";
-    }
-    
-    if (lowerMessage.includes('predict') || lowerMessage.includes('resource')) {
-      return "🔮 Resource Prediction (Next 30 days):\n\n**CPU Usage**: Expected 23% increase\n• Peak: Black Friday (Nov 24)\n• Recommended: Scale up 2 additional instances\n\n**Memory**: Stable, trending +2%/week\n• Current: 67% average utilization\n• Action: No immediate scaling needed\n\n**Storage**: 85GB growth expected\n• Database: 60GB (normal growth)\n• Logs: 25GB (consider cleanup policy)\n\n**Cost Impact**: +$340/month if no optimization\n\nShall I prepare auto-scaling policies for Black Friday?";
-    }
-    
-    return "I understand you're asking about: " + userMessage + "\n\nBased on current system data, I can help you with:\n• Performance analysis and troubleshooting\n• Cost optimization recommendations\n• Deployment and rollback assistance\n• Resource usage predictions\n• Security and compliance insights\n\nCould you be more specific about what you'd like to analyze?";
+    return {
+      id: `assistant_${Date.now()}`,
+      type: 'assistant',
+      content,
+      timestamp: new Date(),
+      attachments,
+      suggestions,
+      context
+    };
   };
 
   const handleSendMessage = async () => {
@@ -102,33 +300,152 @@ export const OpsCopilot: React.FC<OpsCopilotProps> = ({ className = '', isOpen, 
       id: Date.now().toString(),
       type: 'user',
       content: input.trim(),
-      timestamp: new Date()
+      timestamp: new Date(),
+      context
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input.trim();
     setInput('');
     setIsTyping(true);
 
-    // Simulate AI thinking time
-    setTimeout(() => {
-      const response = simulateAIResponse(input.trim());
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: response,
-        timestamp: new Date(),
-        suggestions: ['Follow up', 'More details', 'Run analysis', 'Create ticket']
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-      setIsTyping(false);
-    }, 1500 + Math.random() * 1000);
+    try {
+      // Try to use real AI endpoint first, fallback to simulation
+      const aiResponse = await processAIRequest(currentInput);
+      setMessages(prev => [...prev, aiResponse]);
+      
+      // Learn from user interaction
+      if (capabilities.learning) {
+        fetch('/api/ai/copilot/learn', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userMessage: currentInput,
+            aiResponse: aiResponse.content,
+            context,
+            feedback: null,
+          }),
+        }).catch(err => console.error('Learning failed:', err));
+      }
+    } catch (error) {
+      // Fallback to simulation
+      setTimeout(() => {
+        const response = simulateAIResponse(currentInput);
+        setMessages(prev => [...prev, response]);
+        setIsTyping(false);
+      }, 1500 + Math.random() * 1000);
+      return;
+    }
+    
+    setIsTyping(false);
   };
 
   const handleQuickCommand = (command: string) => {
     setInput(command);
-    handleSendMessage();
+    setTimeout(() => handleSendMessage(), 100);
   };
+
+  // Handle attachment actions
+  const handleAttachmentAction = useCallback((attachment: CopilotAttachment, action: string, data?: any) => {
+    onActionRequested(action, { attachment, data });
+  }, [onActionRequested]);
+
+  // Render attachment based on type
+  const renderAttachment = useCallback((attachment: CopilotAttachment) => {
+    switch (attachment.type) {
+      case 'code':
+        return (
+          <div className="bg-gray-900 rounded-lg p-4 mt-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-300">{attachment.title}</span>
+              <div className="flex space-x-2">
+                {attachment.actions?.map((action, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAttachmentAction(attachment, action.action, action.data)}
+                    className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded"
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <pre className="text-sm text-gray-100 overflow-x-auto">
+              <code className={`language-${attachment.language || 'text'}`}>
+                {attachment.content}
+              </code>
+            </pre>
+          </div>
+        );
+
+      case 'chart':
+        return (
+          <div className="bg-slate-700/50 rounded-lg p-4 mt-2">
+            <h4 className="text-sm font-medium text-white mb-2">
+              {attachment.title}
+            </h4>
+            <div className="h-32 flex items-center justify-center text-slate-400">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="ml-2 text-sm">{attachment.title}</span>
+            </div>
+            {attachment.actions && (
+              <div className="flex space-x-2 mt-2">
+                {attachment.actions.map((action, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAttachmentAction(attachment, action.action, action.data)}
+                    className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded"
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'config':
+        return (
+          <div className="bg-yellow-900/20 rounded-lg p-4 mt-2">
+            <h4 className="text-sm font-medium text-yellow-200 mb-2">
+              {attachment.title}
+            </h4>
+            <pre className="text-sm text-yellow-100 overflow-x-auto">
+              {attachment.content}
+            </pre>
+            {attachment.actions && (
+              <div className="flex space-x-2 mt-2">
+                {attachment.actions.map((action, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAttachmentAction(attachment, action.action, action.data)}
+                    className="px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded"
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return (
+          <div className="bg-slate-700/50 rounded-lg p-4 mt-2">
+            <h4 className="text-sm font-medium text-white mb-2">
+              {attachment.title}
+            </h4>
+            <p className="text-sm text-slate-300">
+              {attachment.content}
+            </p>
+          </div>
+        );
+    }
+  }, [handleAttachmentAction]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -174,6 +491,13 @@ export const OpsCopilot: React.FC<OpsCopilotProps> = ({ className = '', isOpen, 
                 <div className="text-white whitespace-pre-wrap text-sm leading-relaxed">
                   {message.content}
                 </div>
+                
+                {message.attachments?.map((attachment, index) => (
+                  <div key={index}>
+                    {renderAttachment(attachment)}
+                  </div>
+                ))}
+                
                 {message.suggestions && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {message.suggestions.map((suggestion, index) => (
@@ -188,7 +512,7 @@ export const OpsCopilot: React.FC<OpsCopilotProps> = ({ className = '', isOpen, 
                   </div>
                 )}
                 <div className="text-xs text-slate-400 mt-2">
-                  {message.timestamp.toLocaleTimeString()}
+                  {format(message.timestamp, 'HH:mm:ss')}
                 </div>
               </div>
             </div>

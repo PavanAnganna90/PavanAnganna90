@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLiveData } from '../../hooks/useLiveData';
+import { useRealTimeMetrics, useRealTimeEvents } from '../../hooks/useRealTimeData';
+import RealTimeIndicator from '../../components/realtime/RealTimeIndicator';
 import { useToast } from '../../components/ui/Toast';
 import { LoadingOverlay, SkeletonMetric, SkeletonChart } from '../../components/ui/LoadingStates';
 import { OpsCopilot } from '../../components/ai/OpsCopilot';
@@ -10,6 +12,7 @@ import PipelineExecutionView from '../../components/dashboard/PipelineExecutionV
 import { DashboardGrid, DashboardPanel, DashboardCard, MetricWidget } from '../../components/layout';
 import { PermissionGuard } from '../../components/rbac/PermissionGuard';
 import { withPermissions } from '../../components/rbac/withPermissions';
+import { PullToRefresh, SwipeableCard, useTouchGestures } from '../../components/touch';
 
 /**
  * OpsSight Dashboard - Pilot Cockpit Design
@@ -21,8 +24,12 @@ function DashboardPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isOpsCopilotOpen, setIsOpsCopilotOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { systemPulse, liveEvents } = useLiveData();
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const { systemPulse } = useLiveData();
+  const { metrics: realTimeMetrics, isConnected: metricsConnected } = useRealTimeMetrics();
+  const { events: realTimeEvents, isConnected: eventsConnected } = useRealTimeEvents(10);
   const { addToast } = useToast();
+  const { triggerHaptic } = useTouchGestures();
 
   useEffect(() => {
     // Simulate initial loading - only once when component mounts
@@ -59,6 +66,19 @@ function DashboardPage() {
     };
   }, [addToast, isLoaded]); // Add isLoaded to dependencies
 
+  // Handle pull-to-refresh
+  const handleRefresh = async () => {
+    triggerHaptic('medium');
+    setLastRefresh(new Date());
+    
+    addToast({
+      type: 'info',
+      title: 'Dashboard Refreshed',
+      description: 'All data has been updated',
+      duration: 2000
+    });
+  };
+
   // Helper function to get event status color
   const getEventStatusColor = (status: string) => {
     switch (status) {
@@ -71,24 +91,24 @@ function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Top Status Bar */}
-      <div className="bg-slate-800/50 backdrop-blur-lg border-b border-slate-700/50">
+    <PullToRefresh onRefresh={handleRefresh} className="min-h-screen bg-kassow-dark">
+      {/* Industrial Top Status Bar */}
+      <div className="bg-kassow-darker/80 backdrop-blur-lg border-b border-gray-700/50 shadow-xl">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
-              <h1 className="text-2xl font-bold text-white">OpsSight Dashboard</h1>
-              <div className="flex items-center space-x-2 text-emerald-400">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">All Systems Operational</span>
-              </div>
+              <h1 className="text-2xl font-black text-kassow-light tracking-wide">Command Center</h1>
+              <RealTimeIndicator />
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-slate-300 text-sm">
+              <div className="text-kassow-light text-sm font-mono">
                 {currentTime.toLocaleTimeString()} • {currentTime.toLocaleDateString()}
+                <span className="ml-2 text-xs text-gray-400">
+                  • Last updated: {lastRefresh.toLocaleTimeString()}
+                </span>
               </div>
-              <kbd className="px-2 py-1 bg-slate-700/50 rounded border border-slate-600 text-xs text-slate-400">
-                ⌘K for commands
+              <kbd className="px-3 py-1 bg-kassow-darker rounded-md border border-gray-600 text-xs text-gray-400 font-mono">
+                ⌘K
               </kbd>
             </div>
           </div>
@@ -188,27 +208,46 @@ function DashboardPage() {
               </h3>
               
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {liveEvents.map((event) => {
-                  const statusColor = getEventStatusColor(event.status);
+                {realTimeEvents.length > 0 ? realTimeEvents.map((event) => {
+                  const statusColor = getEventStatusColor(event.severity);
+                  const formatTime = (timestamp: string) => {
+                    const now = new Date();
+                    const time = new Date(timestamp);
+                    const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60));
+                    if (diffInMinutes < 1) return 'Just now';
+                    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+                    const diffInHours = Math.floor(diffInMinutes / 60);
+                    if (diffInHours < 24) return `${diffInHours}h ago`;
+                    return `${Math.floor(diffInHours / 24)}d ago`;
+                  };
+                  
                   return (
                     <div key={event.id} className="flex items-start space-x-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors duration-200">
                       <div className={`w-2 h-2 rounded-full bg-${statusColor}-500 mt-2 flex-shrink-0`}></div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-white font-medium text-sm truncate">{event.message}</span>
-                          <span className="text-slate-400 text-xs">{event.time}</span>
+                          <span className="text-white font-medium text-sm truncate">{event.title}</span>
+                          <span className="text-slate-400 text-xs">{formatTime(event.timestamp)}</span>
                         </div>
-                        <p className="text-slate-300 text-sm mt-1">{event.service}</p>
+                        <p className="text-slate-300 text-sm mt-1">{event.message}</p>
                         <div className="flex items-center space-x-1 mt-2">
-                          <span className="px-2 py-1 bg-slate-600/50 text-slate-300 text-xs rounded">
+                          <span className="px-2 py-1 bg-slate-600/50 text-slate-300 text-xs rounded capitalize">
                             {event.type}
                           </span>
-                          <span className="text-lg">{event.icon}</span>
+                          <span className={`px-2 py-1 bg-${statusColor}-500/20 text-${statusColor}-400 text-xs rounded capitalize`}>
+                            {event.severity}
+                          </span>
                         </div>
                       </div>
                     </div>
                   );
-                })}
+                }) : (
+                  <div className="text-center py-8">
+                    <div className="text-slate-400 text-sm">
+                      {eventsConnected ? 'No recent events' : 'Connecting to event stream...'}
+                    </div>
+                  </div>
+                )}
               </div>
             </DashboardCard>
           </DashboardPanel>
@@ -353,6 +392,18 @@ function DashboardPage() {
         </DashboardGrid>
       </div>
 
+      {/* Mobile Touch Gesture Help */}
+      <div className="md:hidden fixed bottom-4 right-4 z-20">
+        <div className="bg-kassow-darker/90 backdrop-blur-md border border-gray-600/50 rounded-xl p-3 text-xs text-gray-300">
+          <div className="flex items-center space-x-2">
+            <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Pull to refresh • Pinch charts to zoom</span>
+          </div>
+        </div>
+      </div>
+
       {/* Loading Overlay */}
       {isLoading && (
         <LoadingOverlay 
@@ -370,7 +421,7 @@ function DashboardPage() {
           onClose={() => setIsOpsCopilotOpen(false)}
         />
       )}
-    </div>
+    </PullToRefresh>
   );
 }
 
