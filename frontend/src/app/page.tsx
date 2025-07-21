@@ -64,33 +64,25 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white overflow-hidden font-['Inter'] relative">
-      {/* Ambient Background with Mouse Parallax */}
+    <div className="min-h-screen bg-white dark:bg-invary-primary text-invary-primary dark:text-white overflow-hidden font-['Inter'] relative">
+      {/* Minimal Background with Subtle Gradients */}
       <div className="fixed inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+        <div className="absolute inset-0 bg-white dark:bg-invary-primary"></div>
         <div 
-          className="absolute w-96 h-96 bg-gradient-to-r from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl transition-transform duration-1000 ease-out"
+          className="radial-gradient-bg absolute w-96 h-96 rounded-full transition-transform duration-1000 ease-out"
           style={{
-            transform: `translate(${mousePosition.x * 0.1}px, ${mousePosition.y * 0.1}px)`,
+            transform: `translate(${mousePosition.x * 0.05}px, ${mousePosition.y * 0.05}px)`,
             top: '10%',
             left: '10%'
           }}
         ></div>
-        <div 
-          className="absolute w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl transition-transform duration-1000 ease-out"
-          style={{
-            transform: `translate(${-mousePosition.x * 0.05}px, ${-mousePosition.y * 0.05}px)`,
-            bottom: '10%',
-            right: '10%'
-          }}
-        ></div>
         
-        {/* Subtle grid pattern */}
+        {/* Clean minimal grid */}
         <div 
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]"
           style={{
-            backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)`,
-            backgroundSize: '24px 24px'
+            backgroundImage: `linear-gradient(var(--invary-primary) 1px, transparent 1px), linear-gradient(90deg, var(--invary-primary) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
           }}
         />
       </div>
@@ -101,94 +93,87 @@ export default function HomePage() {
         <section className="pt-24 pb-16">
           <div className="max-w-7xl mx-auto px-6">
             
-            {/* Ambient Alert - System Status */}
-            <div className={`inline-flex items-center px-6 py-3 rounded-full bg-slate-800/40 backdrop-blur-lg border border-emerald-500/30 mb-12 transition-all duration-1000 hover:border-emerald-500/50 hover:bg-slate-800/60 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+            {/* Minimal Status Indicator */}
+            <div className={`inline-flex items-center px-4 py-2 rounded-lg bg-gray-50 dark:bg-invary-secondary/20 border border-gray-200 dark:border-invary-secondary/30 mb-8 transition-all duration-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
               <div className="relative mr-3">
-                <div className="w-3 h-3 bg-emerald-400 rounded-full"></div>
-                <div className="absolute inset-0 w-3 h-3 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-60"></div>
               </div>
-              <span className="text-sm font-medium text-emerald-400">All Systems Operational</span>
-              <div className="mx-4 w-px h-4 bg-slate-600"></div>
-              <span className="text-xs text-slate-400 tabular-nums">{currentTime.toLocaleTimeString()}</span>
-              <kbd className="ml-4 px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-400 border border-slate-600">⌘K</kbd>
+              <span className="text-sm font-medium text-invary-primary dark:text-white">System Operational</span>
+              <div className="mx-3 w-px h-3 bg-gray-300 dark:bg-invary-secondary"></div>
+              <span className="text-xs text-invary-neutral dark:text-gray-400 tabular-nums">{currentTime.toLocaleTimeString()}</span>
             </div>
 
-            {/* Clear Hierarchy - Main Message */}
-            <div className="text-center mb-20">
-              <h1 className={`text-6xl lg:text-8xl font-bold mb-8 transition-all duration-1000 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-                <span className="text-white">DevOps</span>{' '}
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+            {/* Clean Hero Section */}
+            <div className="text-center mb-16">
+              <h1 className={`text-responsive-hero font-bold mb-6 transition-all duration-700 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                <span className="text-invary-primary dark:text-white">DevOps</span>{' '}
+                <span className="text-gradient-primary">
                   Visibility
                 </span>
                 <br />
-                <span className="text-slate-400 text-4xl lg:text-5xl font-light">Platform</span>
+                <span className="text-invary-neutral dark:text-gray-400 text-responsive-title font-normal">Platform</span>
               </h1>
 
-              <p className={`max-w-4xl mx-auto text-xl text-slate-300 leading-relaxed mb-16 transition-all duration-1000 delay-400 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-                Transform chaos into clarity with AI-powered monitoring. Like a{' '}
-                <span className="text-cyan-400 font-semibold">pilot's cockpit</span>, 
-                everything you need at a glance.
+              <p className={`max-w-3xl mx-auto text-responsive-subtitle text-invary-neutral dark:text-gray-300 leading-relaxed mb-12 transition-all duration-700 delay-400 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                Transform chaos into clarity with evidence-based monitoring.
+                <br />
+                <span className="text-invary-accent font-medium">Everything you need at a glance.</span>
               </p>
 
-              {/* Primary Action - Confident & Tactile */}
-              <div className={`transition-all duration-1000 delay-600 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+              {/* Clean Primary Action */}
+              <div className={`transition-all duration-700 delay-600 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
                 <Link
                   href="/dashboard"
                   onMouseEnter={() => setIsHoveringAction(true)}
                   onMouseLeave={() => setIsHoveringAction(false)}
-                  className={`group relative inline-flex items-center px-12 py-6 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-2xl shadow-2xl transform transition-all duration-300 hover:shadow-cyan-500/30 hover:-translate-y-2 hover:scale-105 ${isHoveringAction ? 'animate-pulse' : ''}`}
+                  className="btn btn-accent inline-flex items-center px-8 py-4 text-base font-medium rounded-lg shadow-invary transform transition-all duration-200 hover:shadow-invary-lg hover:-translate-y-1"
                 >
-                  <svg className="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  Launch Dashboard
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
-                  Launch Command Center
-                  <div className="ml-4 w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                  
-                  {/* Hover glow effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                 </Link>
               </div>
             </div>
 
-            {/* System Health Overview - Progress Rings (Behavioral Psychology) */}
-            <div className={`grid grid-cols-2 lg:grid-cols-4 gap-8 mb-20 transition-all duration-1000 delay-800 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            {/* Clean Metrics Grid */}
+            <div className={`grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16 transition-all duration-700 delay-800 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               {systemHealth.map((metric, index) => {
                 const colors = getStatusColor(metric.status);
-                const circumference = 2 * Math.PI * 45;
+                const circumference = 2 * Math.PI * 40;
                 const strokeDasharray = `${(metric.value / 100) * circumference} ${circumference}`;
                 
                 return (
                   <div key={metric.name} className="group relative">
-                    <div className={`bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 rounded-3xl p-8 hover:bg-slate-800/60 hover:border-slate-600/50 transition-all duration-500 hover:scale-105 ${colors.glow} hover:shadow-2xl`}>
-                      {/* Accent line (clean color cue) */}
-                      <div className={`absolute top-0 left-8 right-8 h-1 ${colors.bg} rounded-full opacity-80`}></div>
+                    <div className="bg-white dark:bg-invary-secondary/10 border border-gray-200 dark:border-invary-secondary/20 rounded-xl p-6 hover:border-invary-accent/50 transition-all duration-300 hover:shadow-invary">
                       
-                      <div className="flex items-center justify-between mb-6">
-                        <span className="text-3xl">{metric.icon}</span>
-                        <div className={`text-xs font-bold px-3 py-1 rounded-full ${colors.text} bg-current/10 border border-current/20`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-2xl">{metric.icon}</span>
+                        <div className="text-xs font-medium px-2 py-1 rounded bg-gray-100 dark:bg-invary-secondary/20 text-invary-neutral dark:text-gray-400">
                           {metric.trend}
                         </div>
                       </div>
 
-                      {/* Progress Ring - Visual, not numbers */}
-                      <div className="relative w-20 h-20 mx-auto mb-6">
-                        <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
+                      {/* Simple Progress Circle */}
+                      <div className="relative w-16 h-16 mx-auto mb-4">
+                        <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 100 100">
                           <circle
                             cx="50"
                             cy="50"
-                            r="45"
-                            className="text-slate-700"
+                            r="40"
+                            className="text-gray-200 dark:text-invary-secondary/30"
                             stroke="currentColor"
-                            strokeWidth="6"
+                            strokeWidth="4"
                             fill="none"
                           />
                           <circle
                             cx="50"
                             cy="50"
-                            r="45"
-                            className={colors.text}
+                            r="40"
+                            className="text-invary-accent"
                             stroke="currentColor"
-                            strokeWidth="6"
+                            strokeWidth="4"
                             fill="none"
                             strokeDasharray={strokeDasharray}
                             strokeLinecap="round"
@@ -198,100 +183,91 @@ export default function HomePage() {
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className={`text-lg font-bold ${colors.text}`}>
+                          <span className="text-sm font-bold text-invary-primary dark:text-white">
                             {Math.round(metric.value)}%
                           </span>
                         </div>
                       </div>
                       
-                      <h3 className="text-white font-bold text-center text-lg">{metric.name}</h3>
+                      <h3 className="text-invary-primary dark:text-white font-medium text-center">{metric.name}</h3>
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* What's Happening Now Strip - AI Summary */}
-            <div className={`bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 backdrop-blur-lg rounded-3xl p-8 border border-cyan-500/30 mb-20 transition-all duration-1000 delay-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-              <div className="flex items-center space-x-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Clean Summary Card */}
+            <div className={`radial-gradient-bg rounded-xl p-6 border border-gray-200 dark:border-invary-secondary/20 mb-16 transition-all duration-700 delay-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-invary-accent rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <div className="text-cyan-400 font-bold text-lg mb-2">AI Operations Summary</div>
-                  <div className="text-slate-200 text-lg">
-                    <span className="text-emerald-400 font-semibold">Deployments stable.</span> No critical alerts in last 3 hours. 
-                    <span className="text-amber-400 font-semibold"> Cost trending up 12%</span> - optimization recommendations available.
+                  <div className="text-invary-primary dark:text-white font-semibold mb-1">Operations Summary</div>
+                  <div className="text-invary-neutral dark:text-gray-300">
+                    <span className="text-green-600 dark:text-green-400 font-medium">Deployments stable.</span> No critical alerts. 
+                    <span className="text-amber-600 dark:text-amber-400 font-medium">Cost optimization available.</span>
                   </div>
                 </div>
-                <div className="text-slate-400 text-sm">
-                  Last updated: {currentTime.toLocaleTimeString()}
+                <div className="text-invary-neutral dark:text-gray-400 text-sm">
+                  {currentTime.toLocaleTimeString()}
                 </div>
               </div>
             </div>
 
-            {/* Action Cards - Drill-down Level */}
-            <div className={`grid md:grid-cols-3 gap-8 transition-all duration-1000 delay-1200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            {/* Clean Feature Cards */}
+            <div className={`grid md:grid-cols-3 gap-6 transition-all duration-700 delay-1200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               {[
                 {
-                  title: 'Command Center',
-                  description: 'Real-time dashboard with AI insights and interactive controls',
+                  title: 'Dashboard',
+                  description: 'Real-time monitoring with intelligent insights',
                   href: '/dashboard',
-                  gradient: 'from-cyan-400 to-blue-600',
                   icon: '📊',
                   badge: 'Live'
                 },
                 {
-                  title: 'Theme System',
-                  description: 'Sophisticated themes with accessibility and circadian rhythm support',
-                  href: '/themes',
-                  gradient: 'from-purple-400 to-pink-600',
-                  icon: '🎨',
-                  badge: 'Premium'
+                  title: 'Infrastructure',
+                  description: 'Comprehensive infrastructure monitoring and management',
+                  href: '/infrastructure',
+                  icon: '🏗️',
+                  badge: 'Core'
                 },
                 {
-                  title: 'Component Lab',
-                  description: 'Interactive component library with live documentation',
-                  href: 'http://localhost:6006',
-                  gradient: 'from-emerald-400 to-green-600',
-                  icon: '🧪',
-                  badge: 'Interactive',
-                  external: true
+                  title: 'Analytics',
+                  description: 'Advanced analytics and performance insights',
+                  href: '/reports',
+                  icon: '📈',
+                  badge: 'Premium'
                 }
               ].map((feature, index) => (
                 <Link
                   key={feature.title}
                   href={feature.href}
-                  target={feature.external ? '_blank' : '_self'}
-                  rel={feature.external ? 'noopener noreferrer' : undefined}
-                  className="group relative bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 rounded-3xl p-8 hover:bg-slate-800/60 hover:border-slate-600/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl"
+                  className="group relative bg-white dark:bg-invary-secondary/10 border border-gray-200 dark:border-invary-secondary/20 rounded-xl p-6 hover:border-invary-accent/50 transition-all duration-300 hover:shadow-invary"
                 >
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="text-4xl">{feature.icon}</div>
-                    <div className={`px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r ${feature.gradient} text-white`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="text-3xl">{feature.icon}</div>
+                    <div className="px-2 py-1 text-xs font-medium rounded bg-invary-accent/10 text-invary-accent">
                       {feature.badge}
                     </div>
                   </div>
                   
-                  <h3 className="text-white font-bold text-xl mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-cyan-400 group-hover:to-blue-600 transition-all duration-300">
+                  <h3 className="text-invary-primary dark:text-white font-semibold text-lg mb-3 group-hover:text-invary-accent transition-colors duration-300">
                     {feature.title}
                   </h3>
                   
-                  <p className="text-slate-300 leading-relaxed mb-6">
+                  <p className="text-invary-neutral dark:text-gray-300 leading-relaxed mb-4">
                     {feature.description}
                   </p>
                   
-                  <div className="flex items-center text-cyan-400 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                  <div className="flex items-center text-invary-accent font-medium group-hover:translate-x-1 transition-transform duration-300">
                     <span>Explore</span>
-                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                   </div>
-                  
-                  {/* Hover gradient overlay */}
-                  <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
                 </Link>
               ))}
             </div>

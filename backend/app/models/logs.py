@@ -110,9 +110,9 @@ class LogEntry(Base):
     instance_id = Column(String(255), nullable=True)
 
     # Request context (for application logs)
-    trace_id = Column(String(128), nullable=True, index=True)
+    trace_id = Column(String(128), nullable=True)
     span_id = Column(String(64), nullable=True)
-    request_id = Column(String(128), nullable=True, index=True)
+    request_id = Column(String(128), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     # Technical details

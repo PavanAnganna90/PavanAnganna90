@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useChartTheme } from '@/hooks/useChartTheme';
 
 interface BarChartProps {
   data: Array<{ label: string; value: number; color?: string }>;
@@ -21,10 +22,11 @@ export function BarChart({
   className = '',
   barSpacing = 8
 }: BarChartProps) {
+  const { getColor } = useChartTheme();
   if (!data || data.length === 0) {
     return (
-      <div className={`w-full bg-slate-700/20 rounded ${className}`} style={{ height }}>
-        <div className="flex items-center justify-center h-full text-slate-500 text-xs">
+      <div className={`w-full bg-gray-100 dark:bg-invary-secondary/20 rounded ${className}`} style={{ height }}>
+        <div className="flex items-center justify-center h-full text-invary-neutral dark:text-gray-400 text-xs">
           No data
         </div>
       </div>
@@ -40,7 +42,7 @@ export function BarChart({
       <div className="flex items-end justify-between h-full">
         {data.map((item, index) => {
           const barHeight = (item.value / maxValue) * chartHeight;
-          const barColor = item.color || '#3b82f6';
+          const barColor = item.color || getColor(index);
           
           return (
             <div
@@ -50,7 +52,7 @@ export function BarChart({
             >
               {/* Value label */}
               {showValues && (
-                <div className="text-xs text-slate-300 mb-1 font-medium">
+                <div className="text-xs text-invary-neutral dark:text-gray-300 mb-1 font-medium">
                   {item.value}
                 </div>
               )}
@@ -58,7 +60,7 @@ export function BarChart({
               {/* Bar */}
               <div className="relative w-full flex items-end">
                 <div
-                  className={`w-full rounded-t-sm ${animated ? 'transition-all duration-500 ease-out' : ''}`}
+                  className={`w-full rounded-t ${animated ? 'transition-all duration-500 ease-out' : ''}`}
                   style={{
                     height: barHeight,
                     backgroundColor: barColor,
@@ -77,7 +79,7 @@ export function BarChart({
               
               {/* Label */}
               {showLabels && (
-                <div className="text-xs text-slate-400 mt-2 text-center truncate w-full">
+                <div className="text-xs text-invary-neutral dark:text-gray-400 mt-2 text-center truncate w-full">
                   {item.label}
                 </div>
               )}

@@ -227,7 +227,7 @@ function detectSuspiciousPatterns(request: NextRequest): boolean {
     /crawler/i,
     /spider/i,
     /scraper/i,
-    /curl/i,
+    // /curl/i,  // Allow curl for development testing
     /wget/i,
   ];
 

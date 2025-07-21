@@ -1,0 +1,219 @@
+# Claude Configuration for OpsSight Backend
+# This file integrates the backend project with ~/.claude documentation system
+
+project:
+  name: "OpsSight DevOps Platform - Backend"
+  type: "enterprise-api"
+  version: "2.0.0"
+  description: "Comprehensive DevOps API platform for infrastructure management, CI/CD, and team collaboration"
+  
+paths:
+  root: "/Users/pavan/Desktop/Devops-app-dev-cursor/backend"
+  source: "app"
+  tests: "tests"
+  docs: "docs"
+  migrations: "alembic_migrations"
+
+tech_stack:
+  language: "python"
+  framework: "fastapi"
+  database:
+    - "postgresql"
+    - "redis"
+  infrastructure:
+    - "docker"
+    - "kubernetes"
+  cloud:
+    - "aws"
+    - "azure"
+    - "gcp"
+
+documentation:
+  # Link to project-specific docs
+  overview: "docs/claude-integration/PROJECT_OVERVIEW.md"
+  api_patterns: "docs/claude-integration/API_PATTERNS.md"
+  architecture: "docs/api_documentation_complete.md"
+  security: "docs/security_implementation_guide.md"
+  rbac: "docs/rbac_role_hierarchy.md"
+  cache: "docs/cache_system_guide.md"
+  monitoring: "docs/monitoring_and_observability_guide.md"
+
+# Import shared Claude configurations
+imports:
+  - "~/.claude/shared/python-patterns.yml"
+  - "~/.claude/shared/api-patterns.yml"
+  - "~/.claude/shared/security-patterns.yml"
+  - "~/.claude/shared/testing-patterns.yml"
+
+commands:
+  # Backend-specific command aliases
+  test: "pytest -v"
+  test-coverage: "pytest --cov=app --cov-report=html"
+  lint: "black . && flake8 && mypy app"
+  dev: "uvicorn app.main:app --reload"
+  migrate: "alembic upgrade head"
+  generate-openapi: "python scripts/export_openapi.py"
+
+patterns:
+  # API endpoint patterns
+  endpoint_structure: |
+    @router.{method}("/{resource}")
+    @cache_response(ttl=300)
+    @require_permission("{permission}")
+    async def {operation}_{resource}(
+        request: Request,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+    ):
+        """
+        {description}
+        """
+        return await {service}.{operation}()
+
+  # Service pattern
+  service_structure: |
+    class {Resource}Service:
+        def __init__(self, db: Session):
+            self.db = db
+            self.cache = get_cache_manager()
+        
+        async def get_all(self, filters: dict = None):
+            cache_key = f"{resource}:all:{hash(filters)}"
+            cached = await self.cache.get(cache_key)
+            if cached:
+                return cached
+            
+            result = await self._fetch_from_db(filters)
+            await self.cache.set(cache_key, result, ttl=300)
+            return result
+
+  # Test pattern
+  test_structure: |
+    @pytest.mark.asyncio
+    async def test_{operation}_{resource}(
+        client: AsyncClient,
+        db_session: Session,
+        auth_headers: dict
+    ):
+        # Arrange
+        test_data = {...}
+        
+        # Act
+        response = await client.{method}(
+            f"/api/v1/{resource}",
+            json=test_data,
+            headers=auth_headers
+        )
+        
+        # Assert
+        assert response.status_code == 200
+        assert response.json()["status"] == "success"
+
+integrations:
+  # External service integrations
+  kubernetes:
+    api_version: "v1"
+    namespace: "default"
+    config_path: "~/.kube/config"
+  
+  github:
+    api_version: "v3"
+    base_url: "https://api.github.com"
+  
+  aws:
+    region: "us-east-1"
+    services:
+      - "ec2"
+      - "s3"
+      - "cost-explorer"
+
+development:
+  # Development workflow
+  setup:
+    - "python -m venv venv"
+    - "source venv/bin/activate"
+    - "pip install -r requirements.txt"
+    - "cp .env.example .env"
+    - "alembic upgrade head"
+    - "python scripts/seed_data.py"
+  
+  debug:
+    breakpoint: "import ipdb; ipdb.set_trace()"
+    logging: "logger.debug(f'Variable: {variable}')"
+  
+  profiling:
+    - "python -m cProfile -o profile.stats app.main"
+    - "python -m pstats profile.stats"
+
+deployment:
+  docker:
+    dev_image: "opssight-backend:dev"
+    prod_image: "opssight-backend:latest"
+    registry: "docker.io/opssight"
+  
+  kubernetes:
+    namespace: "opssight"
+    deployment: "backend-api"
+    service: "backend-service"
+    ingress: "api.opssight.com"
+
+monitoring:
+  metrics:
+    endpoint: "/metrics"
+    port: 8080
+  
+  health:
+    - "/health"
+    - "/health/detailed"
+  
+  logging:
+    level: "INFO"
+    format: "json"
+    destinations:
+      - "stdout"
+      - "file:logs/app.log"
+      - "sentry"
+
+security:
+  authentication:
+    - "jwt"
+    - "oauth2"
+    - "saml"
+    - "ldap"
+  
+  authorization:
+    model: "rbac"
+    permissions_file: "app/core/auth/permissions.json"
+  
+  secrets:
+    - "JWT_SECRET_KEY"
+    - "DATABASE_URL"
+    - "REDIS_URL"
+    - "OAUTH_CLIENT_SECRETS"
+
+performance:
+  caching:
+    strategy: "multi-level"
+    l1: "memory"
+    l2: "redis"
+    ttl_default: 300
+  
+  optimization:
+    - "query_optimization"
+    - "connection_pooling"
+    - "async_operations"
+    - "response_compression"
+
+# Custom aliases for common operations
+aliases:
+  # Database operations
+  db-reset: "alembic downgrade base && alembic upgrade head && python scripts/seed_data.py"
+  db-shell: "python -c 'from app.db.database import engine; import sqlalchemy; print(engine.url)'"
+  
+  # API operations
+  api-docs: "python scripts/generate_docs.py && mkdocs serve"
+  api-test: "python -m pytest tests/api/ -v"
+  
+  # Performance
+  perf-test: "locust -f tests/performance/locustfile.py"
+  profile: "python -m cProfile -s cumulative app.main > profile.txt"

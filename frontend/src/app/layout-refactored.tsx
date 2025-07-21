@@ -1,3 +1,5 @@
+"use client";
+
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -93,7 +95,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       
-      <body className={`${inter.className} h-full bg-white dark:bg-invary-primary`}>
+      <body className={`${inter.className} h-full bg-gray-50 dark:bg-gray-900`}>
         <ErrorBoundary>
           <ProvidersWrapper>
             <LoadingBoundary>
@@ -115,7 +117,7 @@ export default function RootLayout({
                 <main 
                   id="main-content"
                   role="main"
-                  className="flex-1 bg-white dark:bg-invary-primary"
+                  className="flex-1 bg-gray-50 dark:bg-gray-900"
                   tabIndex={-1}
                 >
                   {children}

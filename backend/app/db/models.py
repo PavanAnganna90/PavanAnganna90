@@ -10,7 +10,4 @@ class Base(DeclarativeBase):
 
 
 # Import all models here so Alembic can detect them for migrations
-# Example (uncomment and adjust as needed):
-# from .user import User
-# from .item import Item
-# ...
+from app.models import *  # Import all models to register them with Base

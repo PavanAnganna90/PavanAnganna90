@@ -205,7 +205,7 @@ export default function Navigation() {
           isVisible ? 'translate-y-0' : '-translate-y-full'
         } ${
           isScrolled || isMobileMenuOpen
-            ? 'bg-slate-900/95 backdrop-blur-md border-b border-slate-700/50 shadow-lg' 
+            ? 'bg-white/95 dark:bg-invary-primary/95 backdrop-blur-md border-b border-gray-200/50 dark:border-invary-secondary/30 shadow-sm' 
             : 'bg-transparent'
         }`}
         role="navigation"
@@ -221,14 +221,14 @@ export default function Navigation() {
               aria-label="OpsSight home page"
             >
               <div 
-                className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-invary-accent rounded-md flex items-center justify-center group-hover:scale-105 transition-transform duration-200"
                 aria-hidden="true"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <span className="text-lg sm:text-xl font-bold text-white hidden xs:block">
+              <span className="text-lg sm:text-xl font-bold text-invary-primary dark:text-white hidden xs:block">
                 OpsSight
               </span>
             </Link>
@@ -241,97 +241,36 @@ export default function Navigation() {
                   href={item.href}
                   target={item.external ? '_blank' : undefined}
                   rel={item.external ? 'noopener noreferrer' : undefined}
-                  className={`group relative flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                  className={`group relative flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(item.href)
-                      ? 'text-white bg-slate-800/80'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                      ? 'text-white bg-invary-accent'
+                      : 'text-invary-primary dark:text-gray-300 hover:text-white hover:bg-invary-primary/80'
                   }`}
                   role="menuitem"
                   aria-current={isActive(item.href) ? 'page' : undefined}
                   aria-label={`Navigate to ${item.label} page`}
                 >
-                  <div className="group-hover:scale-110 transition-transform duration-200">
-                    {item.icon}
-                  </div>
                   <span className="font-medium">{item.label}</span>
-                  
-                  {/* Hover effect */}
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
                 </Link>
               ))}
             </div>
 
             {/* Right: Actions - Responsive sizing */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-2">
               
-              {/* Theme Toggle */}
+              {/* Contact/CTA Button */}
               <button 
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation"
-                aria-label="Toggle dark mode"
+                className="hidden md:block px-4 py-2 text-sm font-medium text-white bg-invary-accent hover:opacity-90 rounded-lg transition-all duration-200"
+                aria-label="Contact us"
                 type="button"
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              </button>
-
-              {/* Real-time Status Indicator */}
-              <div className="hidden sm:block">
-                <RealTimeIndicator className="mr-2" />
-              </div>
-
-              {/* Notifications - Real-time Notifications */}
-              <PermissionGuard permission="view_alerts">
-                <button 
-                  onClick={() => setIsNotificationCenterOpen(true)}
-                  className="hidden xs:block relative p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation"
-                  aria-label={`Open notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-                  type="button"
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5V3a1 1 0 012 0v14z" />
-                  </svg>
-                  {/* Notification badge */}
-                  {unreadCount > 0 && (
-                    <div 
-                      className="absolute -top-1 -right-1 min-w-[1.25rem] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1"
-                      aria-hidden="true"
-                    >
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </div>
-                  )}
-                </button>
-              </PermissionGuard>
-
-              {/* Settings - Hidden on small mobile */}
-              <PermissionGuard permission="view_settings">
-                <button 
-                  className="hidden sm:block p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 group touch-manipulation"
-                  aria-label="Open settings"
-                  type="button"
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
-              </PermissionGuard>
-
-              {/* Profile/Logout - Hidden on small mobile */}
-              <button 
-                className="hidden sm:block p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 touch-manipulation"
-                aria-label="Open user profile"
-                type="button"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+                Contact
               </button>
 
               {/* Mobile Menu Button */}
               <button 
                 onClick={handleMobileMenuToggle}
-                className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200 touch-manipulation"
+                className="lg:hidden p-2 text-invary-primary dark:text-gray-300 hover:text-invary-accent rounded-lg transition-all duration-200 touch-manipulation"
                 aria-label="Toggle mobile menu"
               >
                 <svg 
@@ -368,7 +307,7 @@ export default function Navigation() {
         
         {/* Slide-out menu */}
         <div 
-          className={`absolute top-14 sm:top-16 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-b border-slate-700/50 shadow-2xl transition-transform duration-300 ease-out ${
+          className={`absolute top-14 sm:top-16 left-0 right-0 bg-white/98 dark:bg-invary-primary/98 backdrop-blur-md border-b border-gray-200/50 dark:border-invary-secondary/30 shadow-lg transition-transform duration-300 ease-out ${
             isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
           }`}
         >
@@ -382,15 +321,12 @@ export default function Navigation() {
                   href={item.href}
                   target={item.external ? '_blank' : undefined}
                   rel={item.external ? 'noopener noreferrer' : undefined}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 touch-manipulation ${
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 touch-manipulation ${
                     isActive(item.href)
-                      ? 'text-white bg-slate-800/80 border border-slate-600/50'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                      ? 'text-white bg-invary-accent'
+                      : 'text-invary-primary dark:text-gray-300 hover:text-white hover:bg-invary-primary/80'
                   }`}
                 >
-                  <div className="flex-shrink-0">
-                    {item.icon}
-                  </div>
                   <span className="font-medium text-base">{item.label}</span>
                   {item.external && (
                     <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,33 +337,10 @@ export default function Navigation() {
               ))}
             </div>
 
-            {/* Mobile-only actions */}
-            <div className="pt-4 border-t border-slate-700/50 space-y-1">
-              <PermissionGuard permission="view_alerts">
-                <button className="sm:hidden flex items-center space-x-3 w-full px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200 touch-manipulation">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM12 17h-5l5 5v-5zM12 1V6m0 0V1m0 5a5 5 0 100 10V6z" />
-                  </svg>
-                  <span className="font-medium">Alerts</span>
-                  <div className="w-2.5 h-2.5 bg-amber-500 rounded-full ml-auto"></div>
-                </button>
-              </PermissionGuard>
-              
-              <PermissionGuard permission="view_settings">
-                <button className="sm:hidden flex items-center space-x-3 w-full px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200 touch-manipulation">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="font-medium">Settings</span>
-                </button>
-              </PermissionGuard>
-              
-              <button className="sm:hidden flex items-center space-x-3 w-full px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200 touch-manipulation">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="font-medium">Profile</span>
+            {/* Contact Button for Mobile */}
+            <div className="pt-4 border-t border-gray-200/50 dark:border-invary-secondary/30">
+              <button className="w-full px-4 py-3 text-sm font-medium text-white bg-invary-accent hover:opacity-90 rounded-lg transition-all duration-200">
+                Contact
               </button>
             </div>
           </div>

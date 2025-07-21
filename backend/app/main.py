@@ -42,6 +42,9 @@ from app.schemas.common import (
 )
 from app.core.cache import get_cache_manager, close_cache_manager
 
+# Import database functions
+from app.db.database import check_async_db_connection, create_tables
+
 # Configure logging
 logger = logging.getLogger(__name__)
 

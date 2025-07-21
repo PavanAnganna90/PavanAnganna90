@@ -106,7 +106,6 @@ class Settings(BaseSettings):
     REDIS_URL: RedisDsn
 
     # Security Settings
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]  # Default for local/test
     CSRF_SECRET: str
 
     # API Settings
@@ -127,21 +126,20 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "DevopsApp"
     VERSION: str = "0.1.0"
 
-    # New field
-    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
-
-    @field_validator("CORS_ORIGINS", mode='before')
-    @classmethod
-    def assemble_cors_origins(cls, v):
-        print(f"[DEBUG] Raw CORS_ORIGINS from env: {os.environ.get('CORS_ORIGINS')}")
-        if isinstance(v, str):
-            try:
-                # Try to parse as JSON array
-                return json.loads(v)
-            except Exception:
-                # Fallback: comma-separated string
-                return [i.strip() for i in v.split(",") if i.strip()]
-        return v
+    # CORS Settings - handled as properties to avoid pydantic parsing issues
+    @property
+    def CORS_ORIGINS(self) -> List[str]:
+        cors_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:3000')
+        if isinstance(cors_origins, str):
+            return [i.strip() for i in cors_origins.split(",") if i.strip()]
+        return cors_origins if isinstance(cors_origins, list) else ['http://localhost:3000']
+    
+    @property  
+    def ALLOWED_ORIGINS(self) -> List[str]:
+        allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:3000')
+        if isinstance(allowed_origins, str):
+            return [i.strip() for i in allowed_origins.split(",") if i.strip()]
+        return allowed_origins if isinstance(allowed_origins, list) else ['http://localhost:3000']
 
     def __init__(self, **values):
         super().__init__(**values)

@@ -5,57 +5,65 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 224 17% 31%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 17% 31%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 224 17% 31%;
+    --primary: 224 17% 31%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 11% 35%;
+    --secondary-foreground: 0 0% 100%;
     --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --muted-foreground: 224 17% 31%;
+    --accent: 8 78% 65%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.75rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --border: 224 17% 91%;
+    --input: 224 17% 91%;
+    --ring: 8 78% 65%;
+    --radius: 0.5rem;
+    --chart-1: 224 17% 31%;
+    --chart-2: 240 11% 35%;
+    --chart-3: 8 78% 65%;
+    --chart-4: 224 17% 41%;
+    --chart-5: 240 11% 45%;
+    --invary-primary: #434C62;
+    --invary-secondary: #4E4E62;
+    --invary-accent: #FF7662;
+    --invary-neutral: #565656;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 224 17% 8%;
+    --foreground: 0 0% 95%;
+    --card: 224 17% 12%;
+    --card-foreground: 0 0% 95%;
+    --popover: 224 17% 12%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 224 17% 31%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 11% 35%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 224 17% 18%;
+    --muted-foreground: 224 17% 65%;
+    --accent: 8 78% 65%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 224 17% 25%;
+    --input: 224 17% 25%;
+    --ring: 8 78% 65%;
+    --chart-1: 224 17% 41%;
+    --chart-2: 240 11% 45%;
+    --chart-3: 8 78% 65%;
+    --chart-4: 224 17% 51%;
+    --chart-5: 240 11% 55%;
+    --invary-primary: #434C62;
+    --invary-secondary: #4E4E62;
+    --invary-accent: #FF7662;
+    --invary-neutral: #565656;
   }
 }
 
@@ -176,23 +184,75 @@
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300;
   }
 
   .btn-primary {
-    @apply bg-indigo-600 text-white hover:bg-indigo-700;
+    @apply bg-[var(--invary-primary)] text-white hover:bg-[var(--invary-secondary)] hover:shadow-lg;
   }
 
   .btn-secondary {
-    @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700;
+    @apply bg-transparent text-[var(--invary-primary)] border border-[var(--invary-primary)] hover:bg-[var(--invary-primary)] hover:text-white;
+  }
+
+  .btn-accent {
+    @apply bg-[var(--invary-accent)] text-white hover:opacity-90 hover:shadow-lg;
   }
 
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6;
+    @apply bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6;
   }
 
   .input {
-    @apply px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent;
+    @apply px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--invary-accent)] focus:border-transparent;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-[var(--invary-primary)] to-[var(--invary-secondary)] bg-clip-text text-transparent;
+  }
+
+  .radial-gradient-bg {
+    background: radial-gradient(circle at center, rgba(67, 76, 98, 0.1) 0%, transparent 70%);
+  }
+
+  /* Invary-style typography */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, var(--invary-primary), var(--invary-secondary));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-accent {
+    background: linear-gradient(135deg, var(--invary-accent), #ff8c75);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Responsive text sizing inspired by Invary */
+  .text-responsive-hero {
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1.1;
+  }
+
+  .text-responsive-title {
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    line-height: 1.2;
+  }
+
+  .text-responsive-subtitle {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.5;
+  }
+
+  /* Clean modern shadows */
+  .shadow-invary {
+    box-shadow: 0 4px 20px rgba(67, 76, 98, 0.1);
+  }
+
+  .shadow-invary-lg {
+    box-shadow: 0 8px 40px rgba(67, 76, 98, 0.15);
   }
 }
 

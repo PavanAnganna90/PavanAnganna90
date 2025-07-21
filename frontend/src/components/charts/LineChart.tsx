@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useChartTheme } from '@/hooks/useChartTheme';
 
 interface LineChartProps {
   data: number[];
@@ -10,21 +11,25 @@ interface LineChartProps {
   showDots?: boolean;
   animated?: boolean;
   className?: string;
+  colorIndex?: number; // For automatic theme color selection
 }
 
 export function LineChart({
   data,
   height = 40,
-  color = '#3b82f6',
+  color,
   strokeWidth = 2,
   showDots = false,
   animated = true,
-  className = ''
+  className = '',
+  colorIndex = 0
 }: LineChartProps) {
+  const { getColor } = useChartTheme();
+  const chartColor = color || getColor(colorIndex);
   if (!data || data.length === 0) {
     return (
-      <div className={`w-full bg-slate-700/20 rounded ${className}`} style={{ height }}>
-        <div className="flex items-center justify-center h-full text-slate-500 text-xs">
+      <div className={`w-full bg-gray-100 dark:bg-invary-secondary/20 rounded ${className}`} style={{ height }}>
+        <div className="flex items-center justify-center h-full text-invary-neutral dark:text-gray-400 text-xs">
           No data
         </div>
       </div>
@@ -61,8 +66,8 @@ export function LineChart({
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={color} stopOpacity="0.05" />
+            <stop offset="0%" stopColor={chartColor} stopOpacity="0.4" />
+            <stop offset="100%" stopColor={chartColor} stopOpacity="0.05" />
           </linearGradient>
         </defs>
         
@@ -77,7 +82,7 @@ export function LineChart({
         <path
           d={pathData}
           fill="none"
-          stroke={color}
+          stroke={chartColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -94,7 +99,7 @@ export function LineChart({
               cx={x}
               cy={y}
               r="2"
-              fill={color}
+              fill={chartColor}
               className={animated ? 'transition-all duration-300 ease-in-out' : ''}
             />
           );

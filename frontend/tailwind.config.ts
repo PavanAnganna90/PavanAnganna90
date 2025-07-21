@@ -77,6 +77,13 @@ const config: Config = {
           DEFAULT: 'var(--text-primary, #111827)',
           secondary: 'var(--text-secondary, #6b7280)',
         },
+        // Invary brand colors
+        invary: {
+          primary: '#434C62',
+          secondary: '#4E4E62',
+          accent: '#FF7662',
+          neutral: '#565656',
+        },
         // Brand colors
         brand: {
           50: '#f0f9ff',
