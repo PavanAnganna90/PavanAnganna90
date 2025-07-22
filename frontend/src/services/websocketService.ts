@@ -310,7 +310,7 @@ export class LegacyWebSocketService {
 /**
  * Real-time Metrics WebSocket Service
  */
-export class MetricsWebSocketService extends WebSocketService {
+export class MetricsWebSocketService extends LegacyWebSocketService {
   private mockUnsubscribe?: () => void;
   
   constructor() {
@@ -396,7 +396,7 @@ export class MetricsWebSocketService extends WebSocketService {
 /**
  * Real-time Notifications WebSocket Service
  */
-export class NotificationsWebSocketService extends WebSocketService {
+export class NotificationsWebSocketService extends LegacyWebSocketService {
   private mockUnsubscribe?: () => void;
   
   constructor() {
@@ -482,7 +482,7 @@ export class NotificationsWebSocketService extends WebSocketService {
  */
 export class WebSocketManager {
   private static instance: WebSocketManager;
-  private connections: Map<string, WebSocketService> = new Map();
+  private connections: Map<string, LegacyWebSocketService> = new Map();
 
   private constructor() {}
 
@@ -496,14 +496,14 @@ export class WebSocketManager {
   /**
    * Register a WebSocket connection
    */
-  register(name: string, service: WebSocketService): void {
+  register(name: string, service: LegacyWebSocketService): void {
     this.connections.set(name, service);
   }
 
   /**
    * Get a WebSocket connection by name
    */
-  get(name: string): WebSocketService | undefined {
+  get(name: string): LegacyWebSocketService | undefined {
     return this.connections.get(name);
   }
 
