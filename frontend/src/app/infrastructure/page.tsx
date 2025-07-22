@@ -1,136 +1,146 @@
 'use client';
 
 import React from 'react';
-import { Server, Cpu, HardDrive, Network, Activity, AlertTriangle, Zap, TrendingUp } from 'lucide-react';
+import { Server, Activity, Zap, TrendingUp, User, Clock, GitCommit, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 
-// Modern Metric Card Component
-function MetricCard({ 
-  title, 
-  value, 
-  change, 
-  changeType = 'neutral', 
-  icon: Icon, 
-  trend 
+// Professional Deployment Card Component matching the desired design
+function DeploymentCard({ 
+  serviceName,
+  environment,
+  version,
+  author,
+  commitHash,
+  timeAgo,
+  status
 }: {
-  title: string;
-  value: string;
-  change: string;
-  changeType?: 'positive' | 'negative' | 'neutral';
-  icon: any;
-  trend?: number;
-}) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
-          <div className="flex items-center mt-3 gap-2">
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-              changeType === 'positive' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-              changeType === 'negative' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-              'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-            }`}>
-              {changeType === 'positive' && <TrendingUp className="h-3 w-3" />}
-              {changeType === 'negative' && <TrendingUp className="h-3 w-3 rotate-180" />}
-              <span>{change}</span>
-            </div>
-          </div>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
-          <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Modern Cluster Card Component  
-function ClusterCard({ 
-  name, 
-  description, 
-  status, 
-  version, 
-  lastDeployed, 
-  nodes, 
-  cpuUsage 
-}: {
-  name: string;
-  description: string;
-  status: 'healthy' | 'warning' | 'error';
+  serviceName: string;
+  environment: string;
   version: string;
-  lastDeployed: string;
-  nodes: number;
-  cpuUsage: number;
+  author: string;
+  commitHash: string;
+  timeAgo: string;
+  status: 'success' | 'progress' | 'failed';
 }) {
-  const statusColors = {
-    healthy: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
-    warning: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
-    error: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
+  const statusConfig = {
+    success: {
+      icon: CheckCircle,
+      bg: 'bg-green-50',
+      text: 'text-green-700',
+      border: 'border-green-200',
+      label: 'Success'
+    },
+    progress: {
+      icon: AlertCircle,
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      border: 'border-blue-200',
+      label: 'In Progress'
+    },
+    failed: {
+      icon: XCircle,
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200',
+      label: 'Failed'
+    }
   };
 
-  const statusDots = {
-    healthy: 'bg-green-500',
-    warning: 'bg-yellow-500', 
-    error: 'bg-red-500'
-  };
+  const config = statusConfig[status];
+  const StatusIcon = config.icon;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{name}</h3>
-            <div className={`w-3 h-3 rounded-full ${statusDots[status]}`}></div>
+            <h3 className="text-lg font-semibold text-gray-900">{serviceName}</h3>
+            <Server className="h-4 w-4 text-gray-400" />
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">{environment}</span>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{description}</p>
+          <p className="text-gray-600 text-sm mb-3">{version}</p>
+        </div>
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border ${config.bg} ${config.text} ${config.border}`}>
+          <StatusIcon className="h-4 w-4" />
+          <span>{config.label}</span>
         </div>
       </div>
       
-      <div className="space-y-3 mb-4">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Version</span>
-          <span className="text-sm font-medium text-gray-900 dark:text-white">{version}</span>
+      <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <User className="h-3 w-3" />
+            <span>{author}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <GitCommit className="h-3 w-3" />
+            <span className="font-mono">{commitHash}</span>
+          </div>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Nodes</span>
-          <span className="text-sm font-medium text-gray-900 dark:text-white">{nodes}</span>
+        <div className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          <span>{timeAgo}</span>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">CPU Usage</span>
-          <span className="text-sm font-medium text-gray-900 dark:text-white">{cpuUsage}%</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Last Deploy</span>
-          <span className="text-sm font-medium text-gray-900 dark:text-white">{lastDeployed}</span>
-        </div>
-      </div>
-      
-      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border ${statusColors[status]}`}>
-        <div className={`w-2 h-2 rounded-full ${statusDots[status]}`}></div>
-        <span className="capitalize">{status}</span>
       </div>
     </div>
   );
 }
 
 export default function InfrastructurePage() {
+  const deployments = [
+    {
+      serviceName: "User Auth API",
+      environment: "production",
+      version: "v2.1.4",
+      author: "sarah.dev",
+      commitHash: "a1b2c3d",
+      timeAgo: "2 hours ago",
+      status: "success" as const
+    },
+    {
+      serviceName: "Analytics Engine",
+      environment: "production", 
+      version: "v3.0.1",
+      author: "mike.eng",
+      commitHash: "e4f5g6h",
+      timeAgo: "3 hours ago",
+      status: "success" as const
+    },
+    {
+      serviceName: "Payment Service",
+      environment: "staging",
+      version: "v1.8.3",
+      author: "alex.backend",
+      commitHash: "i7j8k9l",
+      timeAgo: "1 hour ago",
+      status: "progress" as const
+    },
+    {
+      serviceName: "Notification API",
+      environment: "production",
+      version: "v1.5.4",
+      author: "emma.ops",
+      commitHash: "m1n2o3p",
+      timeAgo: "4 hours ago",
+      status: "failed" as const
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 pt-14 sm:pt-16">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Platform Engineering</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">Manage services, deployments, and infrastructure</p>
+              <h1 className="text-3xl font-bold text-blue-600">Platform Engineering</h1>
+              <p className="text-gray-600 mt-2">Manage services, deployments, and infrastructure</p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full border border-green-200">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-sm font-medium">All Systems Operational</span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
                 <Activity className="h-4 w-4" />
                 <span className="text-sm font-medium">99.9% uptime</span>
               </div>
@@ -140,99 +150,128 @@ export default function InfrastructurePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Infrastructure Overview */}
+        {/* Platform Overview Metrics */}
         <section>
           <div className="flex items-center gap-2 mb-6">
-            <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Platform Overview</h2>
+            <Activity className="h-5 w-5 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Platform Overview</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricCard
-              title="Active Services" 
-              value="24"
-              change="+2 this week"
-              changeType="positive"
-              icon={Server}
-            />
-            <MetricCard
-              title="System Uptime"
-              value="99.9%"
-              change="Last 30 days"
-              changeType="positive"
-              icon={Activity}
-            />
-            <MetricCard
-              title="Deployments Today"
-              value="12"
-              change="+4 vs yesterday"
-              changeType="positive"
-              icon={Zap}
-            />
-            <MetricCard
-              title="Active Developers"
-              value="8"
-              change="2 deploying now"
-              changeType="neutral"
-              icon={HardDrive}
-            />
-          </div>
-        </section>
-
-        {/* Services Status */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <Server className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Services Status</h2>
-          </div>
-          <div className="space-y-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Authentication API</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-600 text-sm font-medium mb-2">Active Services</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">24</p>
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-50">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>+2 this week</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium">healthy</span>
+                <div className="bg-blue-50 p-3 rounded-lg flex-shrink-0">
+                  <Server className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-600 text-sm font-medium mb-2">System Uptime</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">99.9%</p>
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-50">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>Last 30 days</span>
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg flex-shrink-0">
+                  <Activity className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-600 text-sm font-medium mb-2">Deployments Today</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">12</p>
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-50">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>+4 vs yesterday</span>
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg flex-shrink-0">
+                  <Zap className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-gray-600 text-sm font-medium mb-2">Active Developers</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">8</p>
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-50">
+                    <span>2 deploying now</span>
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg flex-shrink-0">
+                  <Server className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        {/* Recent Deployments - Matching the desired design */}
+        <section>
+          <div className="flex items-center gap-2 mb-6">
+            <Zap className="h-5 w-5 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Recent Deployments</h2>
+          </div>
+          <div className="space-y-4">
+            {deployments.map((deployment, index) => (
+              <DeploymentCard
+                key={index}
+                {...deployment}
+              />
+            ))}
+          </div>
+        </section>
+
         {/* Resource Usage */}
         <section>
           <div className="flex items-center gap-2 mb-6">
-            <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Resource Usage</h2>
+            <Activity className="h-5 w-5 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Resource Usage</h2>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
             <div className="space-y-8">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">CPU Usage</span>
-                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">67%</span>
+                  <span className="text-sm font-medium text-gray-900">CPU Usage</span>
+                  <span className="text-sm font-semibold text-blue-600">67%</span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className="bg-blue-500 h-3 rounded-full transition-all duration-500" style={{ width: '67%' }}></div>
                 </div>
               </div>
               
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Memory Usage</span>
-                  <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">84%</span>
+                  <span className="text-sm font-medium text-gray-900">Memory Usage</span>
+                  <span className="text-sm font-semibold text-yellow-600">84%</span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className="bg-yellow-500 h-3 rounded-full transition-all duration-500" style={{ width: '84%' }}></div>
                 </div>
               </div>
               
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Storage Usage</span>
-                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">78%</span>
+                  <span className="text-sm font-medium text-gray-900">Storage Usage</span>
+                  <span className="text-sm font-semibold text-green-600">78%</span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className="bg-green-500 h-3 rounded-full transition-all duration-500" style={{ width: '78%' }}></div>
                 </div>
               </div>

@@ -15,8 +15,7 @@ import {
   Layers,
   Settings
 } from "lucide-react";
-import { MetricCard } from "@/components/orbit/MetricCard";
-import { StatusIndicator } from "@/components/orbit/StatusIndicator";
+import { MetricCard } from "@/components/ui/MetricCard";
 
 /**
  * OpsSight Platform Engineering Dashboard
@@ -61,28 +60,31 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-14 sm:pt-16">
       {/* Header */}
-      <header className="border-b border-border bg-gradient-card">
+      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold gradient-text-primary truncate">
+              <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 truncate">
                 Platform Engineering
               </h1>
-              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
                 Manage services, deployments, and infrastructure
               </p>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 shrink-0">
-              <StatusIndicator status="healthy" label="All Systems Operational" />
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium">All Systems Operational</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>99.9% uptime</span>
               </div>
               <Link
                 href="/auth/sso"
-                className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
               >
                 Sign In
               </Link>
@@ -95,7 +97,7 @@ export default function HomePage() {
         {/* Platform Overview */}
         <section className="animate-fade-in">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
+            <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Platform Overview
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -115,18 +117,18 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             <Link
               href="/dashboard"
-              className="group relative bg-gradient-card border border-border rounded-lg p-6 shadow-soft hover:shadow-glow transition-all duration-300"
+              className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="bg-primary/10 p-3 rounded-lg">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
                   <BarChart3 className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-card-foreground">Dashboard</h3>
-                  <p className="text-sm text-muted-foreground">Real-time insights</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Dashboard</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Real-time insights</p>
                 </div>
               </div>
-              <p className="text-muted-foreground text-sm mb-4">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                 Monitor system health, deployments, and performance metrics in real-time.
               </p>
               <div className="flex items-center text-primary font-medium group-hover:translate-x-1 transition-transform duration-300">
@@ -137,10 +139,10 @@ export default function HomePage() {
 
             <Link
               href="/infrastructure"
-              className="group relative bg-gradient-card border border-border rounded-lg p-6 shadow-soft hover:shadow-glow transition-all duration-300"
+              className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="bg-primary/10 p-3 rounded-lg">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
                   <Layers className="h-6 w-6 text-primary" />
                 </div>
                 <div>
@@ -148,7 +150,7 @@ export default function HomePage() {
                   <p className="text-sm text-muted-foreground">Manage resources</p>
                 </div>
               </div>
-              <p className="text-muted-foreground text-sm mb-4">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                 Comprehensive infrastructure monitoring and resource management.
               </p>
               <div className="flex items-center text-primary font-medium group-hover:translate-x-1 transition-transform duration-300">
@@ -159,10 +161,10 @@ export default function HomePage() {
 
             <Link
               href="/settings"
-              className="group relative bg-gradient-card border border-border rounded-lg p-6 shadow-soft hover:shadow-glow transition-all duration-300"
+              className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="bg-primary/10 p-3 rounded-lg">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
                   <Settings className="h-6 w-6 text-primary" />
                 </div>
                 <div>
@@ -170,7 +172,7 @@ export default function HomePage() {
                   <p className="text-sm text-muted-foreground">Configure platform</p>
                 </div>
               </div>
-              <p className="text-muted-foreground text-sm mb-4">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                 Configure platform settings, user management, and integrations.
               </p>
               <div className="flex items-center text-primary font-medium group-hover:translate-x-1 transition-transform duration-300">

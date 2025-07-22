@@ -93,7 +93,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       
-      <body className={`${inter.className} h-full bg-white dark:bg-invary-primary`}>
+      <body className={`${inter.className} h-full bg-gray-50 dark:bg-gray-900`}>
         <ErrorBoundary>
           <ProvidersWrapper>
             <LoadingBoundary>

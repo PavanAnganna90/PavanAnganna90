@@ -18,10 +18,7 @@ import {
   Hash,
   ExternalLink
 } from "lucide-react";
-import { MetricCard } from "@/components/orbit/MetricCard";
-import { ServiceCard } from "@/components/orbit/ServiceCard";
-import { DeploymentCard } from "@/components/orbit/DeploymentCard";
-import { StatusIndicator } from "@/components/orbit/StatusIndicator";
+import { MetricCard } from "@/components/ui/MetricCard";
 
 /**
  * OpsSight Platform Engineering Dashboard
@@ -145,9 +142,9 @@ function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-14 sm:pt-16">
       {/* Header */}
-      <header className="border-b border-border bg-gradient-card">
+      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
