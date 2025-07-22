@@ -57,10 +57,13 @@ class ApiService {
    */
   setAuthToken(token: string | null) {
     this.authToken = token;
-    if (token) {
-      localStorage.setItem('auth_token', token);
-    } else {
-      localStorage.removeItem('auth_token');
+    // SSR-safe localStorage access
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      } else {
+        localStorage.removeItem('auth_token');
+      }
     }
   }
 

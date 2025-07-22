@@ -47,7 +47,7 @@ export class LegacyWebSocketService {
   private onCloseHandler?: (event: CloseEvent) => void;
   private onReconnectHandler?: (attempt: number) => void;
 
-  constructor(options: WebSocketOptions) {
+  constructor(options: LegacyWebSocketOptions) {
     this.url = options.url;
     this.protocols = options.protocols;
     this.reconnectInterval = options.reconnectInterval || 3000;

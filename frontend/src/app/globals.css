@@ -130,7 +130,7 @@ All colors MUST be HSL for proper theming.
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {

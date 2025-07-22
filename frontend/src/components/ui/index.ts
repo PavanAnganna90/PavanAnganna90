@@ -32,7 +32,7 @@ export {
 } from './LoadingSkeleton';
 
 // Button Components
-export { Button, ButtonGroup, IconButton } from './Button';
+export { Button, buttonVariants } from './button';
 
 // Form Components
 export { TextField, type TextFieldProps } from './TextField';
