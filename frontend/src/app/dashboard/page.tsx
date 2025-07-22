@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useHealth, useOrganizations, usePipelines, useAlerts } from '../../hooks/useApi';
 import { 
   Server, 
@@ -227,5 +228,11 @@ function DashboardPage() {
   );
 }
 
-// Export the dashboard page
-export default DashboardPage;
+// Export the dashboard page wrapped with authentication protection
+export default function ProtectedDashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardPage />
+    </ProtectedRoute>
+  );
+}

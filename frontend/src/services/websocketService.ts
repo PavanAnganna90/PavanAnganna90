@@ -11,20 +11,22 @@ export { ConnectionManager } from './websocket/ConnectionManager';
 export { MessageQueue } from './websocket/MessageQueue';
 export { HeartbeatManager } from './websocket/HeartbeatManager';
 
-export interface WebSocketOptions {
+// Legacy interface for backward compatibility
+export interface LegacyWebSocketOptions {
   url: string;
   protocols?: string[];
   reconnectInterval?: number;
   maxReconnectAttempts?: number;
   heartbeatInterval?: number;
   onOpen?: (event: Event) => void;
-  onMessage?: (message: WebSocketMessage) => void;
+  onMessage?: (message: any) => void;
   onError?: (error: Event) => void;
   onClose?: (event: CloseEvent) => void;
   onReconnect?: (attempt: number) => void;
 }
 
-export class WebSocketService {
+// Legacy class - use WebSocketService from ./websocket/WebSocketService instead
+export class LegacyWebSocketService {
   private ws: WebSocket | null = null;
   private url: string;
   private protocols?: string[];
