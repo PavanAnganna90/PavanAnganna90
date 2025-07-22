@@ -5,22 +5,6 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { 
-  APIError, 
-  NetworkError, 
-  TokenError, 
-  ErrorLogger,
-  AppError,
-  ErrorType,
-  handleFetchError,
-  createNetworkError 
-} from '../utils/errorHandling';
-import { 
-  TokenSecurity, 
-  CSRFProtection,
-  InputValidator,
-  RateLimiter 
-} from '../utils/security';
 
 // Types for authentication state
 interface Role {
@@ -40,6 +24,7 @@ interface Permission {
   description: string;
   category: string;
   is_system_permission: boolean;
+  organization_id?: string; // Optional organization scope for permission
 }
 
 interface User {

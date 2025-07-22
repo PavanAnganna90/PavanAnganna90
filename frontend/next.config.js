@@ -7,6 +7,15 @@ const nextConfig = {
   // Enable strict mode for better development experience
   reactStrictMode: true,
   
+  // Exclude test files from build
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  
+  // Build configuration
+  experimental: {
+    webpackBuildWorker: true,
+    optimizeCss: true,
+  },
+  
   // TypeScript configuration
   typescript: {
     // Allow build errors for deployment

@@ -8,7 +8,10 @@ import React from 'react';
 // OAuth configuration constants - using backend OAuth endpoint via Next.js proxy
 const BACKEND_OAUTH_URL = '/api/v1/auth/oauth/github/authorize';
 const CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || 'dev-client-id';
-const REDIRECT_URI = `${window.location.origin}/auth/callback`;
+// Use typeof window check for SSR compatibility
+const REDIRECT_URI = typeof window !== 'undefined' 
+  ? `${window.location.origin}/auth/callback`
+  : '/auth/callback';
 const SCOPE = 'user:email read:user';
 
 interface GitHubLoginButtonProps {
