@@ -256,6 +256,19 @@ class SecuritySettings(BaseSettings):
         env_prefix = "SECURITY_"
         case_sensitive = False
     
+    def __init__(self, **kwargs):
+        # Handle multiple possible environment variable names for JWT secret
+        if 'jwt_secret_key' not in kwargs:
+            jwt_secret = (
+                os.getenv('SECURITY_JWT_SECRET_KEY') or
+                os.getenv('JWT_SECRET_KEY') or
+                os.getenv('SECRET_KEY')
+            )
+            if jwt_secret:
+                kwargs['jwt_secret_key'] = jwt_secret
+        
+        super().__init__(**kwargs)
+    
     @validator('jwt_secret_key')
     def validate_jwt_secret(cls, v):
         if len(v) < 32:
@@ -423,10 +436,20 @@ class SecurityConfigManager:
         }
 
 
-# Global security config instance
-security_config = SecurityConfigManager()
+# Global security config instance - lazy initialization
+_security_config: Optional[SecurityConfigManager] = None
 
 
 def get_security_config() -> SecurityConfigManager:
-    """Get global security configuration."""
-    return security_config
+    """Get global security configuration with lazy initialization."""
+    global _security_config
+    if _security_config is None:
+        _security_config = SecurityConfigManager()
+    return _security_config
+
+
+def init_security_config() -> SecurityConfigManager:
+    """Initialize security configuration explicitly."""
+    global _security_config
+    _security_config = SecurityConfigManager()
+    return _security_config

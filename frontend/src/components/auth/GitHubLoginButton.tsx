@@ -5,9 +5,9 @@
 
 import React from 'react';
 
-// OAuth configuration constants
-const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
-const CLIENT_ID = (import.meta as any).env.VITE_GITHUB_CLIENT_ID;
+// OAuth configuration constants - using backend OAuth endpoint
+const BACKEND_OAUTH_URL = 'http://localhost:8000/api/v1/auth/oauth/github/authorize';
+const CLIENT_ID = (import.meta as any).env.VITE_GITHUB_CLIENT_ID || 'dev-client-id';
 const REDIRECT_URI = `${window.location.origin}/auth/callback`;
 const SCOPE = 'user:email read:user';
 
@@ -41,17 +41,11 @@ export const GitHubLoginButton: React.FC<GitHubLoginButtonProps> = ({
   variant = 'primary',
 }) => {
   /**
-   * Handle GitHub OAuth initiation.
-   * Redirects user to GitHub's authorization endpoint with required parameters.
+   * Handle GitHub OAuth initiation via backend.
+   * Uses backend OAuth endpoint to get proper authorization URL.
    */
-  const handleGitHubLogin = (): void => {
+  const handleGitHubLogin = async (): Promise<void> => {
     if (isLoading) return;
-
-    // Reason: Validate client ID before attempting OAuth
-    if (!CLIENT_ID) {
-      console.error('GitHub Client ID not configured');
-      return;
-    }
 
     // Generate secure state parameter for CSRF protection
     const state = btoa(JSON.stringify({
@@ -65,16 +59,33 @@ export const GitHubLoginButton: React.FC<GitHubLoginButtonProps> = ({
     // Callback for external handling
     onLoginStart?.();
 
-    // Construct GitHub OAuth URL with required parameters
-    const authUrl = new URL(GITHUB_AUTH_URL);
-    authUrl.searchParams.set('client_id', CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
-    authUrl.searchParams.set('scope', SCOPE);
-    authUrl.searchParams.set('state', state);
-    authUrl.searchParams.set('allow_signup', 'true');
+    try {
+      // Get authorization URL from backend
+      const response = await fetch(`${BACKEND_OAUTH_URL}?redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${encodeURIComponent(state)}`);
+      
+      if (!response.ok) {
+        throw new Error(`OAuth endpoint failed: ${response.status}`);
+      }
 
-    // Reason: Use window.location.href for full page redirect (OAuth requirement)
-    window.location.href = authUrl.toString();
+      const data = await response.json();
+      
+      if (data.authorization_url) {
+        // Redirect to the authorization URL provided by backend
+        window.location.href = data.authorization_url;
+      } else {
+        console.error('No authorization URL received from backend');
+      }
+    } catch (error) {
+      console.error('OAuth initiation failed:', error);
+      // Fallback to direct GitHub OAuth if backend fails
+      const authUrl = new URL('https://github.com/login/oauth/authorize');
+      authUrl.searchParams.set('client_id', CLIENT_ID);
+      authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+      authUrl.searchParams.set('scope', SCOPE);
+      authUrl.searchParams.set('state', state);
+      authUrl.searchParams.set('allow_signup', 'true');
+      window.location.href = authUrl.toString();
+    }
   };
 
   // Generate CSS classes based on props using design tokens

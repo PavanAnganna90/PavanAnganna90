@@ -64,10 +64,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         setup_logging()
         logger.info("✅ Logging configured")
 
-        # Initialize Prometheus metrics (only if not running under pytest)
-        if not os.environ.get("PYTEST_CURRENT_TEST"):
-            init_metrics()
-            logger.info("✅ Custom Prometheus metrics initialized")
+        # Initialize Prometheus metrics (disabled for development due to duplicate registration)
+        # if not os.environ.get("PYTEST_CURRENT_TEST"):
+        #     init_metrics()
+        #     logger.info("✅ Custom Prometheus metrics initialized")
 
         # Check database connection
         if await check_async_db_connection():
@@ -76,6 +76,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             # Create tables if they don't exist
             await create_tables()
             logger.info("✅ Database tables verified/created")
+        else:
+            logger.error("❌ Database connection failed")
+            raise RuntimeError("Database connection failed")
 
         # Initialize cache manager
         try:
@@ -84,9 +87,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.warning(f"⚠️ Cache manager initialization failed: {e}")
             logger.info("🔄 Continuing with in-memory cache only")
-        else:
-            logger.error("❌ Database connection failed")
-            raise RuntimeError("Database connection failed")
 
         # Initialize Redis connection pool (lazy initialization)
         from app.core.dependencies import get_redis_pool

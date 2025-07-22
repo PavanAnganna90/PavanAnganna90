@@ -1,0 +1,76 @@
+[
+  {
+    "endpoint": "/api/v1/auth/oauth/providers",
+    "status": "SUCCESS",
+    "status_code": 200,
+    "response": {
+      "providers": [
+        {
+          "provider": "github",
+          "name": "GitHub",
+          "configured": true,
+          "enabled": true,
+          "description": "GitHub OAuth 2.0 authentication"
+        },
+        {
+          "provider": "google",
+          "name": "Google",
+          "configured": false,
+          "enabled": false,
+          "description": "Google OAuth 2.0 authentication (not configured)"
+        }
+      ],
+      "total_count": 2,
+      "enabled_count": 1
+    }
+  },
+  {
+    "endpoint": "/api/v1/auth/oauth/google/health",
+    "status": "SUCCESS",
+    "status_code": 200,
+    "response": {
+      "provider": "google",
+      "status": "not_configured",
+      "configured": false,
+      "message": "OAuth provider 'google' is not configured"
+    }
+  },
+  {
+    "endpoint": "/api/v1/auth/oauth/github/health",
+    "status": "SUCCESS",
+    "status_code": 200,
+    "response": {
+      "provider": "github",
+      "status": "healthy",
+      "configured": true,
+      "auth_url": "https://github.com/login/oauth/authorize",
+      "message": "OAuth provider 'github' health check completed"
+    }
+  },
+  {
+    "endpoint": "/api/v1/auth/oauth/google/authorize?redirect_uri=http://localhost:3000/auth/callback",
+    "status": "SUCCESS",
+    "status_code": 200,
+    "response": {
+      "error": "Provider google not configured"
+    }
+  },
+  {
+    "endpoint": "/api/v1/auth/oauth/github/authorize?redirect_uri=http://localhost:3000/auth/callback",
+    "status": "SUCCESS",
+    "status_code": 200,
+    "response": {
+      "authorization_url": "https://github.com/login/oauth/authorize?client_id=dev-client-id&redirect_uri=http://localhost:3000/auth/callback&scope=user:email&state=test-state",
+      "provider": "github",
+      "state": "test-state"
+    }
+  },
+  {
+    "endpoint": "/api/v1/auth/sso/config",
+    "status": "WARNING",
+    "status_code": 404,
+    "response": {
+      "detail": "Not Found"
+    }
+  }
+]

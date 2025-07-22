@@ -4,7 +4,7 @@ Handles SQLAlchemy setup, connection pooling, and session lifecycle with async s
 Enhanced with advanced connection management, retry logic, and failover mechanisms.
 """
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy import create_engine, text, pool
 from typing import AsyncGenerator, Generator, Annotated, Optional, Dict, Any
 from contextlib import asynccontextmanager
@@ -156,8 +156,11 @@ sync_engine = create_engine(
     isolation_level="READ COMMITTED",
 )
 
+# Create sync session factory for backwards compatibility
+from sqlalchemy.orm import sessionmaker
+
 # Create async session factory with enhanced configuration
-AsyncSessionLocal = async_sessionmaker(
+AsyncSessionLocal = sessionmaker(
     bind=async_engine,
     class_=AsyncSession,
     expire_on_commit=False,
@@ -167,9 +170,6 @@ AsyncSessionLocal = async_sessionmaker(
 
 # Set up database monitoring
 db_monitor.setup_engine_monitoring(async_engine)
-
-# Create sync session factory for backwards compatibility
-from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(bind=sync_engine, autocommit=False, autoflush=False)
 

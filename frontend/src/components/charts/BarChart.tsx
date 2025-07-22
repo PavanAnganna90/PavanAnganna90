@@ -1,7 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useChartTheme } from '@/hooks/useChartTheme';
+import { 
+  sanitizeBarChartData, 
+  sanitizeChartProps, 
+  validationMonitor,
+  ChartValidationError 
+} from '@/lib/chartValidation';
 
 interface BarChartProps {
   data: Array<{ label: string; value: number; color?: string }>;
@@ -13,16 +19,51 @@ interface BarChartProps {
   barSpacing?: number;
 }
 
-export function BarChart({
-  data,
-  height = 120,
-  showLabels = true,
-  showValues = false,
-  animated = true,
-  className = '',
-  barSpacing = 8
-}: BarChartProps) {
+export const BarChart = React.memo(function BarChart(props: BarChartProps) {
   const { getColor } = useChartTheme();
+  
+  // Validate and sanitize props
+  const {
+    data: rawData,
+    height = 120,
+    showLabels = true,
+    showValues = false,
+    animated = true,
+    className = '',
+    barSpacing = 8
+  } = useMemo(() => {
+    return validationMonitor.measureValidation('BarChart', () => {
+      try {
+        const sanitizedProps = sanitizeChartProps(props);
+        const sanitizedData = sanitizeBarChartData(props.data);
+        
+        return {
+          ...props,
+          ...sanitizedProps,
+          data: sanitizedData
+        };
+      } catch (error) {
+        if (error instanceof ChartValidationError) {
+          console.error('BarChart validation error:', error);
+          // Return safe defaults
+          return {
+            ...props,
+            data: [],
+            height: 120,
+            showLabels: true,
+            showValues: false,
+            animated: true,
+            className: '',
+            barSpacing: 8
+          };
+        }
+        throw error;
+      }
+    });
+  }, [props]);
+
+  const data = rawData;
+  
   if (!data || data.length === 0) {
     return (
       <div className={`w-full bg-gray-100 dark:bg-invary-secondary/20 rounded ${className}`} style={{ height }}>
@@ -89,6 +130,26 @@ export function BarChart({
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for array data
+  if (prevProps.data.length !== nextProps.data.length) return false;
+  
+  const dataEqual = prevProps.data.every((item, idx) => {
+    const nextItem = nextProps.data[idx];
+    return item.label === nextItem.label && 
+           item.value === nextItem.value && 
+           item.color === nextItem.color;
+  });
+  
+  return (
+    dataEqual &&
+    prevProps.height === nextProps.height &&
+    prevProps.showLabels === nextProps.showLabels &&
+    prevProps.showValues === nextProps.showValues &&
+    prevProps.animated === nextProps.animated &&
+    prevProps.className === nextProps.className &&
+    prevProps.barSpacing === nextProps.barSpacing
+  );
+});
 
 export default BarChart;

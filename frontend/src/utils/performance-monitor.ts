@@ -2,6 +2,8 @@
  * Performance monitoring utilities for OpsSight frontend
  */
 
+import React from 'react';
+
 export interface PerformanceMetrics {
   pageLoadTime: number;
   firstContentfulPaint: number;
@@ -264,7 +266,7 @@ export function withPerformanceMonitoring<P extends object>(
       };
     }, []);
 
-    return <Component {...props} />;
+    return React.createElement(Component, props);
   };
 }
 

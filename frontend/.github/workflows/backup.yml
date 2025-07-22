@@ -1,0 +1,286 @@
+name: Backup Strategy
+
+on:
+  schedule:
+    # Daily backups at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Type of backup to perform'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - incremental
+          - configs-only
+
+env:
+  BACKUP_RETENTION_DAYS: 30
+  AWS_REGION: us-east-1
+
+jobs:
+  database-backup:
+    name: Database Backup
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-15
+          
+      - name: Create database backup
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          backup_file="opssight_db_backup_${timestamp}.sql"
+          
+          pg_dump \
+            --host=${{ secrets.DB_HOST }} \
+            --port=${{ secrets.DB_PORT || '5432' }} \
+            --username=${{ secrets.DB_USER }} \
+            --dbname=${{ secrets.DB_NAME }} \
+            --format=custom \
+            --compress=9 \
+            --no-password \
+            --file=${backup_file}
+            
+          echo "BACKUP_FILE=${backup_file}" >> $GITHUB_ENV
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          
+      - name: Upload to S3
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Sync backup to S3
+        run: |
+          aws s3 cp ${{ env.BACKUP_FILE }} s3://${{ secrets.BACKUP_BUCKET }}/database/
+          
+      - name: Verify backup integrity
+        run: |
+          # Download and verify the backup
+          aws s3 cp s3://${{ secrets.BACKUP_BUCKET }}/database/${{ env.BACKUP_FILE }} verify_backup.sql
+          
+          # Check file size and format
+          if [ -s verify_backup.sql ]; then
+            echo "✅ Database backup verified successfully"
+          else
+            echo "❌ Database backup verification failed"
+            exit 1
+          fi
+
+  redis-backup:
+    name: Redis Backup
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create Redis backup
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          backup_file="opssight_redis_backup_${timestamp}.rdb"
+          
+          # Connect to Redis and create backup
+          redis-cli \
+            -h ${{ secrets.REDIS_HOST }} \
+            -p ${{ secrets.REDIS_PORT || '6379' }} \
+            -a ${{ secrets.REDIS_PASSWORD }} \
+            --rdb ${backup_file}
+            
+          echo "REDIS_BACKUP_FILE=${backup_file}" >> $GITHUB_ENV
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Upload Redis backup to S3
+        run: |
+          aws s3 cp ${{ env.REDIS_BACKUP_FILE }} s3://${{ secrets.BACKUP_BUCKET }}/redis/
+
+  configuration-backup:
+    name: Configuration Backup
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create configuration archive
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          archive_name="opssight_configs_${timestamp}.tar.gz"
+          
+          # Create archive of configuration files
+          tar -czf ${archive_name} \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.next' \
+            --exclude='*.log' \
+            .env.example \
+            docker-compose*.yml \
+            Dockerfile \
+            next.config.js \
+            tailwind.config.ts \
+            package.json \
+            package-lock.json \
+            .github/ \
+            monitoring/ \
+            docs/ \
+            scripts/
+            
+          echo "CONFIG_ARCHIVE=${archive_name}" >> $GITHUB_ENV
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Upload configuration backup
+        run: |
+          aws s3 cp ${{ env.CONFIG_ARCHIVE }} s3://${{ secrets.BACKUP_BUCKET }}/configs/
+
+  application-backup:
+    name: Application Backup
+    runs-on: ubuntu-latest
+    needs: [database-backup, redis-backup, configuration-backup]
+    
+    steps:
+      - name: Create backup manifest
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          manifest_file="backup_manifest_${timestamp}.json"
+          
+          cat > ${manifest_file} << EOF
+          {
+            "backup_id": "${timestamp}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "environment": "production",
+            "version": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "components": {
+              "database": {
+                "type": "postgresql",
+                "status": "completed",
+                "location": "s3://${{ secrets.BACKUP_BUCKET }}/database/"
+              },
+              "cache": {
+                "type": "redis",
+                "status": "completed", 
+                "location": "s3://${{ secrets.BACKUP_BUCKET }}/redis/"
+              },
+              "configurations": {
+                "type": "archive",
+                "status": "completed",
+                "location": "s3://${{ secrets.BACKUP_BUCKET }}/configs/"
+              }
+            }
+          }
+          EOF
+          
+          echo "MANIFEST_FILE=${manifest_file}" >> $GITHUB_ENV
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Upload backup manifest
+        run: |
+          aws s3 cp ${{ env.MANIFEST_FILE }} s3://${{ secrets.BACKUP_BUCKET }}/manifests/
+
+  cleanup-old-backups:
+    name: Cleanup Old Backups
+    runs-on: ubuntu-latest
+    needs: [application-backup]
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Remove backups older than retention period
+        run: |
+          cutoff_date=$(date -d "-${BACKUP_RETENTION_DAYS} days" +%Y-%m-%d)
+          
+          echo "Removing backups older than ${cutoff_date}"
+          
+          # Remove old database backups
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/database/ | \
+            awk '$1 < "'${cutoff_date}'" {print $4}' | \
+            xargs -I {} aws s3 rm s3://${{ secrets.BACKUP_BUCKET }}/database/{}
+            
+          # Remove old Redis backups
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/redis/ | \
+            awk '$1 < "'${cutoff_date}'" {print $4}' | \
+            xargs -I {} aws s3 rm s3://${{ secrets.BACKUP_BUCKET }}/redis/{}
+            
+          # Remove old configuration backups
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/configs/ | \
+            awk '$1 < "'${cutoff_date}'" {print $4}' | \
+            xargs -I {} aws s3 rm s3://${{ secrets.BACKUP_BUCKET }}/configs/{}
+
+  backup-verification:
+    name: Backup Verification
+    runs-on: ubuntu-latest
+    needs: [application-backup]
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Verify latest backups
+        run: |
+          echo "Verifying backup integrity..."
+          
+          # Check database backup exists and is not empty
+          latest_db_backup=$(aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/database/ --recursive | sort | tail -n 1 | awk '{print $4}')
+          if [ -n "$latest_db_backup" ]; then
+            backup_size=$(aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/${latest_db_backup} | awk '{print $3}')
+            if [ "$backup_size" -gt 1000 ]; then
+              echo "✅ Database backup verification passed (${backup_size} bytes)"
+            else
+              echo "❌ Database backup too small or corrupted"
+              exit 1
+            fi
+          else
+            echo "❌ No database backup found"
+            exit 1
+          fi
+          
+      - name: Send backup status notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#ops-alerts'
+          text: |
+            Backup Status: ${{ job.status }}
+            Environment: Production
+            Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

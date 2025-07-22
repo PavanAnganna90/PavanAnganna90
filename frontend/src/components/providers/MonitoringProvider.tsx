@@ -15,8 +15,10 @@ interface MonitoringContextType {
   sessionId: string;
   trackEvent: (event: string, properties?: Record<string, any>) => void;
   trackError: (error: Error, context?: Record<string, any>) => void;
-  trackTiming: (name: string, duration: number, tags?: Record<string, string>) => void;
-  trackMetric: (name: string, value: number, type: 'counter' | 'gauge' | 'histogram', tags?: Record<string, string>) => void;
+  timing: (name: string, duration: number, tags?: Record<string, string>) => void;
+  counter: (name: string, value?: number, tags?: Record<string, string>) => void;
+  gauge: (name: string, value: number, tags?: Record<string, string>) => void;
+  histogram: (name: string, value: number, tags?: Record<string, string>) => void;
   startTiming: (name: string) => void;
   endTiming: (name: string, tags?: Record<string, string>) => void;
   config: {
@@ -150,11 +152,11 @@ export const MonitoringProvider: React.FC<MonitoringProviderProps> = ({
           const navigation = navigationEntries[0];
           
           // Track key navigation metrics
-          monitor.trackTiming('navigation.dns_lookup', navigation.domainLookupEnd - navigation.domainLookupStart);
-          monitor.trackTiming('navigation.tcp_connection', navigation.connectEnd - navigation.connectStart);
-          monitor.trackTiming('navigation.server_response', navigation.responseEnd - navigation.requestStart);
-          monitor.trackTiming('navigation.dom_processing', navigation.domComplete - navigation.domLoading);
-          monitor.trackTiming('navigation.page_load', navigation.loadEventEnd - navigation.navigationStart);
+          monitor.timing('navigation.dns_lookup', navigation.domainLookupEnd - navigation.domainLookupStart);
+          monitor.timing('navigation.tcp_connection', navigation.connectEnd - navigation.connectStart);
+          monitor.timing('navigation.server_response', navigation.responseEnd - navigation.requestStart);
+          monitor.timing('navigation.dom_processing', navigation.domComplete - navigation.domLoading);
+          monitor.timing('navigation.page_load', navigation.loadEventEnd - navigation.navigationStart);
         }
       }
     };
@@ -167,7 +169,7 @@ export const MonitoringProvider: React.FC<MonitoringProviderProps> = ({
         resourceEntries.forEach(resource => {
           if (Math.random() < config.sampleRate) {
             const resourceType = getResourceType(resource.name);
-            monitor.trackTiming(`resource.${resourceType}`, resource.duration, {
+            monitor.timing(`resource.${resourceType}`, resource.duration, {
               initiator: resource.initiatorType,
               name: resource.name.split('/').pop() || 'unknown',
             });
@@ -180,9 +182,9 @@ export const MonitoringProvider: React.FC<MonitoringProviderProps> = ({
     const trackMemoryUsage = () => {
       if ('memory' in performance && (performance as any).memory) {
         const memory = (performance as any).memory;
-        monitor.trackMetric('memory.used', memory.usedJSHeapSize, 'gauge');
-        monitor.trackMetric('memory.total', memory.totalJSHeapSize, 'gauge');
-        monitor.trackMetric('memory.limit', memory.jsHeapSizeLimit, 'gauge');
+        monitor.gauge('memory.used', memory.usedJSHeapSize);
+        monitor.gauge('memory.total', memory.totalJSHeapSize);
+        monitor.gauge('memory.limit', memory.jsHeapSizeLimit);
       }
     };
 
@@ -313,25 +315,27 @@ export const MonitoringProvider: React.FC<MonitoringProviderProps> = ({
     }
   };
 
-  const trackTiming = (name: string, duration: number, tags?: Record<string, string>) => {
+  const timing = (name: string, duration: number, tags?: Record<string, string>) => {
     if (config.enablePerformanceMonitoring) {
       monitor.timing(name, duration, tags);
     }
   };
 
-  const trackMetric = (name: string, value: number, type: 'counter' | 'gauge' | 'histogram', tags?: Record<string, string>) => {
+  const counter = (name: string, value?: number, tags?: Record<string, string>) => {
     if (config.enablePerformanceMonitoring) {
-      switch (type) {
-        case 'counter':
-          monitor.counter(name, value, tags);
-          break;
-        case 'gauge':
-          monitor.gauge(name, value, tags);
-          break;
-        case 'histogram':
-          monitor.histogram(name, value, tags);
-          break;
-      }
+      monitor.counter(name, value, tags);
+    }
+  };
+
+  const gauge = (name: string, value: number, tags?: Record<string, string>) => {
+    if (config.enablePerformanceMonitoring) {
+      monitor.gauge(name, value, tags);
+    }
+  };
+
+  const histogram = (name: string, value: number, tags?: Record<string, string>) => {
+    if (config.enablePerformanceMonitoring) {
+      monitor.histogram(name, value, tags);
     }
   };
 
@@ -356,8 +360,10 @@ export const MonitoringProvider: React.FC<MonitoringProviderProps> = ({
     sessionId,
     trackEvent,
     trackError,
-    trackTiming,
-    trackMetric,
+    timing,
+    counter,
+    gauge,
+    histogram,
     startTiming,
     endTiming,
     config,

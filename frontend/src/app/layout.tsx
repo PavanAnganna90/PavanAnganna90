@@ -80,7 +80,7 @@ export default function RootLayout({
       <head>
         {/* Security: CSP and security headers */}
         <meta name="color-scheme" content="light dark" />
-        <meta name="csrf-token" content="generated-by-security-provider" />
+        {/* CSRF token is now handled securely via API endpoint and httpOnly cookies */}
         
         {/* Performance: Preconnect to critical domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -106,16 +106,14 @@ export default function RootLayout({
                   Skip to main content
                 </a>
                 
-                {/* Navigation with proper ARIA landmarks */}
-                <nav role="navigation" aria-label="Main navigation">
-                  <Navigation />
-                </nav>
+                {/* Navigation */}
+                <Navigation />
                 
                 {/* Main content area with semantic HTML */}
                 <main 
                   id="main-content"
                   role="main"
-                  className="flex-1 bg-white dark:bg-invary-primary"
+                  className="flex-1"
                   tabIndex={-1}
                 >
                   {children}
@@ -128,31 +126,8 @@ export default function RootLayout({
           </ProvidersWrapper>
         </ErrorBoundary>
         
-        {/* Performance monitoring script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Performance monitoring (non-blocking)
-              if ('requestIdleCallback' in window) {
-                requestIdleCallback(() => {
-                  // Log Core Web Vitals
-                  if ('PerformanceObserver' in window) {
-                    try {
-                      const observer = new PerformanceObserver((list) => {
-                        for (const entry of list.getEntries()) {
-                          console.log('[Performance]', entry.name, entry.value);
-                        }
-                      });
-                      observer.observe({ entryTypes: ['measure', 'navigation'] });
-                    } catch (e) {
-                      console.error('[Performance] Observer error:', e);
-                    }
-                  }
-                });
-              }
-            `
-          }}
-        />
+        {/* Performance monitoring script - moved to external file for security */}
+        <script src="/js/performance-monitor.js" async defer></script>
       </body>
     </html>
   );

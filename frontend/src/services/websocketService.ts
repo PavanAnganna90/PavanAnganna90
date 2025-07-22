@@ -1,16 +1,15 @@
 /**
- * WebSocket Service for Real-time Updates
+ * DEPRECATED: Legacy WebSocket Service - Use services/websocket/WebSocketService.ts
  * 
- * Provides WebSocket connections for live metrics, events, and notifications
- * with automatic reconnection and message queuing
+ * This file is kept for backward compatibility and will be removed in a future version.
+ * Please migrate to the new modular WebSocket services.
  */
 
-export interface WebSocketMessage {
-  type: string;
-  payload: any;
-  timestamp: string;
-  id?: string;
-}
+// Re-export from new modular services
+export { WebSocketMessage, WebSocketService } from './websocket/WebSocketService';
+export { ConnectionManager } from './websocket/ConnectionManager';
+export { MessageQueue } from './websocket/MessageQueue';
+export { HeartbeatManager } from './websocket/HeartbeatManager';
 
 export interface WebSocketOptions {
   url: string;
@@ -63,7 +62,7 @@ export class WebSocketService {
   /**
    * Connect to WebSocket server
    */
-  connect(): void {
+  async connect(): Promise<void> {
     if (this.isConnecting || (this.ws && this.ws.readyState === WebSocket.OPEN)) {
       return;
     }
@@ -72,11 +71,13 @@ export class WebSocketService {
     this.isManualClose = false;
 
     try {
-      // Add authentication token to URL if available
-      const token = this.getAuthToken();
-      const wsUrl = token ? `${this.url}?token=${token}` : this.url;
+      // Get secure WebSocket token
+      const token = await this.getAuthToken();
       
-      this.ws = new WebSocket(wsUrl, this.protocols);
+      // Use secure subprotocol for authentication instead of URL parameter
+      const protocols = token ? [...(this.protocols || []), `token.${token}`] : this.protocols;
+      
+      this.ws = new WebSocket(this.url, protocols);
       
       this.ws.onopen = this.handleOpen.bind(this);
       this.ws.onmessage = this.handleMessage.bind(this);
@@ -290,9 +291,11 @@ export class WebSocketService {
     }
   }
 
-  private getAuthToken(): string | null {
+  private async getAuthToken(): Promise<string | null> {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      // Use secure auth service instead of localStorage
+      const { authService } = await import('../lib/auth');
+      return authService.getWebSocketToken();
     }
     return null;
   }
@@ -352,7 +355,13 @@ export class MetricsWebSocketService extends WebSocketService {
       console.log('📡 Using mock WebSocket server for development');
       
       // Simulate connection state
-      this.ws = { readyState: WebSocket.OPEN } as WebSocket;
+      this.ws = { 
+        readyState: WebSocket.OPEN,
+        send: (data: string) => {
+          // Mock send - just log the message in development
+          console.log('📤 Mock WebSocket send (metrics):', JSON.parse(data));
+        }
+      } as WebSocket;
       
       // Start mock server
       if (!mockWebSocketServer.isRunning()) {
@@ -430,7 +439,13 @@ export class NotificationsWebSocketService extends WebSocketService {
       console.log('📡 Using mock WebSocket server for notifications');
       
       // Simulate connection state
-      this.ws = { readyState: WebSocket.OPEN } as WebSocket;
+      this.ws = { 
+        readyState: WebSocket.OPEN,
+        send: (data: string) => {
+          // Mock send - just log the message in development
+          console.log('📤 Mock WebSocket send (notifications):', JSON.parse(data));
+        }
+      } as WebSocket;
       
       // Start mock server
       if (!mockWebSocketServer.isRunning()) {

@@ -1,0 +1,666 @@
+ba9a5be005a12e82b6d5a8d9c539f6ed
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "default", {
+    enumerable: true,
+    get: function() {
+        return SettingsPage;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _react = /*#__PURE__*/ _interop_require_wildcard(require("react"));
+const _lucidereact = require("lucide-react");
+const _StatusIndicator = require("../../components/orbit/StatusIndicator");
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
+}
+function SettingsPage() {
+    const [activeTab, setActiveTab] = (0, _react.useState)('general');
+    const tabs = [
+        {
+            id: 'general',
+            label: 'General',
+            icon: _lucidereact.Settings
+        },
+        {
+            id: 'profile',
+            label: 'Profile',
+            icon: _lucidereact.User
+        },
+        {
+            id: 'notifications',
+            label: 'Notifications',
+            icon: _lucidereact.Bell
+        },
+        {
+            id: 'security',
+            label: 'Security',
+            icon: _lucidereact.Shield
+        },
+        {
+            id: 'appearance',
+            label: 'Appearance',
+            icon: _lucidereact.Palette
+        },
+        {
+            id: 'monitoring',
+            label: 'Monitoring',
+            icon: _lucidereact.Monitor
+        }
+    ];
+    return /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+        className: "min-h-screen bg-background pt-16",
+        children: [
+            /*#__PURE__*/ (0, _jsxruntime.jsx)("header", {
+                className: "border-b border-border bg-gradient-card",
+                children: /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                    className: "max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6",
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                        className: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                className: "min-w-0 flex-1",
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("h1", {
+                                        className: "text-2xl sm:text-3xl font-bold gradient-text-primary truncate",
+                                        children: "Settings"
+                                    }),
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                        className: "text-muted-foreground mt-1 text-sm sm:text-base",
+                                        children: "Configure your platform preferences and security settings"
+                                    })
+                                ]
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                className: "shrink-0",
+                                children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_StatusIndicator.StatusIndicator, {
+                                    status: "healthy",
+                                    label: "Configuration Valid"
+                                })
+                            })
+                        ]
+                    })
+                })
+            }),
+            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                className: "max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8",
+                children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                    className: "grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8",
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                            className: "lg:col-span-1",
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsx)("nav", {
+                                className: "space-y-1 overflow-x-auto lg:overflow-x-visible",
+                                children: /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                    className: "flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-1 pb-2 lg:pb-0",
+                                    children: tabs.map((tab)=>{
+                                        const Icon = tab.icon;
+                                        return /*#__PURE__*/ (0, _jsxruntime.jsxs)("button", {
+                                            onClick: ()=>setActiveTab(tab.id),
+                                            className: `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap lg:w-full ${activeTab === tab.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`,
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)(Icon, {
+                                                    className: "h-5 w-5"
+                                                }),
+                                                tab.label
+                                            ]
+                                        }, tab.id);
+                                    })
+                                })
+                            })
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                            className: "lg:col-span-3",
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                className: "bg-gradient-card border border-border rounded-lg p-4 sm:p-6 shadow-soft",
+                                children: [
+                                    activeTab === 'general' && /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                        className: "space-y-6",
+                                        children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("h2", {
+                                                    className: "text-xl font-semibold text-card-foreground mb-4",
+                                                    children: "General Settings"
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "space-y-4",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("label", {
+                                                                    className: "block text-sm font-medium text-card-foreground mb-2",
+                                                                    children: "Platform Name"
+                                                                }),
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                    type: "text",
+                                                                    defaultValue: "OpsSight",
+                                                                    className: "w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                                })
+                                                            ]
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("label", {
+                                                                    className: "block text-sm font-medium text-card-foreground mb-2",
+                                                                    children: "Default Environment"
+                                                                }),
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("select", {
+                                                                    className: "w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                            children: "Production"
+                                                                        }),
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                            children: "Staging"
+                                                                        }),
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                            children: "Development"
+                                                                        })
+                                                                    ]
+                                                                })
+                                                            ]
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("label", {
+                                                                    className: "block text-sm font-medium text-card-foreground mb-2",
+                                                                    children: "Auto-refresh Interval"
+                                                                }),
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("select", {
+                                                                    className: "w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                            children: "30 seconds"
+                                                                        }),
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                            children: "1 minute"
+                                                                        }),
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                            children: "5 minutes"
+                                                                        }),
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                            children: "Manual"
+                                                                        })
+                                                                    ]
+                                                                })
+                                                            ]
+                                                        })
+                                                    ]
+                                                })
+                                            ]
+                                        })
+                                    }),
+                                    activeTab === 'profile' && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-6",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h2", {
+                                                className: "text-xl font-semibold text-card-foreground mb-4",
+                                                children: "Profile Settings"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "space-y-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "grid grid-cols-1 md:grid-cols-2 gap-4",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("label", {
+                                                                        className: "block text-sm font-medium text-card-foreground mb-2",
+                                                                        children: "First Name"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                        type: "text",
+                                                                        defaultValue: "Platform",
+                                                                        className: "w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("label", {
+                                                                        className: "block text-sm font-medium text-card-foreground mb-2",
+                                                                        children: "Last Name"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                        type: "text",
+                                                                        defaultValue: "Administrator",
+                                                                        className: "w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("label", {
+                                                                className: "block text-sm font-medium text-card-foreground mb-2",
+                                                                children: "Email"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                type: "email",
+                                                                defaultValue: "admin@opssight.com",
+                                                                className: "w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("label", {
+                                                                className: "block text-sm font-medium text-card-foreground mb-2",
+                                                                children: "Role"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("select", {
+                                                                className: "w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "Platform Administrator"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "DevOps Engineer"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "Developer"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "Viewer"
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    }),
+                                    activeTab === 'notifications' && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-6",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h2", {
+                                                className: "text-xl font-semibold text-card-foreground mb-4",
+                                                children: "Notification Preferences"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "space-y-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "flex items-center justify-between p-4 border border-border rounded-lg",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                        className: "font-medium text-card-foreground",
+                                                                        children: "Email Notifications"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                                        className: "text-sm text-muted-foreground",
+                                                                        children: "Receive notifications via email"
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                type: "checkbox",
+                                                                defaultChecked: true,
+                                                                className: "toggle"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "flex items-center justify-between p-4 border border-border rounded-lg",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                        className: "font-medium text-card-foreground",
+                                                                        children: "Deployment Alerts"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                                        className: "text-sm text-muted-foreground",
+                                                                        children: "Get notified about deployment status changes"
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                type: "checkbox",
+                                                                defaultChecked: true,
+                                                                className: "toggle"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "flex items-center justify-between p-4 border border-border rounded-lg",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                        className: "font-medium text-card-foreground",
+                                                                        children: "System Health Alerts"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                                        className: "text-sm text-muted-foreground",
+                                                                        children: "Receive alerts about system health issues"
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                type: "checkbox",
+                                                                defaultChecked: true,
+                                                                className: "toggle"
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    }),
+                                    activeTab === 'security' && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-6",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h2", {
+                                                className: "text-xl font-semibold text-card-foreground mb-4",
+                                                children: "Security Settings"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "space-y-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "p-4 border border-border rounded-lg",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                className: "font-medium text-card-foreground mb-2",
+                                                                children: "Two-Factor Authentication"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                                className: "text-sm text-muted-foreground mb-3",
+                                                                children: "Add an extra layer of security to your account"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("button", {
+                                                                className: "px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors",
+                                                                children: "Enable 2FA"
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "p-4 border border-border rounded-lg",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                className: "font-medium text-card-foreground mb-2",
+                                                                children: "Session Timeout"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                                className: "text-sm text-muted-foreground mb-3",
+                                                                children: "Automatically log out after inactivity"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("select", {
+                                                                className: "w-full max-w-xs px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "15 minutes"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "30 minutes"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "1 hour"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "4 hours"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "Never"
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    }),
+                                    activeTab === 'appearance' && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-6",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h2", {
+                                                className: "text-xl font-semibold text-card-foreground mb-4",
+                                                children: "Appearance Settings"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "space-y-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                className: "font-medium text-card-foreground mb-2",
+                                                                children: "Theme"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: "grid grid-cols-3 gap-3",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("button", {
+                                                                        className: "p-3 border-2 border-primary rounded-lg bg-background",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                                                className: "w-full h-16 bg-gradient-to-br from-background to-muted rounded mb-2"
+                                                                            }),
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                                className: "text-xs font-medium",
+                                                                                children: "Light"
+                                                                            })
+                                                                        ]
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("button", {
+                                                                        className: "p-3 border border-border rounded-lg bg-background hover:border-primary",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                                                className: "w-full h-16 bg-gradient-to-br from-slate-800 to-slate-900 rounded mb-2"
+                                                                            }),
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                                className: "text-xs font-medium",
+                                                                                children: "Dark"
+                                                                            })
+                                                                        ]
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("button", {
+                                                                        className: "p-3 border border-border rounded-lg bg-background hover:border-primary",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                                                className: "w-full h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded mb-2"
+                                                                            }),
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                                className: "text-xs font-medium",
+                                                                                children: "Auto"
+                                                                            })
+                                                                        ]
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                className: "font-medium text-card-foreground mb-2",
+                                                                children: "Dashboard Layout"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("select", {
+                                                                className: "w-full max-w-xs px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "Compact"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "Standard"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "Spacious"
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    }),
+                                    activeTab === 'monitoring' && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-6",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h2", {
+                                                className: "text-xl font-semibold text-card-foreground mb-4",
+                                                children: "Monitoring Configuration"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "space-y-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                className: "font-medium text-card-foreground mb-2",
+                                                                children: "Metrics Collection"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: "space-y-3",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                        className: "flex items-center justify-between p-3 border border-border rounded-lg",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                                className: "text-sm",
+                                                                                children: "Enable Prometheus metrics"
+                                                                            }),
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                                type: "checkbox",
+                                                                                defaultChecked: true,
+                                                                                className: "toggle"
+                                                                            })
+                                                                        ]
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                        className: "flex items-center justify-between p-3 border border-border rounded-lg",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                                className: "text-sm",
+                                                                                children: "Collect application logs"
+                                                                            }),
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                                type: "checkbox",
+                                                                                defaultChecked: true,
+                                                                                className: "toggle"
+                                                                            })
+                                                                        ]
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                        className: "flex items-center justify-between p-3 border border-border rounded-lg",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                                className: "text-sm",
+                                                                                children: "Performance monitoring"
+                                                                            }),
+                                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("input", {
+                                                                                type: "checkbox",
+                                                                                defaultChecked: true,
+                                                                                className: "toggle"
+                                                                            })
+                                                                        ]
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                                className: "font-medium text-card-foreground mb-2",
+                                                                children: "Retention Period"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("select", {
+                                                                className: "w-full max-w-xs px-3 py-2 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "7 days"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "30 days"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "90 days"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("option", {
+                                                                        children: "1 year"
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    }),
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                        className: "mt-8 pt-6 border-t border-border",
+                                        children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "flex gap-3",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("button", {
+                                                    className: "px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors",
+                                                    children: "Save Changes"
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("button", {
+                                                    className: "px-6 py-2 border border-border text-muted-foreground rounded-md hover:bg-muted transition-colors",
+                                                    children: "Reset"
+                                                })
+                                            ]
+                                        })
+                                    })
+                                ]
+                            })
+                        })
+                    ]
+                })
+            })
+        ]
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9wYXZhbi9EZXNrdG9wL0Rldm9wcy1hcHAtZGV2LWN1cnNvci9mcm9udGVuZC9zcmMvYXBwL3NldHRpbmdzL3BhZ2UudHN4Il0sInNvdXJjZXNDb250ZW50IjpbIid1c2UgY2xpZW50JztcblxuaW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsgU2V0dGluZ3MsIFVzZXIsIEJlbGwsIFNoaWVsZCwgUGFsZXR0ZSwgTW9uaXRvciB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7XG5pbXBvcnQgeyBTdGF0dXNJbmRpY2F0b3IgfSBmcm9tICdAL2NvbXBvbmVudHMvb3JiaXQvU3RhdHVzSW5kaWNhdG9yJztcblxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU2V0dGluZ3NQYWdlKCkge1xuICBjb25zdCBbYWN0aXZlVGFiLCBzZXRBY3RpdmVUYWJdID0gdXNlU3RhdGUoJ2dlbmVyYWwnKTtcblxuICBjb25zdCB0YWJzID0gW1xuICAgIHsgaWQ6ICdnZW5lcmFsJywgbGFiZWw6ICdHZW5lcmFsJywgaWNvbjogU2V0dGluZ3MgfSxcbiAgICB7IGlkOiAncHJvZmlsZScsIGxhYmVsOiAnUHJvZmlsZScsIGljb246IFVzZXIgfSxcbiAgICB7IGlkOiAnbm90aWZpY2F0aW9ucycsIGxhYmVsOiAnTm90aWZpY2F0aW9ucycsIGljb246IEJlbGwgfSxcbiAgICB7IGlkOiAnc2VjdXJpdHknLCBsYWJlbDogJ1NlY3VyaXR5JywgaWNvbjogU2hpZWxkIH0sXG4gICAgeyBpZDogJ2FwcGVhcmFuY2UnLCBsYWJlbDogJ0FwcGVhcmFuY2UnLCBpY29uOiBQYWxldHRlIH0sXG4gICAgeyBpZDogJ21vbml0b3JpbmcnLCBsYWJlbDogJ01vbml0b3JpbmcnLCBpY29uOiBNb25pdG9yIH1cbiAgXTtcblxuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPVwibWluLWgtc2NyZWVuIGJnLWJhY2tncm91bmQgcHQtMTZcIj5cbiAgICAgIHsvKiBIZWFkZXIgKi99XG4gICAgICA8aGVhZGVyIGNsYXNzTmFtZT1cImJvcmRlci1iIGJvcmRlci1ib3JkZXIgYmctZ3JhZGllbnQtY2FyZFwiPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1heC13LTd4bCBteC1hdXRvIHB4LTQgc206cHgtNiBweS00IHNtOnB5LTZcIj5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgc206ZmxleC1yb3cgc206aXRlbXMtY2VudGVyIHNtOmp1c3RpZnktYmV0d2VlbiBnYXAtNFwiPlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtaW4tdy0wIGZsZXgtMVwiPlxuICAgICAgICAgICAgICA8aDEgY2xhc3NOYW1lPVwidGV4dC0yeGwgc206dGV4dC0zeGwgZm9udC1ib2xkIGdyYWRpZW50LXRleHQtcHJpbWFyeSB0cnVuY2F0ZVwiPlxuICAgICAgICAgICAgICAgIFNldHRpbmdzXG4gICAgICAgICAgICAgIDwvaDE+XG4gICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtbXV0ZWQtZm9yZWdyb3VuZCBtdC0xIHRleHQtc20gc206dGV4dC1iYXNlXCI+XG4gICAgICAgICAgICAgICAgQ29uZmlndXJlIHlvdXIgcGxhdGZvcm0gcHJlZmVyZW5jZXMgYW5kIHNlY3VyaXR5IHNldHRpbmdzXG4gICAgICAgICAgICAgIDwvcD5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzaHJpbmstMFwiPlxuICAgICAgICAgICAgICA8U3RhdHVzSW5kaWNhdG9yIHN0YXR1cz1cImhlYWx0aHlcIiBsYWJlbD1cIkNvbmZpZ3VyYXRpb24gVmFsaWRcIiAvPlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9oZWFkZXI+XG5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWF4LXctN3hsIG14LWF1dG8gcHgtNCBzbTpweC02IHB5LTYgc206cHktOFwiPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImdyaWQgZ3JpZC1jb2xzLTEgbGc6Z3JpZC1jb2xzLTQgZ2FwLTYgc206Z2FwLThcIj5cbiAgICAgICAgICB7LyogU2lkZWJhciAqL31cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImxnOmNvbC1zcGFuLTFcIj5cbiAgICAgICAgICAgIDxuYXYgY2xhc3NOYW1lPVwic3BhY2UteS0xIG92ZXJmbG93LXgtYXV0byBsZzpvdmVyZmxvdy14LXZpc2libGVcIj5cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGxnOmZsZXgtY29sIHNwYWNlLXgtMiBsZzpzcGFjZS14LTAgbGc6c3BhY2UteS0xIHBiLTIgbGc6cGItMFwiPlxuICAgICAgICAgICAgICB7dGFicy5tYXAoKHRhYikgPT4ge1xuICAgICAgICAgICAgICAgIGNvbnN0IEljb24gPSB0YWIuaWNvbjtcbiAgICAgICAgICAgICAgICByZXR1cm4gKFxuICAgICAgICAgICAgICAgICAgPGJ1dHRvblxuICAgICAgICAgICAgICAgICAgICBrZXk9e3RhYi5pZH1cbiAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0QWN0aXZlVGFiKHRhYi5pZCl9XG4gICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHB4LTMgcHktMiB0ZXh0LXNtIGZvbnQtbWVkaXVtIHJvdW5kZWQtbGcgdHJhbnNpdGlvbi1jb2xvcnMgd2hpdGVzcGFjZS1ub3dyYXAgbGc6dy1mdWxsICR7XG4gICAgICAgICAgICAgICAgICAgICAgYWN0aXZlVGFiID09PSB0YWIuaWRcbiAgICAgICAgICAgICAgICAgICAgICAgID8gJ2JnLXByaW1hcnkgdGV4dC1wcmltYXJ5LWZvcmVncm91bmQnXG4gICAgICAgICAgICAgICAgICAgICAgICA6ICd0ZXh0LW11dGVkLWZvcmVncm91bmQgaG92ZXI6dGV4dC1wcmltYXJ5IGhvdmVyOmJnLXByaW1hcnkvNSdcbiAgICAgICAgICAgICAgICAgICAgfWB9XG4gICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgIDxJY29uIGNsYXNzTmFtZT1cImgtNSB3LTVcIiAvPlxuICAgICAgICAgICAgICAgICAgICB7dGFiLmxhYmVsfVxuICAgICAgICAgICAgICAgICAgPC9idXR0b24+XG4gICAgICAgICAgICAgICAgKTtcbiAgICAgICAgICAgICAgfSl9XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPC9uYXY+XG4gICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICB7LyogQ29udGVudCAqL31cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImxnOmNvbC1zcGFuLTNcIj5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctZ3JhZGllbnQtY2FyZCBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLWxnIHAtNCBzbTpwLTYgc2hhZG93LXNvZnRcIj5cbiAgICAgICAgICAgICAge2FjdGl2ZVRhYiA9PT0gJ2dlbmVyYWwnICYmIChcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNlwiPlxuICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQteGwgZm9udC1zZW1pYm9sZCB0ZXh0LWNhcmQtZm9yZWdyb3VuZCBtYi00XCI+R2VuZXJhbCBTZXR0aW5nczwvaDI+XG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic3BhY2UteS00XCI+XG4gICAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJibG9jayB0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgUGxhdGZvcm0gTmFtZVxuICAgICAgICAgICAgICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxpbnB1dFxuICAgICAgICAgICAgICAgICAgICAgICAgICB0eXBlPVwidGV4dFwiXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGRlZmF1bHRWYWx1ZT1cIk9wc1NpZ2h0XCJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy1mdWxsIHB4LTMgcHktMiBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLW1kIGJnLWJhY2tncm91bmQgdGV4dC1mb3JlZ3JvdW5kIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLXByaW1hcnkgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50XCJcbiAgICAgICAgICAgICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJibG9jayB0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgRGVmYXVsdCBFbnZpcm9ubWVudFxuICAgICAgICAgICAgICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxzZWxlY3QgY2xhc3NOYW1lPVwidy1mdWxsIHB4LTMgcHktMiBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLW1kIGJnLWJhY2tncm91bmQgdGV4dC1mb3JlZ3JvdW5kIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLXByaW1hcnkgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50XCI+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24+UHJvZHVjdGlvbjwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uPlN0YWdpbmc8L29wdGlvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj5EZXZlbG9wbWVudDwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgICAgPC9zZWxlY3Q+XG4gICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJibG9jayB0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgQXV0by1yZWZyZXNoIEludGVydmFsXG4gICAgICAgICAgICAgICAgICAgICAgICA8L2xhYmVsPlxuICAgICAgICAgICAgICAgICAgICAgICAgPHNlbGVjdCBjbGFzc05hbWU9XCJ3LWZ1bGwgcHgtMyBweS0yIGJvcmRlciBib3JkZXItYm9yZGVyIHJvdW5kZWQtbWQgYmctYmFja2dyb3VuZCB0ZXh0LWZvcmVncm91bmQgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctcHJpbWFyeSBmb2N1czpib3JkZXItdHJhbnNwYXJlbnRcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj4zMCBzZWNvbmRzPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24+MSBtaW51dGU8L29wdGlvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj41IG1pbnV0ZXM8L29wdGlvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj5NYW51YWw8L29wdGlvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDwvc2VsZWN0PlxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICApfVxuXG4gICAgICAgICAgICAgIHthY3RpdmVUYWIgPT09ICdwcm9maWxlJyAmJiAoXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGFjZS15LTZcIj5cbiAgICAgICAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9XCJ0ZXh0LXhsIGZvbnQtc2VtaWJvbGQgdGV4dC1jYXJkLWZvcmVncm91bmQgbWItNFwiPlByb2ZpbGUgU2V0dGluZ3M8L2gyPlxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGFjZS15LTRcIj5cbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJncmlkIGdyaWQtY29scy0xIG1kOmdyaWQtY29scy0yIGdhcC00XCI+XG4gICAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJibG9jayB0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgRmlyc3QgTmFtZVxuICAgICAgICAgICAgICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxpbnB1dFxuICAgICAgICAgICAgICAgICAgICAgICAgICB0eXBlPVwidGV4dFwiXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGRlZmF1bHRWYWx1ZT1cIlBsYXRmb3JtXCJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy1mdWxsIHB4LTMgcHktMiBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLW1kIGJnLWJhY2tncm91bmQgdGV4dC1mb3JlZ3JvdW5kIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLXByaW1hcnkgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50XCJcbiAgICAgICAgICAgICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJibG9jayB0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgTGFzdCBOYW1lXG4gICAgICAgICAgICAgICAgICAgICAgICA8L2xhYmVsPlxuICAgICAgICAgICAgICAgICAgICAgICAgPGlucHV0XG4gICAgICAgICAgICAgICAgICAgICAgICAgIHR5cGU9XCJ0ZXh0XCJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgZGVmYXVsdFZhbHVlPVwiQWRtaW5pc3RyYXRvclwiXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctZnVsbCBweC0zIHB5LTIgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1tZCBiZy1iYWNrZ3JvdW5kIHRleHQtZm9yZWdyb3VuZCBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1wcmltYXJ5IGZvY3VzOmJvcmRlci10cmFuc3BhcmVudFwiXG4gICAgICAgICAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwiYmxvY2sgdGV4dC1zbSBmb250LW1lZGl1bSB0ZXh0LWNhcmQtZm9yZWdyb3VuZCBtYi0yXCI+XG4gICAgICAgICAgICAgICAgICAgICAgICBFbWFpbFxuICAgICAgICAgICAgICAgICAgICAgIDwvbGFiZWw+XG4gICAgICAgICAgICAgICAgICAgICAgPGlucHV0XG4gICAgICAgICAgICAgICAgICAgICAgICB0eXBlPVwiZW1haWxcIlxuICAgICAgICAgICAgICAgICAgICAgICAgZGVmYXVsdFZhbHVlPVwiYWRtaW5Ab3Bzc2lnaHQuY29tXCJcbiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctZnVsbCBweC0zIHB5LTIgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1tZCBiZy1iYWNrZ3JvdW5kIHRleHQtZm9yZWdyb3VuZCBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1wcmltYXJ5IGZvY3VzOmJvcmRlci10cmFuc3BhcmVudFwiXG4gICAgICAgICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cImJsb2NrIHRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1jYXJkLWZvcmVncm91bmQgbWItMlwiPlxuICAgICAgICAgICAgICAgICAgICAgICAgUm9sZVxuICAgICAgICAgICAgICAgICAgICAgIDwvbGFiZWw+XG4gICAgICAgICAgICAgICAgICAgICAgPHNlbGVjdCBjbGFzc05hbWU9XCJ3LWZ1bGwgcHgtMyBweS0yIGJvcmRlciBib3JkZXItYm9yZGVyIHJvdW5kZWQtbWQgYmctYmFja2dyb3VuZCB0ZXh0LWZvcmVncm91bmQgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctcHJpbWFyeSBmb2N1czpib3JkZXItdHJhbnNwYXJlbnRcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24+UGxhdGZvcm0gQWRtaW5pc3RyYXRvcjwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj5EZXZPcHMgRW5naW5lZXI8L29wdGlvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24+RGV2ZWxvcGVyPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uPlZpZXdlcjwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgIDwvc2VsZWN0PlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICApfVxuXG4gICAgICAgICAgICAgIHthY3RpdmVUYWIgPT09ICdub3RpZmljYXRpb25zJyAmJiAoXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGFjZS15LTZcIj5cbiAgICAgICAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9XCJ0ZXh0LXhsIGZvbnQtc2VtaWJvbGQgdGV4dC1jYXJkLWZvcmVncm91bmQgbWItNFwiPk5vdGlmaWNhdGlvbiBQcmVmZXJlbmNlczwvaDI+XG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBwLTQgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1sZ1wiPlxuICAgICAgICAgICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgICAgICAgICA8aDMgY2xhc3NOYW1lPVwiZm9udC1tZWRpdW0gdGV4dC1jYXJkLWZvcmVncm91bmRcIj5FbWFpbCBOb3RpZmljYXRpb25zPC9oMz5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+UmVjZWl2ZSBub3RpZmljYXRpb25zIHZpYSBlbWFpbDwvcD5cbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgICA8aW5wdXQgdHlwZT1cImNoZWNrYm94XCIgZGVmYXVsdENoZWNrZWQgY2xhc3NOYW1lPVwidG9nZ2xlXCIgLz5cbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHAtNCBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLWxnXCI+XG4gICAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9XCJmb250LW1lZGl1bSB0ZXh0LWNhcmQtZm9yZWdyb3VuZFwiPkRlcGxveW1lbnQgQWxlcnRzPC9oMz5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+R2V0IG5vdGlmaWVkIGFib3V0IGRlcGxveW1lbnQgc3RhdHVzIGNoYW5nZXM8L3A+XG4gICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGlucHV0IHR5cGU9XCJjaGVja2JveFwiIGRlZmF1bHRDaGVja2VkIGNsYXNzTmFtZT1cInRvZ2dsZVwiIC8+XG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBwLTQgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1sZ1wiPlxuICAgICAgICAgICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgICAgICAgICA8aDMgY2xhc3NOYW1lPVwiZm9udC1tZWRpdW0gdGV4dC1jYXJkLWZvcmVncm91bmRcIj5TeXN0ZW0gSGVhbHRoIEFsZXJ0czwvaDM+XG4gICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZFwiPlJlY2VpdmUgYWxlcnRzIGFib3V0IHN5c3RlbSBoZWFsdGggaXNzdWVzPC9wPlxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgICAgICAgIDxpbnB1dCB0eXBlPVwiY2hlY2tib3hcIiBkZWZhdWx0Q2hlY2tlZCBjbGFzc05hbWU9XCJ0b2dnbGVcIiAvPlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICApfVxuXG4gICAgICAgICAgICAgIHthY3RpdmVUYWIgPT09ICdzZWN1cml0eScgJiYgKFxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic3BhY2UteS02XCI+XG4gICAgICAgICAgICAgICAgICA8aDIgY2xhc3NOYW1lPVwidGV4dC14bCBmb250LXNlbWlib2xkIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTRcIj5TZWN1cml0eSBTZXR0aW5nczwvaDI+XG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInAtNCBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLWxnXCI+XG4gICAgICAgICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cImZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5Ud28tRmFjdG9yIEF1dGhlbnRpY2F0aW9uPC9oMz5cbiAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBtYi0zXCI+QWRkIGFuIGV4dHJhIGxheWVyIG9mIHNlY3VyaXR5IHRvIHlvdXIgYWNjb3VudDwvcD5cbiAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uIGNsYXNzTmFtZT1cInB4LTQgcHktMiBiZy1wcmltYXJ5IHRleHQtcHJpbWFyeS1mb3JlZ3JvdW5kIHJvdW5kZWQtbWQgaG92ZXI6YmctcHJpbWFyeS85MCB0cmFuc2l0aW9uLWNvbG9yc1wiPlxuICAgICAgICAgICAgICAgICAgICAgICAgRW5hYmxlIDJGQVxuICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwLTQgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1sZ1wiPlxuICAgICAgICAgICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9XCJmb250LW1lZGl1bSB0ZXh0LWNhcmQtZm9yZWdyb3VuZCBtYi0yXCI+U2Vzc2lvbiBUaW1lb3V0PC9oMz5cbiAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBtYi0zXCI+QXV0b21hdGljYWxseSBsb2cgb3V0IGFmdGVyIGluYWN0aXZpdHk8L3A+XG4gICAgICAgICAgICAgICAgICAgICAgPHNlbGVjdCBjbGFzc05hbWU9XCJ3LWZ1bGwgbWF4LXcteHMgcHgtMyBweS0yIGJvcmRlciBib3JkZXItYm9yZGVyIHJvdW5kZWQtbWQgYmctYmFja2dyb3VuZCB0ZXh0LWZvcmVncm91bmQgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctcHJpbWFyeSBmb2N1czpib3JkZXItdHJhbnNwYXJlbnRcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24+MTUgbWludXRlczwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj4zMCBtaW51dGVzPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uPjEgaG91cjwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj40IGhvdXJzPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uPk5ldmVyPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgPC9zZWxlY3Q+XG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICl9XG5cbiAgICAgICAgICAgICAge2FjdGl2ZVRhYiA9PT0gJ2FwcGVhcmFuY2UnICYmIChcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNlwiPlxuICAgICAgICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQteGwgZm9udC1zZW1pYm9sZCB0ZXh0LWNhcmQtZm9yZWdyb3VuZCBtYi00XCI+QXBwZWFyYW5jZSBTZXR0aW5nczwvaDI+XG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxuICAgICAgICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9XCJmb250LW1lZGl1bSB0ZXh0LWNhcmQtZm9yZWdyb3VuZCBtYi0yXCI+VGhlbWU8L2gzPlxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBncmlkLWNvbHMtMyBnYXAtM1wiPlxuICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJwLTMgYm9yZGVyLTIgYm9yZGVyLXByaW1hcnkgcm91bmRlZC1sZyBiZy1iYWNrZ3JvdW5kXCI+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy1mdWxsIGgtMTYgYmctZ3JhZGllbnQtdG8tYnIgZnJvbS1iYWNrZ3JvdW5kIHRvLW11dGVkIHJvdW5kZWQgbWItMlwiPjwvZGl2PlxuICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXhzIGZvbnQtbWVkaXVtXCI+TGlnaHQ8L3NwYW4+XG4gICAgICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24gY2xhc3NOYW1lPVwicC0zIGJvcmRlciBib3JkZXItYm9yZGVyIHJvdW5kZWQtbGcgYmctYmFja2dyb3VuZCBob3Zlcjpib3JkZXItcHJpbWFyeVwiPlxuICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBoLTE2IGJnLWdyYWRpZW50LXRvLWJyIGZyb20tc2xhdGUtODAwIHRvLXNsYXRlLTkwMCByb3VuZGVkIG1iLTJcIj48L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC14cyBmb250LW1lZGl1bVwiPkRhcms8L3NwYW4+XG4gICAgICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24gY2xhc3NOYW1lPVwicC0zIGJvcmRlciBib3JkZXItYm9yZGVyIHJvdW5kZWQtbGcgYmctYmFja2dyb3VuZCBob3Zlcjpib3JkZXItcHJpbWFyeVwiPlxuICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBoLTE2IGJnLWdyYWRpZW50LXRvLWJyIGZyb20tYmx1ZS01MDAgdG8tcHVycGxlLTYwMCByb3VuZGVkIG1iLTJcIj48L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC14cyBmb250LW1lZGl1bVwiPkF1dG88L3NwYW4+XG4gICAgICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cImZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5EYXNoYm9hcmQgTGF5b3V0PC9oMz5cbiAgICAgICAgICAgICAgICAgICAgICA8c2VsZWN0IGNsYXNzTmFtZT1cInctZnVsbCBtYXgtdy14cyBweC0zIHB5LTIgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1tZCBiZy1iYWNrZ3JvdW5kIHRleHQtZm9yZWdyb3VuZCBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1wcmltYXJ5IGZvY3VzOmJvcmRlci10cmFuc3BhcmVudFwiPlxuICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj5Db21wYWN0PC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uPlN0YW5kYXJkPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uPlNwYWNpb3VzPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgPC9zZWxlY3Q+XG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICl9XG5cbiAgICAgICAgICAgICAge2FjdGl2ZVRhYiA9PT0gJ21vbml0b3JpbmcnICYmIChcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNlwiPlxuICAgICAgICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQteGwgZm9udC1zZW1pYm9sZCB0ZXh0LWNhcmQtZm9yZWdyb3VuZCBtYi00XCI+TW9uaXRvcmluZyBDb25maWd1cmF0aW9uPC9oMj5cbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic3BhY2UteS00XCI+XG4gICAgICAgICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cImZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5NZXRyaWNzIENvbGxlY3Rpb248L2gzPlxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic3BhY2UteS0zXCI+XG4gICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBwLTMgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1sZ1wiPlxuICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNtXCI+RW5hYmxlIFByb21ldGhldXMgbWV0cmljczwvc3Bhbj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPGlucHV0IHR5cGU9XCJjaGVja2JveFwiIGRlZmF1bHRDaGVja2VkIGNsYXNzTmFtZT1cInRvZ2dsZVwiIC8+XG4gICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHAtMyBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLWxnXCI+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc21cIj5Db2xsZWN0IGFwcGxpY2F0aW9uIGxvZ3M8L3NwYW4+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxpbnB1dCB0eXBlPVwiY2hlY2tib3hcIiBkZWZhdWx0Q2hlY2tlZCBjbGFzc05hbWU9XCJ0b2dnbGVcIiAvPlxuICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBwLTMgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1sZ1wiPlxuICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNtXCI+UGVyZm9ybWFuY2UgbW9uaXRvcmluZzwvc3Bhbj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPGlucHV0IHR5cGU9XCJjaGVja2JveFwiIGRlZmF1bHRDaGVja2VkIGNsYXNzTmFtZT1cInRvZ2dsZVwiIC8+XG4gICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cImZvbnQtbWVkaXVtIHRleHQtY2FyZC1mb3JlZ3JvdW5kIG1iLTJcIj5SZXRlbnRpb24gUGVyaW9kPC9oMz5cbiAgICAgICAgICAgICAgICAgICAgICA8c2VsZWN0IGNsYXNzTmFtZT1cInctZnVsbCBtYXgtdy14cyBweC0zIHB5LTIgYm9yZGVyIGJvcmRlci1ib3JkZXIgcm91bmRlZC1tZCBiZy1iYWNrZ3JvdW5kIHRleHQtZm9yZWdyb3VuZCBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1wcmltYXJ5IGZvY3VzOmJvcmRlci10cmFuc3BhcmVudFwiPlxuICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj43IGRheXM8L29wdGlvbj5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24+MzAgZGF5czwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbj45MCBkYXlzPC9vcHRpb24+XG4gICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uPjEgeWVhcjwvb3B0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgIDwvc2VsZWN0PlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICApfVxuXG4gICAgICAgICAgICAgIHsvKiBTYXZlIEJ1dHRvbiAqL31cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtdC04IHB0LTYgYm9yZGVyLXQgYm9yZGVyLWJvcmRlclwiPlxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBnYXAtM1wiPlxuICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJweC02IHB5LTIgYmctcHJpbWFyeSB0ZXh0LXByaW1hcnktZm9yZWdyb3VuZCByb3VuZGVkLW1kIGhvdmVyOmJnLXByaW1hcnkvOTAgdHJhbnNpdGlvbi1jb2xvcnNcIj5cbiAgICAgICAgICAgICAgICAgICAgU2F2ZSBDaGFuZ2VzXG4gICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgICAgIDxidXR0b24gY2xhc3NOYW1lPVwicHgtNiBweS0yIGJvcmRlciBib3JkZXItYm9yZGVyIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCByb3VuZGVkLW1kIGhvdmVyOmJnLW11dGVkIHRyYW5zaXRpb24tY29sb3JzXCI+XG4gICAgICAgICAgICAgICAgICAgIFJlc2V0XG4gICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgPC9kaXY+XG4gICAgICA8L2Rpdj5cbiAgICA8L2Rpdj5cbiAgKTtcbn0iXSwibmFtZXMiOlsiU2V0dGluZ3NQYWdlIiwiYWN0aXZlVGFiIiwic2V0QWN0aXZlVGFiIiwidXNlU3RhdGUiLCJ0YWJzIiwiaWQiLCJsYWJlbCIsImljb24iLCJTZXR0aW5ncyIsIlVzZXIiLCJCZWxsIiwiU2hpZWxkIiwiUGFsZXR0ZSIsIk1vbml0b3IiLCJkaXYiLCJjbGFzc05hbWUiLCJoZWFkZXIiLCJoMSIsInAiLCJTdGF0dXNJbmRpY2F0b3IiLCJzdGF0dXMiLCJuYXYiLCJtYXAiLCJ0YWIiLCJJY29uIiwiYnV0dG9uIiwib25DbGljayIsImgyIiwiaW5wdXQiLCJ0eXBlIiwiZGVmYXVsdFZhbHVlIiwic2VsZWN0Iiwib3B0aW9uIiwiaDMiLCJkZWZhdWx0Q2hlY2tlZCIsInNwYW4iXSwibWFwcGluZ3MiOiJBQUFBOzs7OzsrQkFNQTs7O2VBQXdCQTs7OzsrREFKUTs2QkFDK0I7aUNBQy9COzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFFakIsU0FBU0E7SUFDdEIsTUFBTSxDQUFDQyxXQUFXQyxhQUFhLEdBQUdDLElBQUFBLGVBQVEsRUFBQztJQUUzQyxNQUFNQyxPQUFP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

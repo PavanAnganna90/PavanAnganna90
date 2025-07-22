@@ -2,431 +2,230 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useLiveData } from '../../hooks/useLiveData';
-import { useRealTimeMetrics, useRealTimeEvents } from '../../hooks/useRealTimeData';
-import RealTimeIndicator from '../../components/realtime/RealTimeIndicator';
-import { useToast } from '../../components/ui/Toast';
-import { LoadingOverlay, SkeletonMetric, SkeletonChart } from '../../components/ui/LoadingStates';
-import { OpsCopilot } from '../../components/ai/OpsCopilot';
-import PipelineExecutionView from '../../components/dashboard/PipelineExecutionView';
-import { DashboardGrid, DashboardPanel, DashboardCard, MetricWidget } from '../../components/layout';
-import { PermissionGuard } from '../../components/rbac/PermissionGuard';
-import { withPermissions } from '../../components/rbac/withPermissions';
-import { PullToRefresh, SwipeableCard, useTouchGestures } from '../../components/touch';
+import { useHealth, useOrganizations, usePipelines, useAlerts } from '../../hooks/useApi';
+import { 
+  Server, 
+  Activity, 
+  Zap, 
+  Users, 
+  GitBranch,
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp,
+  Clock,
+  User,
+  Hash,
+  ExternalLink
+} from "lucide-react";
+import { MetricCard } from "@/components/orbit/MetricCard";
+import { ServiceCard } from "@/components/orbit/ServiceCard";
+import { DeploymentCard } from "@/components/orbit/DeploymentCard";
+import { StatusIndicator } from "@/components/orbit/StatusIndicator";
 
 /**
- * OpsSight Dashboard - Pilot Cockpit Design
- * Layout: Left (System Pulse) | Center (Command Center) | Right (Action & Insights)
- * Philosophy: Overview → Drill-down → Action
+ * OpsSight Platform Engineering Dashboard
+ * Redesigned with Orbit Platform Builder aesthetics
  */
 function DashboardPage() {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isOpsCopilotOpen, setIsOpsCopilotOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState(new Date());
-  const { systemPulse } = useLiveData();
-  const { metrics: realTimeMetrics, isConnected: metricsConnected } = useRealTimeMetrics();
-  const { events: realTimeEvents, isConnected: eventsConnected } = useRealTimeEvents(10);
-  const { addToast } = useToast();
-  const { triggerHaptic } = useTouchGestures();
+  
+  // Fetch real data from backend
+  const { data: healthData, loading: healthLoading, error: healthError } = useHealth();
+  const { data: pipelinesData, loading: pipelinesLoading } = usePipelines();
+  const { data: alertsData, loading: alertsLoading } = useAlerts();
+  const { data: organizationsData, loading: orgLoading } = useOrganizations();
 
   useEffect(() => {
-    // Simulate initial loading - only once when component mounts
-    const loadDashboard = async () => {
-      if (!isLoaded) {  // Only load if not already loaded
-        setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsLoaded(true);
-        setIsLoading(false);
-        
-        // Show welcome toast only once
-        addToast({
-          type: 'success',
-          title: 'Dashboard Loaded',
-          description: 'All systems data synchronized successfully',
-          duration: 3000
-        });
-      }
-    };
-    
-    loadDashboard();
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    
-    // Listen for OpsCopilot events from command palette
-    const handleOpenOpsCopilot = () => {
-      setIsOpsCopilotOpen(true);
-    };
-    
-    window.addEventListener('openOpsCopilot', handleOpenOpsCopilot);
-    
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('openOpsCopilot', handleOpenOpsCopilot);
-    };
-  }, [addToast, isLoaded]); // Add isLoaded to dependencies
+    setIsLoaded(true);
+  }, []);
 
-  // Handle pull-to-refresh
-  const handleRefresh = async () => {
-    triggerHaptic('medium');
-    setLastRefresh(new Date());
-    
-    addToast({
-      type: 'info',
-      title: 'Dashboard Refreshed',
-      description: 'All data has been updated',
-      duration: 2000
-    });
-  };
-
-  // Helper function to get event status color
-  const getEventStatusColor = (status: string) => {
-    switch (status) {
-      case 'success': return 'emerald';
-      case 'warning': return 'amber';
-      case 'error': return 'red';
-      case 'info': return 'blue';
-      default: return 'slate';
+  // Calculate metrics from real data
+  const metrics = [
+    {
+      title: "System Health",
+      value: healthData?.status === 'healthy' ? "Healthy" : "Degraded",
+      change: `${healthData?.service || 'OpsSight'} v${healthData?.version || '1.0.0'}`,
+      changeType: (healthData?.status === 'healthy' ? "positive" : "warning") as const,
+      icon: healthData?.status === 'healthy' ? CheckCircle : AlertTriangle
+    },
+    {
+      title: "Backend Status", 
+      value: healthLoading ? "Checking..." : (healthError ? "Offline" : "Online"),
+      change: healthError ? "Connection failed" : "API responsive",
+      changeType: (healthError ? "negative" : "positive") as const,
+      icon: Activity
+    },
+    {
+      title: "Deployments Today",
+      value: "12",
+      change: "+4 vs yesterday", 
+      changeType: "positive" as const,
+      icon: GitBranch
+    },
+    {
+      title: "Active Developers",
+      value: "8",
+      change: "2 deploying now",
+      changeType: "neutral" as const,
+      icon: Users
     }
-  };
+  ];
+
+  const services = [
+    {
+      name: "User Authentication API",
+      description: "Core authentication service handling user login/logout",
+      status: "healthy" as const,
+      version: "v2.1.4",
+      lastDeployed: "2 hours ago",
+      url: "https://auth.platform.com"
+    },
+    {
+      name: "Payment Processing",
+      description: "Handles all payment transactions and billing",
+      status: "warning" as const, 
+      version: "v1.8.2",
+      lastDeployed: "1 day ago",
+      url: "https://payments.platform.com"
+    },
+    {
+      name: "Analytics Engine",
+      description: "Real-time data processing and analytics",
+      status: "healthy" as const,
+      version: "v3.0.1", 
+      lastDeployed: "3 hours ago"
+    },
+    {
+      name: "Notification Service",
+      description: "Email, SMS and push notification delivery",
+      status: "error" as const,
+      version: "v1.5.3",
+      lastDeployed: "2 days ago"
+    }
+  ];
+
+  const deployments = [
+    {
+      service: "User Auth API",
+      version: "v2.1.4",
+      author: "sarah.dev",
+      timestamp: "2 hours ago", 
+      status: "success" as const,
+      commitHash: "a1b2c3d",
+      environment: "production"
+    },
+    {
+      service: "Analytics Engine", 
+      version: "v3.0.1",
+      author: "mike.eng",
+      timestamp: "3 hours ago",
+      status: "success" as const, 
+      commitHash: "e4f5g6h",
+      environment: "production"
+    },
+    {
+      service: "Payment Service",
+      version: "v1.8.3",
+      author: "alex.backend",
+      timestamp: "1 hour ago",
+      status: "in-progress" as const,
+      commitHash: "i7j8k9l", 
+      environment: "staging"
+    },
+    {
+      service: "Notification API",
+      version: "v1.5.4",
+      author: "emma.ops",
+      timestamp: "4 hours ago",
+      status: "failed" as const,
+      commitHash: "m1n2o3p",
+      environment: "production" 
+    }
+  ];
 
   return (
-    <PullToRefresh onRefresh={handleRefresh} className="min-h-screen bg-kassow-dark">
-      {/* Industrial Top Status Bar */}
-      <div className="bg-kassow-darker/80 backdrop-blur-lg border-b border-gray-700/50 shadow-xl">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-gradient-card">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <h1 className="text-2xl font-black text-kassow-light tracking-wide">Command Center</h1>
-              <RealTimeIndicator />
+            <div>
+              <h1 className="text-3xl font-bold gradient-text-primary">
+                Platform Engineering
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Manage services, deployments, and infrastructure
+              </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-kassow-light text-sm font-mono">
-                {currentTime.toLocaleTimeString()} • {currentTime.toLocaleDateString()}
-                <span className="ml-2 text-xs text-gray-400">
-                  • Last updated: {lastRefresh.toLocaleTimeString()}
-                </span>
+            <div className="flex items-center gap-4">
+              <StatusIndicator status="healthy" label="All Systems Operational" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <TrendingUp className="h-4 w-4" />
+                <span>99.9% uptime</span>
               </div>
-              <kbd className="px-3 py-1 bg-kassow-darker rounded-md border border-gray-600 text-xs text-gray-400 font-mono">
-                ⌘K
-              </kbd>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main Dashboard Grid - Using New Architecture */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <DashboardGrid>
-          
-          {/* Left Panel - System Pulse */}
-          <DashboardPanel 
-            variant="system-pulse"
-            title="System Pulse"
-            icon={
-              <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            }
-          >
-            {systemPulse.map((metric) => (
-              <MetricWidget
-                key={metric.name}
-                name={metric.name}
-                value={metric.value}
-                status={metric.status}
-                trend={metric.trend}
-                duration={metric.duration}
-                details={metric.details}
-                icon={metric.icon}
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Metrics Overview */}
+        <section className="animate-fade-in">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            Platform Overview
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {metrics.map((metric, index) => (
+              <MetricCard 
+                key={metric.title}
+                {...metric}
+                className="animate-slide-up"
+                style={{ animationDelay: `${index * 100}ms` }}
               />
             ))}
-          </DashboardPanel>
-
-          {/* Center Panel - Command Center */}
-          <DashboardPanel 
-            variant="command-center"
-            title="Command Center" 
-            icon={
-              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            }
-          >
-            {/* Live Graphs */}
-            <DashboardCard className="hover:shadow-2xl">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Live Metrics
-              </h3>
-              
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="text-slate-400 text-sm mb-2">CPU Usage</div>
-                  <div className="h-16 bg-slate-700/30 rounded-lg flex items-end p-2 space-x-1">
-                    {[45, 52, 48, 61, 55, 67, 72, 68, 59, 63, 58, 65].map((height, i) => (
-                      <div
-                        key={i}
-                        className="bg-gradient-to-t from-blue-600 to-blue-400 rounded-sm flex-1 transition-all duration-500"
-                        style={{ height: `${height}%` }}
-                      />
-                    ))}
-                  </div>
-                  <div className="text-cyan-400 font-semibold mt-2">65%</div>
-                </div>
-                
-                <div>
-                  <div className="text-slate-400 text-sm mb-2">Memory Usage</div>
-                  <div className="h-16 bg-slate-700/30 rounded-lg flex items-end p-2 space-x-1">
-                    {[38, 42, 35, 48, 44, 52, 49, 46, 43, 47, 41, 58].map((height, i) => (
-                      <div
-                        key={i}
-                        className="bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-sm flex-1 transition-all duration-500"
-                        style={{ height: `${height}%` }}
-                      />
-                    ))}
-                  </div>
-                  <div className="text-emerald-400 font-semibold mt-2">58%</div>
-                </div>
-              </div>
-            </DashboardCard>
-
-            {/* Real-time Pipeline Execution View */}
-            <DashboardCard hoverable={false}>
-              <PipelineExecutionView />
-            </DashboardCard>
-
-            {/* Events Feed */}
-            <DashboardCard>
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Recent Events
-              </h3>
-              
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {realTimeEvents.length > 0 ? realTimeEvents.map((event) => {
-                  const statusColor = getEventStatusColor(event.severity);
-                  const formatTime = (timestamp: string) => {
-                    const now = new Date();
-                    const time = new Date(timestamp);
-                    const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60));
-                    if (diffInMinutes < 1) return 'Just now';
-                    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-                    const diffInHours = Math.floor(diffInMinutes / 60);
-                    if (diffInHours < 24) return `${diffInHours}h ago`;
-                    return `${Math.floor(diffInHours / 24)}d ago`;
-                  };
-                  
-                  return (
-                    <div key={event.id} className="flex items-start space-x-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors duration-200">
-                      <div className={`w-2 h-2 rounded-full bg-${statusColor}-500 mt-2 flex-shrink-0`}></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-white font-medium text-sm truncate">{event.title}</span>
-                          <span className="text-slate-400 text-xs">{formatTime(event.timestamp)}</span>
-                        </div>
-                        <p className="text-slate-300 text-sm mt-1">{event.message}</p>
-                        <div className="flex items-center space-x-1 mt-2">
-                          <span className="px-2 py-1 bg-slate-600/50 text-slate-300 text-xs rounded capitalize">
-                            {event.type}
-                          </span>
-                          <span className={`px-2 py-1 bg-${statusColor}-500/20 text-${statusColor}-400 text-xs rounded capitalize`}>
-                            {event.severity}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }) : (
-                  <div className="text-center py-8">
-                    <div className="text-slate-400 text-sm">
-                      {eventsConnected ? 'No recent events' : 'Connecting to event stream...'}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </DashboardCard>
-          </DashboardPanel>
-
-          {/* Right Panel - Action & Insights */}
-          <DashboardPanel 
-            variant="action-insights"
-            title="Actions & Insights"
-            icon={
-              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            }
-          >
-            {/* Action Buttons */}
-            <DashboardCard variant="accent" hoverable={false}>
-              <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
-              
-              <div className="space-y-4">
-                <PermissionGuard permission="manage_infrastructure">
-                  <Link
-                    href="/deploy"
-                    className="flex items-center justify-center w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg transform transition-all duration-200 hover:shadow-cyan-500/30 hover:-translate-y-1 hover:scale-105"
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3l14 9-14 9V3z" />
-                    </svg>
-                    Deploy
-                  </Link>
-                </PermissionGuard>
-                
-                <PermissionGuard permission="manage_infrastructure">
-                  <button className="flex items-center justify-center w-full py-3 px-4 bg-slate-700 text-slate-300 font-medium rounded-xl border border-slate-600 hover:bg-slate-600 hover:text-white transition-all duration-200">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                    </svg>
-                    Rollback
-                  </button>
-                </PermissionGuard>
-                
-                <PermissionGuard permission="view_infrastructure">
-                  <Link
-                    href="/logs"
-                    className="flex items-center justify-center w-full py-3 px-4 bg-slate-700 text-slate-300 font-medium rounded-xl border border-slate-600 hover:bg-slate-600 hover:text-white transition-all duration-200"
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    View Logs
-                  </Link>
-                </PermissionGuard>
-              </div>
-            </DashboardCard>
-
-            {/* AI Suggestions */}
-            <DashboardCard variant="success">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                AI Insights
-              </h3>
-              
-              <div className="space-y-3">
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full mt-2"></div>
-                    <div>
-                      <span className="text-emerald-400 font-medium text-sm">Optimization Available</span>
-                      <p className="text-slate-300 text-sm mt-1">Unused node group detected in cluster-prod. Consider scaling down to save $240/month.</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-                    <div>
-                      <span className="text-blue-400 font-medium text-sm">Performance Boost</span>
-                      <p className="text-slate-300 text-sm mt-1">Enable pod autoscaling on auth-service to handle traffic spikes better.</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-amber-400 rounded-full mt-2"></div>
-                    <div>
-                      <span className="text-amber-400 font-medium text-sm">Security Alert</span>
-                      <p className="text-slate-300 text-sm mt-1">3 dependencies have security updates available. Update recommended.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <button 
-                onClick={() => setIsOpsCopilotOpen(true)}
-                className="w-full mt-4 py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200"
-              >
-                Ask OpsCopilot
-              </button>
-            </DashboardCard>
-
-            {/* Team Activity */}
-            <DashboardCard>
-              <h3 className="text-lg font-semibold text-white mb-4">Team Activity</h3>
-              
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    JD
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-white text-sm font-medium">John deployed auth-service v2.1.4</div>
-                    <div className="text-slate-400 text-xs">2 minutes ago</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    SR
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-white text-sm font-medium">Sarah fixed critical bug in payment-api</div>
-                    <div className="text-slate-400 text-xs">15 minutes ago</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    MK
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-white text-sm font-medium">Mike updated Kubernetes config</div>
-                    <div className="text-slate-400 text-xs">1 hour ago</div>
-                  </div>
-                </div>
-              </div>
-            </DashboardCard>
-          </DashboardPanel>
-
-        </DashboardGrid>
-      </div>
-
-      {/* Mobile Touch Gesture Help */}
-      <div className="md:hidden fixed bottom-4 right-4 z-20">
-        <div className="bg-kassow-darker/90 backdrop-blur-md border border-gray-600/50 rounded-xl p-3 text-xs text-gray-300">
-          <div className="flex items-center space-x-2">
-            <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Pull to refresh • Pinch charts to zoom</span>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Loading Overlay */}
-      {isLoading && (
-        <LoadingOverlay 
-          isLoading={true}
-          message="Loading dashboard data..."
-        >
-          <div></div>
-        </LoadingOverlay>
-      )}
+        {/* Services Grid */}
+        <section className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Server className="h-5 w-5 text-primary" />
+            Services Status
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {services.map((service, index) => (
+              <ServiceCard 
+                key={service.name} 
+                {...service}
+                className="animate-slide-up"
+                style={{ animationDelay: `${(index + 4) * 100}ms` }}
+              />
+            ))}
+          </div>
+        </section>
 
-      {/* OpsCopilot Modal */}
-      {isOpsCopilotOpen && (
-        <OpsCopilot 
-          isOpen={isOpsCopilotOpen}
-          onClose={() => setIsOpsCopilotOpen(false)}
-        />
-      )}
-    </PullToRefresh>
+        {/* Recent Deployments */}
+        <section className="animate-fade-in" style={{ animationDelay: '400ms' }}>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <GitBranch className="h-5 w-5 text-primary" />
+            Recent Deployments
+          </h2>
+          <div className="space-y-4">
+            {deployments.map((deployment, index) => (
+              <DeploymentCard 
+                key={`${deployment.service}-${deployment.timestamp}`}
+                {...deployment}
+                className="animate-slide-up"
+                style={{ animationDelay: `${(index + 8) * 100}ms` }}
+              />
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
 
-// Export with dashboard permission protection
-export default withPermissions(DashboardPage, {
-  permissions: ['view_dashboard'],
-  redirectTo: '/unauthorized',
-});
+// Export the dashboard page
+export default DashboardPage;

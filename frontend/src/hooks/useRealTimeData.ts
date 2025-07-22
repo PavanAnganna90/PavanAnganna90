@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, startTransition } from 'react';
 import { WebSocketMessage, metricsWS, notificationsWS } from '../services/websocketService';
 import { useToast } from '../components/ui/Toast';
 
@@ -90,28 +90,31 @@ export function useRealTimeMetrics() {
 
   useEffect(() => {
     const handleMessage = (message: WebSocketMessage) => {
-      if (message.type === 'system_metrics') {
-        setMetrics(prev => ({
-          ...prev,
-          system: message.payload.system,
-        }));
-        setLastUpdate(message.timestamp);
-      } else if (message.type === 'pipeline_metrics') {
-        setMetrics(prev => ({
-          ...prev,
-          pipelines: message.payload.pipelines,
-        }));
-      } else if (message.type === 'infrastructure_metrics') {
-        setMetrics(prev => ({
-          ...prev,
-          infrastructure: message.payload.infrastructure,
-        }));
-      } else if (message.type === 'alert_metrics') {
-        setMetrics(prev => ({
-          ...prev,
-          alerts: message.payload.alerts,
-        }));
-      }
+      // Use startTransition for non-urgent metric updates to improve performance
+      startTransition(() => {
+        if (message.type === 'system_metrics') {
+          setMetrics(prev => ({
+            ...prev,
+            system: message.payload.system,
+          }));
+          setLastUpdate(message.timestamp);
+        } else if (message.type === 'pipeline_metrics') {
+          setMetrics(prev => ({
+            ...prev,
+            pipelines: message.payload.pipelines,
+          }));
+        } else if (message.type === 'infrastructure_metrics') {
+          setMetrics(prev => ({
+            ...prev,
+            infrastructure: message.payload.infrastructure,
+          }));
+        } else if (message.type === 'alert_metrics') {
+          setMetrics(prev => ({
+            ...prev,
+            alerts: message.payload.alerts,
+          }));
+        }
+      });
     };
 
     const handleOpen = () => {
@@ -184,8 +187,11 @@ export function useRealTimeEvents(maxEvents: number = 50) {
           metadata: message.payload.metadata
         };
 
-        eventsRef.current = [newEvent, ...eventsRef.current.slice(0, maxEvents - 1)];
-        setEvents([...eventsRef.current]);
+        // Use startTransition for non-urgent event updates
+        startTransition(() => {
+          eventsRef.current = [newEvent, ...eventsRef.current.slice(0, maxEvents - 1)];
+          setEvents([...eventsRef.current]);
+        });
       }
     };
 
@@ -253,9 +259,12 @@ export function useRealTimeNotifications() {
           metadata: message.payload.metadata
         };
 
-        notificationsRef.current = [notification, ...notificationsRef.current];
-        setNotifications([...notificationsRef.current]);
-        setUnreadCount(prev => prev + 1);
+        // Use startTransition for non-urgent notification updates
+        startTransition(() => {
+          notificationsRef.current = [notification, ...notificationsRef.current];
+          setNotifications([...notificationsRef.current]);
+          setUnreadCount(prev => prev + 1);
+        });
 
         // Show toast for important notifications
         if (notification.severity === 'error' || notification.severity === 'warning') {
@@ -354,28 +363,82 @@ export function useRealTimeNotifications() {
 
 /**
  * Hook for WebSocket connection status across all services
+ * Optimized with exponential backoff and event-driven checks
  */
 export function useWebSocketStatus() {
   const [status, setStatus] = useState({
     metrics: false,
     notifications: false
   });
+  const [checkInterval, setCheckInterval] = useState(1000);
+  const [consecutiveSuccesses, setConsecutiveSuccesses] = useState(0);
 
   useEffect(() => {
     const checkStatus = () => {
-      setStatus({
+      const newStatus = {
         metrics: metricsWS.isConnected(),
         notifications: notificationsWS.isConnected()
-      });
+      };
+      
+      const allConnected = newStatus.metrics && newStatus.notifications;
+      
+      setStatus(newStatus);
+      
+      // Adaptive polling: slow down when connections are stable
+      if (allConnected) {
+        setConsecutiveSuccesses(prev => prev + 1);
+        // Increase interval up to 30 seconds for stable connections
+        if (consecutiveSuccesses > 5) {
+          setCheckInterval(Math.min(30000, checkInterval * 1.5));
+        }
+      } else {
+        setConsecutiveSuccesses(0);
+        // Reset to frequent checking when connections are unstable
+        setCheckInterval(1000);
+      }
     };
 
     // Check status immediately
     checkStatus();
 
-    // Set up periodic status checks
-    const interval = setInterval(checkStatus, 1000);
+    // Set up adaptive interval checking
+    const interval = setInterval(checkStatus, checkInterval);
 
     return () => clearInterval(interval);
+  }, [checkInterval, consecutiveSuccesses]);
+
+  // Listen to WebSocket events for immediate updates
+  useEffect(() => {
+    const handleConnectionChange = () => {
+      setStatus({
+        metrics: metricsWS.isConnected(),
+        notifications: notificationsWS.isConnected()
+      });
+      setCheckInterval(1000); // Reset to frequent checking on state change
+      setConsecutiveSuccesses(0);
+    };
+
+    // Set up event listeners for immediate status updates
+    metricsWS.onOpenHandler = handleConnectionChange;
+    metricsWS.onCloseHandler = handleConnectionChange;
+    notificationsWS.onOpenHandler = handleConnectionChange;
+    notificationsWS.onCloseHandler = handleConnectionChange;
+
+    return () => {
+      // Clean up only our handlers
+      if (metricsWS.onOpenHandler === handleConnectionChange) {
+        metricsWS.onOpenHandler = undefined;
+      }
+      if (metricsWS.onCloseHandler === handleConnectionChange) {
+        metricsWS.onCloseHandler = undefined;
+      }
+      if (notificationsWS.onOpenHandler === handleConnectionChange) {
+        notificationsWS.onOpenHandler = undefined;
+      }
+      if (notificationsWS.onCloseHandler === handleConnectionChange) {
+        notificationsWS.onCloseHandler = undefined;
+      }
+    };
   }, []);
 
   return status;
@@ -419,5 +482,101 @@ export function useWebSocketReconnection() {
   return {
     isReconnecting,
     reconnectAll
+  };
+}
+
+/**
+ * Generic real-time data hook with API fetching
+ */
+export function useRealTimeData(options: {
+  endpoint: string;
+  enabled?: boolean;
+  interval?: number;
+}) {
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!options.enabled) return;
+
+    let intervalId: NodeJS.Timeout;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // In development, return mock data
+        if (process.env.NODE_ENV === 'development') {
+          setData({
+            system: {
+              cpu: Math.random() * 100,
+              memory: Math.random() * 100,
+              status: 'healthy'
+            },
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          const response = await fetch(options.endpoint);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          setData(result);
+        }
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+
+    if (options.interval) {
+      // Use requestIdleCallback for non-critical polling to improve performance
+      const scheduleNextFetch = () => {
+        setTimeout(() => {
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+              fetchData().then(scheduleNextFetch);
+            });
+          } else {
+            fetchData().then(scheduleNextFetch);
+          }
+        }, options.interval);
+      };
+      
+      scheduleNextFetch();
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [options.endpoint, options.enabled, options.interval]);
+
+  return { data, isLoading, error };
+}
+
+/**
+ * Basic WebSocket hook for compatibility
+ */
+export function useWebSocket(url: string, options?: { onMessage?: (data: any) => void }) {
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Mock WebSocket functionality for compatibility
+    setIsConnected(true);
+    setError(null);
+    
+    return () => {
+      setIsConnected(false);
+    };
+  }, [url]);
+
+  return {
+    isConnected,
+    error,
+    send: () => {},
+    close: () => {},
   };
 }

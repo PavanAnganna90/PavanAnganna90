@@ -1,35 +1,35 @@
 /**
- * Chart Theme Configuration for Invary Design System
- * Provides Recharts-compatible themes with Invary color palette
+ * Chart Theme Configuration for Orbit Platform Builder Design System
+ * Provides Recharts-compatible themes with Platform Engineering color palette
  */
 
-export const invaryChartColors = {
-  primary: '#434C62',
-  secondary: '#4E4E62', 
-  accent: '#FF7662',
-  neutral: '#565656',
+export const orbitChartColors = {
+  primary: 'hsl(215, 85%, 55%)',      // Tech Blue
+  secondary: 'hsl(180, 85%, 45%)',    // Teal accent
+  accent: 'hsl(260, 85%, 55%)',       // Purple for highlights
+  success: 'hsl(142, 85%, 45%)',      // Green for healthy status
+  warning: 'hsl(35, 85%, 60%)',       // Orange for warnings
+  error: 'hsl(0, 84%, 60%)',          // Red for errors
   // Supporting colors
-  light: '#F8FAFC',
-  gray: '#94A3B8',
-  success: '#22C55E',
-  warning: '#F59E0B',
-  error: '#EF4444',
+  muted: 'hsl(215, 15%, 45%)',
+  background: 'hsl(210, 20%, 98%)',
+  foreground: 'hsl(215, 25%, 15%)',
 } as const;
 
-export const invaryChartTheme = {
-  // Main chart series colors following Invary palette
+export const orbitChartTheme = {
+  // Main chart series colors following Orbit palette
   colors: [
-    invaryChartColors.primary,    // #434C62 - Primary blue
-    invaryChartColors.secondary,  // #4E4E62 - Secondary blue
-    invaryChartColors.accent,     // #FF7662 - Accent coral
-    invaryChartColors.neutral,    // #565656 - Neutral gray
-    invaryChartColors.success,    // #22C55E - Success green
-    invaryChartColors.warning,    // #F59E0B - Warning orange
+    orbitChartColors.primary,    // Tech Blue
+    orbitChartColors.secondary,  // Teal accent
+    orbitChartColors.success,    // Success green
+    orbitChartColors.warning,    // Warning orange
+    orbitChartColors.accent,     // Purple accent
+    orbitChartColors.error,      // Error red
   ],
   
   // Grid and axis styling
   grid: {
-    stroke: '#E2E8F0',
+    stroke: 'hsl(215, 20%, 88%)',
     strokeDasharray: '3 3',
     strokeOpacity: 0.3,
   },
@@ -37,15 +37,15 @@ export const invaryChartTheme = {
   // Axis styling
   axis: {
     axisLine: {
-      stroke: '#CBD5E1',
+      stroke: 'hsl(215, 20%, 88%)',
       strokeWidth: 1,
     },
     tickLine: {
-      stroke: '#CBD5E1',
+      stroke: 'hsl(215, 20%, 88%)',
       strokeWidth: 1,
     },
     tick: {
-      fill: invaryChartColors.neutral,
+      fill: orbitChartColors.muted,
       fontSize: 12,
       fontFamily: 'Inter, system-ui, sans-serif',
     },
@@ -57,7 +57,7 @@ export const invaryChartTheme = {
     wrapperStyle: {
       fontSize: '12px',
       fontFamily: 'Inter, system-ui, sans-serif',
-      color: invaryChartColors.neutral,
+      color: orbitChartColors.muted,
     },
   },
   
@@ -65,65 +65,75 @@ export const invaryChartTheme = {
   tooltip: {
     contentStyle: {
       backgroundColor: 'white',
-      border: `1px solid ${invaryChartColors.gray}`,
+      border: `1px solid hsl(215, 20%, 88%)`,
       borderRadius: '8px',
-      boxShadow: '0 4px 20px rgba(67, 76, 98, 0.1)',
+      boxShadow: '0 2px 10px hsl(215 25% 15% / 0.1)',
       fontSize: '12px',
       fontFamily: 'Inter, system-ui, sans-serif',
     },
     labelStyle: {
-      color: invaryChartColors.primary,
+      color: orbitChartColors.primary,
       fontWeight: 600,
     },
   },
 } as const;
 
 // Dark theme variant
-export const invaryChartThemeDark = {
-  ...invaryChartTheme,
+export const orbitChartThemeDark = {
+  ...orbitChartTheme,
+  
+  // Update colors for dark mode
+  colors: [
+    'hsl(215, 85%, 65%)',    // Brighter tech blue
+    'hsl(180, 85%, 55%)',    // Brighter teal
+    'hsl(142, 85%, 55%)',    // Brighter green
+    'hsl(35, 85%, 65%)',     // Brighter orange
+    'hsl(260, 85%, 65%)',    // Brighter purple
+    'hsl(0, 84%, 65%)',      // Brighter red
+  ],
   
   grid: {
-    ...invaryChartTheme.grid,
-    stroke: '#374151',
+    ...orbitChartTheme.grid,
+    stroke: 'hsl(215, 20%, 20%)',
     strokeOpacity: 0.2,
   },
   
   axis: {
     axisLine: {
-      stroke: '#4B5563',
+      stroke: 'hsl(215, 20%, 20%)',
       strokeWidth: 1,
     },
     tickLine: {
-      stroke: '#4B5563',
+      stroke: 'hsl(215, 20%, 20%)',
       strokeWidth: 1,
     },
     tick: {
-      fill: '#9CA3AF',
+      fill: 'hsl(215, 15%, 65%)',
       fontSize: 12,
       fontFamily: 'Inter, system-ui, sans-serif',
     },
   },
   
   legend: {
-    ...invaryChartTheme.legend,
+    ...orbitChartTheme.legend,
     wrapperStyle: {
-      ...invaryChartTheme.legend.wrapperStyle,
-      color: '#9CA3AF',
+      ...orbitChartTheme.legend.wrapperStyle,
+      color: 'hsl(215, 15%, 65%)',
     },
   },
   
   tooltip: {
     contentStyle: {
-      backgroundColor: invaryChartColors.primary,
-      border: `1px solid ${invaryChartColors.secondary}`,
+      backgroundColor: 'hsl(215, 25%, 12%)',
+      border: '1px solid hsl(215, 20%, 20%)',
       borderRadius: '8px',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+      boxShadow: '0 2px 10px hsl(0 0% 0% / 0.3)',
       fontSize: '12px',
       fontFamily: 'Inter, system-ui, sans-serif',
-      color: 'white',
+      color: 'hsl(215, 15%, 95%)',
     },
     labelStyle: {
-      color: 'white',
+      color: 'hsl(215, 85%, 65%)',
       fontWeight: 600,
     },
   },
@@ -167,15 +177,20 @@ export const chartConfigs = {
 
 // Color utilities for dynamic theming
 export const getChartColor = (index: number, isDark = false) => {
-  const colors = isDark ? invaryChartThemeDark.colors : invaryChartTheme.colors;
+  const colors = isDark ? orbitChartThemeDark.colors : orbitChartTheme.colors;
   return colors[index % colors.length];
 };
 
 export const getChartTheme = (isDark = false) => {
-  return isDark ? invaryChartThemeDark : invaryChartTheme;
+  return isDark ? orbitChartThemeDark : orbitChartTheme;
 };
 
+// Backward compatibility exports
+export const invaryChartColors = orbitChartColors;
+export const invaryChartTheme = orbitChartTheme;
+export const invaryChartThemeDark = orbitChartThemeDark;
+
 // Export types for TypeScript support
-export type ChartTheme = typeof invaryChartTheme;
-export type ChartColors = typeof invaryChartColors;
+export type ChartTheme = typeof orbitChartTheme;
+export type ChartColors = typeof orbitChartColors;
 export type ChartConfig = typeof chartConfigs;

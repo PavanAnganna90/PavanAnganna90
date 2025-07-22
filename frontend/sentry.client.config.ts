@@ -25,6 +25,10 @@ Sentry.init({
   // Session tracking
   autoSessionTracking: true,
   
+  // Session Replay for debugging
+  replaysSessionSampleRate: ENVIRONMENT === 'production' ? 0.1 : 1.0,
+  replaysOnErrorSampleRate: 1.0,
+  
   // Error filtering
   beforeSend(event, hint) {
     // Filter out development errors

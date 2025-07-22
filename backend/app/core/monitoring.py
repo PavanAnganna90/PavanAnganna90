@@ -33,7 +33,26 @@ def init_metrics():
     global CACHE_HITS, CACHE_MISSES, ACTIVE_USERS, PIPELINE_EXECUTIONS, _metrics_initialized
     if _metrics_initialized:
         return
-    from prometheus_client import Counter, Histogram, Gauge, Info
+    
+    # Clear existing metrics to avoid duplicates during development/reload
+    from prometheus_client import REGISTRY, Counter, Histogram, Gauge, Info
+    try:
+        # Clear only the metrics we're about to register
+        collectors_to_remove = []
+        for collector in list(REGISTRY._collector_to_names.keys()):
+            if hasattr(collector, '_name') and collector._name in [
+                'http_requests_total', 'http_request_duration_seconds', 
+                'db_connections_pool_size', 'db_query_duration_seconds',
+                'cache_operations_total', 'active_users_gauge', 'pipeline_executions_total'
+            ]:
+                collectors_to_remove.append(collector)
+        for collector in collectors_to_remove:
+            try:
+                REGISTRY.unregister(collector)
+            except KeyError:
+                pass
+    except Exception:
+        pass  # Ignore any errors during cleanup
 
     # Application info
     APP_INFO = Info("application", "Application information")

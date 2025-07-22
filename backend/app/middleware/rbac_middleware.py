@@ -51,6 +51,21 @@ class RBACMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/callback",
             "/api/v1/auth/refresh", "/api/v1/auth/me", "/favicon.ico"
         }
+        # OAuth and SSO endpoint patterns that should be public
+        self.public_endpoint_patterns = [
+            # OAuth endpoints
+            r"^/api/v1/auth/oauth/providers$",
+            r"^/api/v1/auth/oauth/[^/]+/authorize$",
+            r"^/api/v1/auth/oauth/[^/]+/callback$",
+            r"^/api/v1/auth/oauth/[^/]+/health$",
+            r"^/api/v1/auth/oauth/[^/]+/token$",
+            # SSO endpoints
+            r"^/api/v1/auth/sso/config$",
+            # SAML endpoints
+            r"^/api/v1/auth/saml/metadata$",
+            r"^/api/v1/auth/saml/login$",
+            r"^/api/v1/auth/saml/acs$"
+        ]
         self.rate_limit_cache = {}
         self.max_requests_per_minute = 100
         
@@ -234,7 +249,16 @@ class RBACMiddleware(BaseHTTPMiddleware):
     
     def _is_public_endpoint(self, path: str) -> bool:
         """Check if endpoint is public and should bypass RBAC."""
-        return any(path.startswith(endpoint) for endpoint in self.public_endpoints)
+        # Check exact matches
+        if any(path.startswith(endpoint) for endpoint in self.public_endpoints):
+            return True
+        
+        # Check pattern matches for OAuth endpoints
+        for pattern in self.public_endpoint_patterns:
+            if re.match(pattern, path):
+                return True
+        
+        return False
     
     async def _get_current_user(self, request: Request) -> Optional[User]:
         """

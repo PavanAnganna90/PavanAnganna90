@@ -16,7 +16,7 @@ export default function SSOPage() {
   const searchParams = useSearchParams();
   
   // Get redirect URL from query params
-  const redirectUrl = searchParams.get('redirect') || '/dashboard';
+  const redirectUrl = searchParams?.get('redirect') || '/dashboard';
   
   const handleSSOSuccess = (user: any) => {
     // Redirect to the intended destination

@@ -1,7 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useChartTheme } from '@/hooks/useChartTheme';
+import { 
+  sanitizeLineChartData, 
+  sanitizeChartProps, 
+  validationMonitor,
+  ChartValidationError 
+} from '@/lib/chartValidation';
 
 interface LineChartProps {
   data: number[];
@@ -14,18 +20,53 @@ interface LineChartProps {
   colorIndex?: number; // For automatic theme color selection
 }
 
-export function LineChart({
-  data,
-  height = 40,
-  color,
-  strokeWidth = 2,
-  showDots = false,
-  animated = true,
-  className = '',
-  colorIndex = 0
-}: LineChartProps) {
+export const LineChart = React.memo(function LineChart(props: LineChartProps) {
   const { getColor } = useChartTheme();
+  
+  // Validate and sanitize props
+  const {
+    data: rawData,
+    height = 40,
+    color,
+    strokeWidth = 2,
+    showDots = false,
+    animated = true,
+    className = '',
+    colorIndex = 0
+  } = useMemo(() => {
+    return validationMonitor.measureValidation('LineChart', () => {
+      try {
+        const sanitizedProps = sanitizeChartProps(props);
+        const sanitizedData = sanitizeLineChartData(props.data);
+        
+        return {
+          ...props,
+          ...sanitizedProps,
+          data: sanitizedData
+        };
+      } catch (error) {
+        if (error instanceof ChartValidationError) {
+          console.error('LineChart validation error:', error);
+          // Return safe defaults
+          return {
+            ...props,
+            data: [],
+            height: 40,
+            strokeWidth: 2,
+            showDots: false,
+            animated: true,
+            className: '',
+            colorIndex: 0
+          };
+        }
+        throw error;
+      }
+    });
+  }, [props]);
+
+  const data = rawData;
   const chartColor = color || getColor(colorIndex);
+  
   if (!data || data.length === 0) {
     return (
       <div className={`w-full bg-gray-100 dark:bg-invary-secondary/20 rounded ${className}`} style={{ height }}>
@@ -40,21 +81,28 @@ export function LineChart({
   const minValue = Math.min(...data);
   const range = maxValue - minValue || 1; // Prevent division by zero
 
-  // Calculate SVG path
-  const width = 100; // Use percentage width
-  const padding = 2;
-  const stepX = (width - padding * 2) / (data.length - 1);
-  
-  const points = data.map((value, index) => {
-    const x = padding + index * stepX;
-    const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
-    return `${x},${y}`;
-  });
+  // Memoize expensive path calculations
+  const { pathData, points } = useMemo(() => {
+    const width = 100; // Use percentage width
+    const padding = 2;
+    const stepX = (width - padding * 2) / (data.length - 1);
+    
+    const calculatedPoints = data.map((value, index) => {
+      const x = padding + index * stepX;
+      const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
+      return { x, y, coord: `${x},${y}` };
+    });
 
-  const pathData = `M ${points.join(' L ')}`;
+    const pathData = `M ${calculatedPoints.map(p => p.coord).join(' L ')}`;
+    
+    return { pathData, points: calculatedPoints };
+  }, [data, height, minValue, range]);
 
-  // Create gradient for fill area
-  const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
+  // Create stable gradient ID to prevent re-rendering
+  const gradientId = useMemo(() => 
+    `gradient-${colorIndex}-${chartColor.replace('#', '')}`, 
+    [colorIndex, chartColor]
+  );
 
   return (
     <div className={`w-full ${className}`} style={{ height }}>
@@ -73,7 +121,7 @@ export function LineChart({
         
         {/* Fill area */}
         <path
-          d={`${pathData} L ${padding + (data.length - 1) * stepX},${height - padding} L ${padding},${height - padding} Z`}
+          d={`${pathData} L ${points[points.length - 1]?.x || 0},${height - 2} L ${points[0]?.x || 0},${height - 2} Z`}
           fill={`url(#${gradientId})`}
           className={animated ? 'transition-all duration-300 ease-in-out' : ''}
         />
@@ -90,23 +138,35 @@ export function LineChart({
         />
         
         {/* Dots */}
-        {showDots && data.map((value, index) => {
-          const x = padding + index * stepX;
-          const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
-          return (
-            <circle
-              key={index}
-              cx={x}
-              cy={y}
-              r="2"
-              fill={chartColor}
-              className={animated ? 'transition-all duration-300 ease-in-out' : ''}
-            />
-          );
-        })}
+        {showDots && points.map((point, index) => (
+          <circle
+            key={index}
+            cx={point.x}
+            cy={point.y}
+            r="2"
+            fill={chartColor}
+            className={animated ? 'transition-all duration-300 ease-in-out' : ''}
+          />
+        ))}
       </svg>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for array data
+  if (prevProps.data.length !== nextProps.data.length) return false;
+  
+  const dataEqual = prevProps.data.every((val, idx) => val === nextProps.data[idx]);
+  
+  return (
+    dataEqual &&
+    prevProps.height === nextProps.height &&
+    prevProps.color === nextProps.color &&
+    prevProps.strokeWidth === nextProps.strokeWidth &&
+    prevProps.showDots === nextProps.showDots &&
+    prevProps.animated === nextProps.animated &&
+    prevProps.className === nextProps.className &&
+    prevProps.colorIndex === nextProps.colorIndex
+  );
+});
 
 export default LineChart;

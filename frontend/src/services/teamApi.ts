@@ -36,45 +36,91 @@ class TeamApiService {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = this.getAuthToken();
-    const url = `${this.baseUrl}${endpoint}`;
-    
-    const defaultHeaders: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+    // In development mode, use mock data if backend is not available
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const token = this.getAuthToken();
+        const url = `${this.baseUrl}${endpoint}`;
+        
+        const defaultHeaders: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
 
-    if (token) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
-    }
+        if (token) {
+          defaultHeaders['Authorization'] = `Bearer ${token}`;
+        }
 
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        ...defaultHeaders,
-        ...options.headers,
-      },
-    };
+        const config: RequestInit = {
+          ...options,
+          headers: {
+            ...defaultHeaders,
+            ...options.headers,
+          },
+        };
 
-    try {
-      const response = await fetch(url, config);
-      
-      if (response.status === 401) {
-        throw new Error('Authentication required. Please log in again.');
+        const response = await fetch(url, config);
+        
+        if (response.status === 401) {
+          throw new Error('Authentication required. Please log in again.');
+        }
+        
+        if (response.status === 403) {
+          throw new Error('Access denied. You do not have permission to perform this action.');
+        }
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        // If fetch fails in development, return mock data
+        console.warn('🔌 Backend not available, using mock team data for development');
+        return this.getMockData(endpoint, options) as T;
       }
-      
-      if (response.status === 403) {
-        throw new Error('Access denied. You do not have permission to perform this action.');
+    } else {
+      // Production mode - normal fetch behavior
+      try {
+        const token = this.getAuthToken();
+        const url = `${this.baseUrl}${endpoint}`;
+        
+        const defaultHeaders: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+
+        if (token) {
+          defaultHeaders['Authorization'] = `Bearer ${token}`;
+        }
+
+        const config: RequestInit = {
+          ...options,
+          headers: {
+            ...defaultHeaders,
+            ...options.headers,
+          },
+        };
+
+        const response = await fetch(url, config);
+        
+        if (response.status === 401) {
+          throw new Error('Authentication required. Please log in again.');
+        }
+        
+        if (response.status === 403) {
+          throw new Error('Access denied. You do not have permission to perform this action.');
+        }
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error(`Team API request failed: ${this.baseUrl}${endpoint}`, error);
+        throw error;
       }
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error(`Team API request failed: ${url}`, error);
-      throw error;
     }
   }
 
@@ -375,6 +421,138 @@ class TeamApiService {
       average_team_size: number;
       recommendations: string[];
     }>('/health');
+  }
+
+  /**
+   * Get mock data for development when backend is not available
+   */
+  private getMockData(endpoint: string, options: RequestInit = {}): any {
+    console.log(`🎭 Serving mock data for: ${endpoint}`);
+    
+    // Mock teams data
+    const mockTeams: Team[] = [
+      {
+        id: 1,
+        name: 'Frontend Team',
+        description: 'Responsible for all frontend development and UI/UX',
+        slug: 'frontend-team',
+        visibility: 'public',
+        owner_id: 1,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-15T00:00:00Z',
+        member_count: 5,
+        settings: {
+          allow_member_invites: true,
+          require_approval_for_join: false,
+          default_member_role: 'member'
+        }
+      },
+      {
+        id: 2,
+        name: 'Backend Team',
+        description: 'Backend services, APIs, and infrastructure',
+        slug: 'backend-team',
+        visibility: 'public',
+        owner_id: 2,
+        created_at: '2024-01-02T00:00:00Z',
+        updated_at: '2024-01-20T00:00:00Z',
+        member_count: 4,
+        settings: {
+          allow_member_invites: true,
+          require_approval_for_join: true,
+          default_member_role: 'member'
+        }
+      },
+      {
+        id: 3,
+        name: 'DevOps Team',
+        description: 'Infrastructure, deployment, and monitoring',
+        slug: 'devops-team',
+        visibility: 'private',
+        owner_id: 3,
+        created_at: '2024-01-03T00:00:00Z',
+        updated_at: '2024-01-25T00:00:00Z',
+        member_count: 3,
+        settings: {
+          allow_member_invites: false,
+          require_approval_for_join: true,
+          default_member_role: 'viewer'
+        }
+      }
+    ];
+
+    // Route mock responses based on endpoint
+    switch (endpoint) {
+      case '/user/teams':
+        return mockTeams;
+      
+      case '/':
+        if (options.method === 'GET') {
+          return { teams: mockTeams, total: mockTeams.length };
+        }
+        if (options.method === 'POST') {
+          return { ...mockTeams[0], id: Date.now() };
+        }
+        break;
+      
+      case '/health':
+        return {
+          total_teams: mockTeams.length,
+          active_teams: mockTeams.length,
+          teams_without_owners: 0,
+          teams_with_single_member: 0,
+          average_team_size: 4,
+          recommendations: ['Consider creating specialized teams for better focus']
+        };
+      
+      default:
+        // Handle dynamic endpoints like /{id}, /{id}/members, etc.
+        const teamIdMatch = endpoint.match(/^\/(\d+)/);
+        if (teamIdMatch) {
+          const teamId = parseInt(teamIdMatch[1]);
+          const team = mockTeams.find(t => t.id === teamId);
+          
+          if (endpoint === `/${teamId}`) {
+            return team || null;
+          }
+          
+          if (endpoint === `/${teamId}/members`) {
+            return [
+              {
+                id: 1,
+                user_id: 1,
+                team_id: teamId,
+                role: 'owner',
+                joined_at: '2024-01-01T00:00:00Z',
+                user: {
+                  id: 1,
+                  email: 'owner@example.com',
+                  name: 'Team Owner',
+                  avatar_url: null
+                }
+              },
+              {
+                id: 2,
+                user_id: 2,
+                team_id: teamId,
+                role: 'admin',
+                joined_at: '2024-01-02T00:00:00Z',
+                user: {
+                  id: 2,
+                  email: 'admin@example.com',
+                  name: 'Team Admin',
+                  avatar_url: null
+                }
+              }
+            ];
+          }
+        }
+        
+        // Default response for unhandled endpoints
+        return { message: 'Mock endpoint not implemented', endpoint };
+    }
+    
+    return { message: 'Success', data: null };
   }
 }
 

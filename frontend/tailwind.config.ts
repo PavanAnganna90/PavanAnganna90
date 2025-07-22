@@ -41,6 +41,7 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -49,6 +50,14 @@ const config: Config = {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -152,6 +161,11 @@ const config: Config = {
           950: '#020617',
         },
       },
+      backgroundImage: {
+        'gradient-primary': 'var(--gradient-primary)',
+        'gradient-card': 'var(--gradient-card)',
+        'gradient-status': 'var(--gradient-status)'
+      },
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
@@ -161,7 +175,8 @@ const config: Config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.2s ease-out",
+        "fade-in": "fade-in 0.5s ease-out",
+        "slide-up": "slide-up 0.3s ease-out",
         "fade-out": "fade-out 0.15s ease-out",
         "zoom-in": "zoom-in 0.2s ease-out",
         "zoom-out": "zoom-out 0.15s ease-out",
@@ -169,6 +184,7 @@ const config: Config = {
         "slide-in-from-bottom": "slide-in-from-bottom 0.2s ease-out",
         "slide-in-from-left": "slide-in-from-left 0.2s ease-out",
         "slide-in-from-right": "slide-in-from-right 0.2s ease-out",
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         "accordion-down": {
@@ -211,6 +227,26 @@ const config: Config = {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(0)" },
         },
+        "fade-in": {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(10px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        },
+        "slide-up": {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(20px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -227,7 +263,8 @@ const config: Config = {
         'soft': '0 2px 4px 0 rgba(0, 0, 0, 0.05)',
         'medium': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         'large': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        'glow': '0 0 20px rgba(59, 130, 246, 0.15)',
+        'glow': 'var(--shadow-glow)',
+        'status': 'var(--shadow-status)',
         'glow-green': '0 0 20px rgba(34, 197, 94, 0.15)',
         'glow-red': '0 0 20px rgba(239, 68, 68, 0.15)',
         'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',

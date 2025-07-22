@@ -1,0 +1,92 @@
+groups:
+  - name: opssight.rules
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: rate(application_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      # High response time alert
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      # High memory usage alert
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / 1024 / 1024) > 512
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}MB"
+
+      # Database connection issues
+      - alert: DatabaseConnectionFailure
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection failure"
+          description: "PostgreSQL database is not responding"
+
+      # Redis connection issues
+      - alert: RedisConnectionFailure
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis connection failure"
+          description: "Redis server is not responding"
+
+      # Application down alert
+      - alert: ApplicationDown
+        expr: up{job="opssight"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "OpsSight application is down"
+          description: "The OpsSight application is not responding"
+
+      # High CPU usage alert
+      - alert: HighCPUUsage
+        expr: (rate(process_cpu_user_seconds_total[5m]) + rate(process_cpu_system_seconds_total[5m])) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}%"
+
+      # Too many active sessions
+      - alert: TooManyActiveSessions
+        expr: active_sessions_total > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of active sessions"
+          description: "Active sessions count is {{ $value }}"
+
+      # Deployment failure rate
+      - alert: HighDeploymentFailureRate
+        expr: rate(deployment_events_total{status="failed"}[10m]) / rate(deployment_events_total[10m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High deployment failure rate"
+          description: "Deployment failure rate is {{ $value | humanizePercentage }}"
