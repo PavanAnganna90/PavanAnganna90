@@ -1,168 +1,255 @@
 'use client';
 
 import React from 'react';
-import { Server, Cpu, HardDrive, Network, Activity, AlertTriangle } from 'lucide-react';
-import { MetricCard } from '@/components/orbit/MetricCard';
-import { ServiceCard } from '@/components/orbit/ServiceCard';
-import { StatusIndicator } from '@/components/orbit/StatusIndicator';
+import { Server, Cpu, HardDrive, Network, Activity, AlertTriangle, Zap, TrendingUp } from 'lucide-react';
 
-export default function InfrastructurePage() {
-  const infrastructureMetrics = [
-    {
-      title: "Active Servers",
-      value: "24",
-      change: "+2 this week",
-      changeType: "positive" as const,
-      icon: Server
-    },
-    {
-      title: "CPU Usage",
-      value: "67%",
-      change: "Average across cluster",
-      changeType: "neutral" as const,
-      icon: Cpu
-    },
-    {
-      title: "Storage Used",
-      value: "1.2TB",
-      change: "78% of total capacity",
-      changeType: "neutral" as const,
-      icon: HardDrive
-    },
-    {
-      title: "Network Traffic",
-      value: "450GB",
-      change: "+12% this month",
-      changeType: "positive" as const,
-      icon: Network
-    }
-  ];
-
-  const clusters = [
-    {
-      name: "Production Cluster",
-      description: "Main production environment with high availability",
-      status: "healthy" as const,
-      version: "k8s v1.28.2",
-      lastDeployed: "1 hour ago",
-      url: "https://prod.cluster.com"
-    },
-    {
-      name: "Staging Cluster",
-      description: "Pre-production testing environment",
-      status: "warning" as const,
-      version: "k8s v1.28.1",
-      lastDeployed: "3 hours ago",
-      url: "https://staging.cluster.com"
-    },
-    {
-      name: "Development Cluster",
-      description: "Development and testing environment",
-      status: "healthy" as const,
-      version: "k8s v1.27.8",
-      lastDeployed: "2 days ago"
-    }
-  ];
-
+// Modern Metric Card Component
+function MetricCard({ 
+  title, 
+  value, 
+  change, 
+  changeType = 'neutral', 
+  icon: Icon, 
+  trend 
+}: {
+  title: string;
+  value: string;
+  change: string;
+  changeType?: 'positive' | 'negative' | 'neutral';
+  icon: any;
+  trend?: number;
+}) {
   return (
-    <div className="min-h-screen bg-background pt-16">
-      {/* Header */}
-      <header className="border-b border-border bg-gradient-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold gradient-text-primary truncate">
-                Infrastructure
-              </h1>
-              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                Monitor and manage your infrastructure resources
-              </p>
-            </div>
-            <div className="shrink-0">
-              <StatusIndicator status="healthy" label="Infrastructure Healthy" />
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+          <div className="flex items-center mt-3 gap-2">
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+              changeType === 'positive' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+              changeType === 'negative' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+              'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+            }`}>
+              {changeType === 'positive' && <TrendingUp className="h-3 w-3" />}
+              {changeType === 'negative' && <TrendingUp className="h-3 w-3 rotate-180" />}
+              <span>{change}</span>
             </div>
           </div>
         </div>
-      </header>
+        <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+          <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
-        {/* Infrastructure Metrics */}
-        <section className="animate-fade-in">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            Infrastructure Overview
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {infrastructureMetrics.map((metric, index) => (
-              <MetricCard 
-                key={metric.title}
-                {...metric}
-                className="animate-slide-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              />
-            ))}
+// Modern Cluster Card Component  
+function ClusterCard({ 
+  name, 
+  description, 
+  status, 
+  version, 
+  lastDeployed, 
+  nodes, 
+  cpuUsage 
+}: {
+  name: string;
+  description: string;
+  status: 'healthy' | 'warning' | 'error';
+  version: string;
+  lastDeployed: string;
+  nodes: number;
+  cpuUsage: number;
+}) {
+  const statusColors = {
+    healthy: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
+    warning: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
+    error: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
+  };
+
+  const statusDots = {
+    healthy: 'bg-green-500',
+    warning: 'bg-yellow-500', 
+    error: 'bg-red-500'
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{name}</h3>
+            <div className={`w-3 h-3 rounded-full ${statusDots[status]}`}></div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{description}</p>
+        </div>
+      </div>
+      
+      <div className="space-y-3 mb-4">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-600 dark:text-gray-400">Version</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{version}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-600 dark:text-gray-400">Nodes</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{nodes}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-600 dark:text-gray-400">CPU Usage</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{cpuUsage}%</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-600 dark:text-gray-400">Last Deploy</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{lastDeployed}</span>
+        </div>
+      </div>
+      
+      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border ${statusColors[status]}`}>
+        <div className={`w-2 h-2 rounded-full ${statusDots[status]}`}></div>
+        <span className="capitalize">{status}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function InfrastructurePage() {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Infrastructure</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">Monitor and manage your infrastructure resources</p>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm font-medium">Infrastructure Healthy</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Infrastructure Overview */}
+        <section>
+          <div className="flex items-center gap-2 mb-6">
+            <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Infrastructure Overview</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricCard
+              title="Active Servers" 
+              value="24"
+              change="+2 this week"
+              changeType="positive"
+              icon={Server}
+            />
+            <MetricCard
+              title="CPU Usage"
+              value="67%"
+              change="Average across cluster"
+              changeType="neutral"
+              icon={Cpu}
+            />
+            <MetricCard
+              title="Storage Used"
+              value="1.2TB"
+              change="78% of total capacity"
+              changeType="neutral"
+              icon={HardDrive}
+            />
+            <MetricCard
+              title="Network Traffic"
+              value="450GB"
+              change="+12% this month"
+              changeType="positive"
+              icon={Network}
+            />
           </div>
         </section>
 
-        {/* Clusters */}
-        <section className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Server className="h-5 w-5 text-primary" />
-            Kubernetes Clusters
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {clusters.map((cluster, index) => (
-              <ServiceCard 
-                key={cluster.name} 
-                {...cluster}
-                className="animate-slide-up"
-                style={{ animationDelay: `${(index + 4) * 100}ms` }}
-              />
-            ))}
+        {/* Kubernetes Clusters */}
+        <section>
+          <div className="flex items-center gap-2 mb-6">
+            <Server className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Kubernetes Clusters</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ClusterCard
+              name="Production Cluster"
+              description="Main production environment with high availability"
+              status="healthy"
+              version="k8s v1.28.2"
+              lastDeployed="1 hour ago"
+              nodes={12}
+              cpuUsage={67}
+            />
+            <ClusterCard
+              name="Staging Cluster"
+              description="Pre-production testing environment"
+              status="warning"
+              version="k8s v1.28.1"
+              lastDeployed="3 hours ago"
+              nodes={6}
+              cpuUsage={84}
+            />
+            <ClusterCard
+              name="Development Cluster"
+              description="Development and testing environment"
+              status="healthy"
+              version="k8s v1.27.8"
+              lastDeployed="2 days ago"
+              nodes={4}
+              cpuUsage={45}
+            />
           </div>
         </section>
 
         {/* Resource Usage */}
-        <section className="animate-fade-in" style={{ animationDelay: '400ms' }}>
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Cpu className="h-5 w-5 text-primary" />
-            Resource Usage
-          </h2>
-          <div className="bg-gradient-card border border-border rounded-lg p-6 shadow-soft">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-card-foreground">CPU Usage</span>
-                  <span className="text-sm font-semibold text-primary">67%</span>
+        <section>
+          <div className="flex items-center gap-2 mb-6">
+            <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Resource Usage</h2>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="space-y-8">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">CPU Usage</span>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">67%</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div className="bg-primary h-2.5 rounded-full transition-all duration-300" style={{ width: '67%' }}></div>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-card-foreground">Memory Usage</span>
-                  <span className="text-sm font-semibold text-warning">84%</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div className="bg-warning h-2.5 rounded-full transition-all duration-300" style={{ width: '84%' }}></div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <div className="bg-blue-500 h-3 rounded-full transition-all duration-500" style={{ width: '67%' }}></div>
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-card-foreground">Storage Usage</span>
-                  <span className="text-sm font-semibold text-success">78%</span>
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Memory Usage</span>
+                  <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">84%</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2.5">
-                  <div className="bg-success h-2.5 rounded-full transition-all duration-300" style={{ width: '78%' }}></div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <div className="bg-yellow-500 h-3 rounded-full transition-all duration-500" style={{ width: '84%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Storage Usage</span>
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">78%</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <div className="bg-green-500 h-3 rounded-full transition-all duration-500" style={{ width: '78%' }}></div>
                 </div>
               </div>
             </div>
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }
