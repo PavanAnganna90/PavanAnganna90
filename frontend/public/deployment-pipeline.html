@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Deployment Pipeline - OpsSight</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .pipeline-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .pipeline-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #6d28d9 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pipeline-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .pipeline-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .pipeline-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Pipeline Status Bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .status-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+        }
+        
+        .status-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .status-running { color: #10b981; }
+        .status-pending { color: #f59e0b; }
+        .status-failed { color: #ef4444; }
+        .status-success { color: #10b981; }
+        
+        .status-label {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Live Pipeline Visualization */
+        .pipeline-visual {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .pipeline-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .pipeline-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3730a3 0%, #6d28d9 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Pipeline Stages */
+        .pipeline-stages {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        
+        .stage {
+            min-width: 200px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .stage-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 600;
+            border: 4px solid;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Stage States */
+        .stage-pending .stage-circle {
+            background: rgba(100, 116, 139, 0.2);
+            border-color: #64748b;
+            color: #64748b;
+        }
+        
+        .stage-running .stage-circle {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-color: #f59e0b;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        .stage-success .stage-circle {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #10b981;
+            color: white;
+        }
+        
+        .stage-failed .stage-circle {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .stage-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .stage-time {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        /* Connection Lines */
+        .stage:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 40px;
+            right: -24px;
+            width: 24px;
+            height: 4px;
+            background: #475569;
+            z-index: 1;
+        }
+        
+        .stage-success:not(:last-child)::after {
+            background: linear-gradient(90deg, #10b981, #475569);
+        }
+        
+        .stage-failed:not(:last-child)::after {
+            background: linear-gradient(90deg, #ef4444, #475569);
+        }
+        
+        /* Recent Deployments */
+        .recent-deployments {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .deployment-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .deployment-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .deployment-item:hover {
+            transform: translateX(4px);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .deployment-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .status-success-dot { background: #10b981; }
+        .status-failed-dot { background: #ef4444; }
+        .status-running-dot { 
+            background: #f59e0b; 
+            animation: pulse 2s infinite;
+        }
+        
+        .deployment-info {
+            flex: 1;
+        }
+        
+        .deployment-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .deployment-info p {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        .deployment-time {
+            font-size: 14px;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+        
+        /* Grid Layout */
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .pipeline-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Environment Status */
+        .environment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .environment-card {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .env-healthy { border-color: #10b981; }
+        .env-warning { border-color: #f59e0b; }
+        .env-error { border-color: #ef4444; }
+        
+        .env-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .env-status {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .status-healthy {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        /* Live Updates */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #10b981;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .pipeline-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pipeline-stages {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .stage:not(:last-child)::after {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .status-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .pipeline-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pipeline-container">
+        <!-- Header -->
+        <div class="pipeline-header">
+            <h1>🚀 Live Deployment Pipeline</h1>
+            <p class="pipeline-subtitle">Real-time CI/CD monitoring and deployment analytics</p>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span>Live Updates</span>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-card">
+                <div class="status-value status-running" id="runningPipelines">3</div>
+                <div class="status-label">Running</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value status-pending" id="queuedPipelines">5</div>
+                <div class="status-label">Queued</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value status-success" id="successToday">24</div>
+                <div class="status-label">Success Today</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value status-failed" id="failedToday">2</div>
+                <div class="status-label">Failed Today</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" style="color: #3b82f6;" id="avgDeployTime">12m</div>
+                <div class="status-label">Avg Deploy Time</div>
+            </div>
+        </div>
+
+        <!-- Live Pipeline Visualization -->
+        <div class="pipeline-visual">
+            <div class="pipeline-title">
+                <div class="pipeline-icon">⚡</div>
+                Current Pipeline: opssight-frontend (main)
+            </div>
+            
+            <div class="pipeline-stages" id="pipelineStages">
+                <div class="stage stage-success">
+                    <div class="stage-circle">✓</div>
+                    <div class="stage-name">Build</div>
+                    <div class="stage-time">2m 34s</div>
+                </div>
+                
+                <div class="stage stage-success">
+                    <div class="stage-circle">✓</div>
+                    <div class="stage-name">Test</div>
+                    <div class="stage-time">4m 12s</div>
+                </div>
+                
+                <div class="stage stage-running">
+                    <div class="stage-circle">⚡</div>
+                    <div class="stage-name">Deploy</div>
+                    <div class="stage-time">3m 45s</div>
+                </div>
+                
+                <div class="stage stage-pending">
+                    <div class="stage-circle">⏳</div>
+                    <div class="stage-name">Verify</div>
+                    <div class="stage-time">--</div>
+                </div>
+                
+                <div class="stage stage-pending">
+                    <div class="stage-circle">📋</div>
+                    <div class="stage-name">Notify</div>
+                    <div class="stage-time">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="pipeline-grid">
+            <!-- Recent Deployments -->
+            <div class="recent-deployments">
+                <div class="pipeline-title">
+                    <div class="pipeline-icon">📋</div>
+                    Recent Deployments
+                </div>
+                
+                <div class="deployment-list" id="deploymentList">
+                    <div class="deployment-item">
+                        <div class="deployment-status status-running-dot"></div>
+                        <div class="deployment-info">
+                            <h4>opssight-frontend</h4>
+                            <p>Deploy to production • Branch: main • #1234</p>
+                        </div>
+                        <div class="deployment-time">3m ago</div>
+                    </div>
+                    
+                    <div class="deployment-item">
+                        <div class="deployment-status status-success-dot"></div>
+                        <div class="deployment-info">
+                            <h4>opssight-backend</h4>
+                            <p>Deploy to staging • Branch: develop • #1233</p>
+                        </div>
+                        <div class="deployment-time">15m ago</div>
+                    </div>
+                    
+                    <div class="deployment-item">
+                        <div class="deployment-status status-success-dot"></div>
+                        <div class="deployment-info">
+                            <h4>opssight-infrastructure</h4>
+                            <p>Deploy to production • Branch: main • #1232</p>
+                        </div>
+                        <div class="deployment-time">1h ago</div>
+                    </div>
+                    
+                    <div class="deployment-item">
+                        <div class="deployment-status status-failed-dot"></div>
+                        <div class="deployment-info">
+                            <h4>opssight-mobile</h4>
+                            <p>Deploy to staging • Branch: feature/auth • #1231</p>
+                        </div>
+                        <div class="deployment-time">2h ago</div>
+                    </div>
+                    
+                    <div class="deployment-item">
+                        <div class="deployment-status status-success-dot"></div>
+                        <div class="deployment-info">
+                            <h4>opssight-docs</h4>
+                            <p>Deploy to production • Branch: main • #1230</p>
+                        </div>
+                        <div class="deployment-time">3h ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environment Status -->
+            <div class="pipeline-card">
+                <div class="pipeline-title">
+                    <div class="pipeline-icon">🌍</div>
+                    Environment Status
+                </div>
+                
+                <div class="environment-grid">
+                    <div class="environment-card env-healthy">
+                        <div class="env-name">Production</div>
+                        <div class="env-status status-healthy">Healthy</div>
+                    </div>
+                    
+                    <div class="environment-card env-warning">
+                        <div class="env-name">Staging</div>
+                        <div class="env-status status-warning">Deploying</div>
+                    </div>
+                    
+                    <div class="environment-card env-healthy">
+                        <div class="env-name">Development</div>
+                        <div class="env-status status-healthy">Healthy</div>
+                    </div>
+                    
+                    <div class="environment-card env-error">
+                        <div class="env-name">QA</div>
+                        <div class="env-status status-error">Failed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Analytics -->
+        <div class="pipeline-grid">
+            <!-- Deployment Frequency Chart -->
+            <div class="pipeline-card">
+                <div class="pipeline-title">
+                    <div class="pipeline-icon">📊</div>
+                    Deployment Frequency
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="deploymentFrequencyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Success Rate Chart -->
+            <div class="pipeline-card">
+                <div class="pipeline-title">
+                    <div class="pipeline-icon">✅</div>
+                    Success Rate Trends
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="successRateChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        let updateInterval;
+        let charts = {};
+        
+        // Mock pipeline state
+        let currentPipeline = {
+            stages: [
+                { name: 'Build', status: 'success', time: '2m 34s', icon: '✓' },
+                { name: 'Test', status: 'success', time: '4m 12s', icon: '✓' },
+                { name: 'Deploy', status: 'running', time: '3m 45s', icon: '⚡' },
+                { name: 'Verify', status: 'pending', time: '--', icon: '⏳' },
+                { name: 'Notify', status: 'pending', time: '--', icon: '📋' }
+            ],
+            currentStage: 2
+        };
+        
+        // Initialize Deployment Frequency Chart
+        function initDeploymentFrequencyChart() {
+            const ctx = document.getElementById('deploymentFrequencyChart').getContext('2d');
+            
+            charts.frequency = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Deployments',
+                        data: [12, 19, 15, 22, 18, 8, 4],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize Success Rate Chart
+        function initSuccessRateChart() {
+            const ctx = document.getElementById('successRateChart').getContext('2d');
+            
+            charts.successRate = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Success Rate %',
+                        data: [92, 95, 88, 96],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            min: 80,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update pipeline stages
+        function updatePipelineStages() {
+            const stagesContainer = document.getElementById('pipelineStages');
+            
+            // Simulate pipeline progression
+            if (currentPipeline.currentStage < currentPipeline.stages.length - 1) {
+                // Check if current stage should complete
+                if (Math.random() < 0.1) { // 10% chance to progress
+                    currentPipeline.stages[currentPipeline.currentStage].status = 'success';
+                    currentPipeline.stages[currentPipeline.currentStage].icon = '✓';
+                    currentPipeline.currentStage++;
+                    
+                    if (currentPipeline.currentStage < currentPipeline.stages.length) {
+                        currentPipeline.stages[currentPipeline.currentStage].status = 'running';
+                        currentPipeline.stages[currentPipeline.currentStage].icon = '⚡';
+                    }
+                }
+            }
+            
+            // Update stage times for running stage
+            if (currentPipeline.currentStage < currentPipeline.stages.length) {
+                const runningStage = currentPipeline.stages[currentPipeline.currentStage];
+                if (runningStage.status === 'running') {
+                    const currentTime = runningStage.time;
+                    if (currentTime !== '--') {
+                        const [minutes, seconds] = currentTime.split('m ')[0];
+                        const secs = parseInt(currentTime.split('m ')[1].replace('s', ''));
+                        const newSecs = secs + 1;
+                        runningStage.time = `${minutes}m ${newSecs}s`;
+                    }
+                }
+            }
+            
+            // Re-render stages
+            stagesContainer.innerHTML = '';
+            currentPipeline.stages.forEach(stage => {
+                const stageElement = document.createElement('div');
+                stageElement.className = `stage stage-${stage.status}`;
+                stageElement.innerHTML = `
+                    <div class="stage-circle">${stage.icon}</div>
+                    <div class="stage-name">${stage.name}</div>
+                    <div class="stage-time">${stage.time}</div>
+                `;
+                stagesContainer.appendChild(stageElement);
+            });
+        }
+        
+        // Update deployment list
+        function updateDeploymentList() {
+            const deploymentList = document.getElementById('deploymentList');
+            
+            // Simulate new deployments occasionally
+            if (Math.random() < 0.05) { // 5% chance to add new deployment
+                const newDeployment = document.createElement('div');
+                newDeployment.className = 'deployment-item';
+                newDeployment.innerHTML = `
+                    <div class="deployment-status status-running-dot"></div>
+                    <div class="deployment-info">
+                        <h4>opssight-${Math.random() > 0.5 ? 'frontend' : 'backend'}</h4>
+                        <p>Deploy to ${Math.random() > 0.5 ? 'production' : 'staging'} • Branch: main • #${Math.floor(Math.random() * 1000) + 1200}</p>
+                    </div>
+                    <div class="deployment-time">now</div>
+                `;
+                deploymentList.insertBefore(newDeployment, deploymentList.firstChild);
+                
+                // Remove last item if more than 6
+                if (deploymentList.children.length > 6) {
+                    deploymentList.removeChild(deploymentList.lastChild);
+                }
+            }
+            
+            // Update deployment times
+            const timeElements = deploymentList.querySelectorAll('.deployment-time');
+            timeElements.forEach(timeEl => {
+                const currentTime = timeEl.textContent;
+                if (currentTime.includes('m ago')) {
+                    const minutes = parseInt(currentTime.split('m')[0]);
+                    timeEl.textContent = `${minutes + 1}m ago`;
+                } else if (currentTime === 'now') {
+                    timeEl.textContent = '1m ago';
+                }
+            });
+        }
+        
+        // Update status metrics
+        function updateStatusMetrics() {
+            // Simulate metric changes
+            const metrics = {
+                running: Math.floor(Math.random() * 5) + 1,
+                queued: Math.floor(Math.random() * 8) + 2,
+                successToday: Math.floor(Math.random() * 10) + 20,
+                failedToday: Math.floor(Math.random() * 5),
+                avgDeployTime: `${Math.floor(Math.random() * 8) + 8}m`
+            };
+            
+            document.getElementById('runningPipelines').textContent = metrics.running;
+            document.getElementById('queuedPipelines').textContent = metrics.queued;
+            document.getElementById('successToday').textContent = metrics.successToday;
+            document.getElementById('failedToday').textContent = metrics.failedToday;
+            document.getElementById('avgDeployTime').textContent = metrics.avgDeployTime;
+        }
+        
+        // Load pipeline data from backend
+        async function loadPipelineData() {
+            if (!authToken) {
+                console.log('Using demo data for pipeline');
+                return;
+            }
+            
+            try {
+                // Fetch real pipeline overview data
+                const overviewResponse = await fetch('http://localhost:8000/api/v1/pipeline/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (overviewResponse.ok) {
+                    const overviewData = await overviewResponse.json();
+                    updateDashboardWithRealData(overviewData);
+                }
+                
+                // Fetch deployment analytics
+                const analyticsResponse = await fetch('http://localhost:8000/api/v1/pipeline/analytics', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (analyticsResponse.ok) {
+                    const analyticsData = await analyticsResponse.json();
+                    updateChartsWithRealData(analyticsData);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load pipeline data:', error);
+            }
+        }
+        
+        // Update dashboard with real API data
+        function updateDashboardWithRealData(data) {
+            if (data.overview) {
+                document.getElementById('runningPipelines').textContent = data.overview.running_pipelines;
+                document.getElementById('queuedPipelines').textContent = data.overview.queued_pipelines;
+                document.getElementById('successToday').textContent = data.overview.successful_today;
+                document.getElementById('failedToday').textContent = data.overview.failed_today;
+                document.getElementById('avgDeployTime').textContent = `${data.overview.average_duration_minutes}m`;
+            }
+            
+            // Update active executions
+            if (data.active_executions) {
+                const deploymentList = document.getElementById('deploymentList');
+                deploymentList.innerHTML = '';
+                
+                data.active_executions.forEach(execution => {
+                    const item = document.createElement('div');
+                    item.className = 'deployment-item';
+                    item.innerHTML = `
+                        <div class="deployment-status status-running-dot"></div>
+                        <div class="deployment-info">
+                            <h4>${execution.repository}</h4>
+                            <p>Deploy to production • Branch: ${execution.branch} • Build #${execution.id}</p>
+                        </div>
+                        <div class="deployment-time">${execution.started_at}</div>
+                    `;
+                    deploymentList.appendChild(item);
+                });
+            }
+            
+            // Update environment status
+            if (data.environment_status) {
+                const envGrid = document.querySelector('.environment-grid');
+                envGrid.innerHTML = '';
+                
+                Object.entries(data.environment_status).forEach(([envName, envData]) => {
+                    const envCard = document.createElement('div');
+                    const statusClass = envData.status === 'healthy' ? 'env-healthy' : 
+                                       envData.status === 'deploying' ? 'env-warning' : 'env-error';
+                    const statusStyle = envData.status === 'healthy' ? 'status-healthy' : 
+                                       envData.status === 'deploying' ? 'status-warning' : 'status-error';
+                    
+                    envCard.className = `environment-card ${statusClass}`;
+                    envCard.innerHTML = `
+                        <div class="env-name">${envName.charAt(0).toUpperCase() + envName.slice(1)}</div>
+                        <div class="env-status ${statusStyle}">${envData.status.charAt(0).toUpperCase() + envData.status.slice(1)}</div>
+                    `;
+                    envGrid.appendChild(envCard);
+                });
+            }
+        }
+        
+        // Update charts with real analytics data
+        function updateChartsWithRealData(analyticsData) {
+            if (analyticsData.trends && analyticsData.trends.daily_deployments) {
+                const dailyData = analyticsData.trends.daily_deployments;
+                const labels = Object.keys(dailyData).slice(-7); // Last 7 days
+                const values = labels.map(date => dailyData[date] || 0);
+                
+                if (charts.frequency) {
+                    charts.frequency.data.labels = labels.map(date => new Date(date).toLocaleDateString('en-US', { weekday: 'short' }));
+                    charts.frequency.data.datasets[0].data = values;
+                    charts.frequency.update();
+                }
+            }
+            
+            if (analyticsData.deployment_metrics) {
+                const successRate = analyticsData.deployment_metrics.success_rate;
+                
+                if (charts.successRate) {
+                    // Update with weekly success rates (mock data based on current success rate)
+                    const weeklyRates = [
+                        Math.max(successRate - 5, 80),
+                        Math.max(successRate - 2, 80), 
+                        Math.max(successRate - 3, 80),
+                        successRate
+                    ];
+                    charts.successRate.data.datasets[0].data = weeklyRates;
+                    charts.successRate.update();
+                }
+            }
+        }
+        
+        // Initialize dashboard
+        function initializePipelineDashboard() {
+            console.log('🚀 Initializing Live Deployment Pipeline Dashboard');
+            
+            // Initialize charts
+            initDeploymentFrequencyChart();
+            initSuccessRateChart();
+            
+            // Load initial data
+            loadPipelineData();
+            
+            // Start live updates
+            updateInterval = setInterval(() => {
+                updatePipelineStages();
+                updateDeploymentList();
+                updateStatusMetrics();
+                loadPipelineData(); // Refresh real data periodically
+            }, 2000); // Update every 2 seconds
+            
+            console.log('✅ Pipeline dashboard initialization complete');
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializePipelineDashboard);
+    </script>
+</body>
+</html>

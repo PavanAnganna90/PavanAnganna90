@@ -34,9 +34,9 @@ scrape_configs:
   # OpsSight Backend API
   - job_name: 'opssight-backend'
     static_configs:
-      - targets: ['backend:8000']
+      - targets: ['host.docker.internal:8000']
     scrape_interval: 15s
-    metrics_path: /api/v1/metrics
+    metrics_path: /metrics
     scrape_timeout: 10s
     honor_labels: true
     params:

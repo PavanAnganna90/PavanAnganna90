@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - OpsSight Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        
+        .docs-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .docs-header {
+            background: linear-gradient(135deg, #1e40af 0%, #3730a3 50%, #6366f1 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .docs-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .docs-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .docs-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Navigation */
+        .docs-nav {
+            position: sticky;
+            top: 24px;
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #3b82f6;
+        }
+        
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .nav-link {
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+        
+        /* API Overview */
+        .api-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .overview-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .overview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+        }
+        
+        .overview-number {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #3b82f6;
+        }
+        
+        .overview-label {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Main Content */
+        .docs-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 32px;
+        }
+        
+        /* Sidebar */
+        .docs-sidebar {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            height: fit-content;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: sticky;
+            top: 120px;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+        
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #e2e8f0;
+        }
+        
+        .sidebar-link {
+            display: block;
+            padding: 8px 12px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+        
+        .sidebar-link.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+        
+        /* Documentation Sections */
+        .docs-main {
+            min-width: 0;
+        }
+        
+        .doc-section {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .section-description {
+            font-size: 16px;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+        
+        /* Endpoint Cards */
+        .endpoint-grid {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .endpoint-card {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .http-method {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .method-get { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .method-post { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .method-put { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .method-delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        
+        .endpoint-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            color: #e2e8f0;
+            flex: 1;
+        }
+        
+        .auth-required {
+            padding: 2px 8px;
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .endpoint-summary {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+        
+        .endpoint-description {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+        }
+        
+        /* Code Examples */
+        .code-examples {
+            margin-top: 16px;
+        }
+        
+        .code-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .code-tab {
+            padding: 6px 12px;
+            background: rgba(100, 116, 139, 0.2);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .code-tab.active {
+            background: rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        /* Authentication Section */
+        .auth-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .auth-step {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .auth-step-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin: 0 auto 12px;
+        }
+        
+        .auth-step-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .auth-step-desc {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .docs-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .docs-sidebar {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .docs-container {
+                padding: 16px;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+            }
+            
+            .api-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="docs-container">
+        <!-- Header -->
+        <div class="docs-header">
+            <h1>📚 API Documentation</h1>
+            <p class="docs-subtitle">Comprehensive guide to OpsSight Platform API v2.2.0</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="docs-nav">
+            <div class="nav-title">Quick Links</div>
+            <div class="nav-links">
+                <a href="#overview" class="nav-link">Overview</a>
+                <a href="#authentication" class="nav-link">Authentication</a>
+                <a href="#endpoints" class="nav-link">Endpoints</a>
+                <a href="#examples" class="nav-link">Examples</a>
+                <a href="http://localhost:8000/docs" target="_blank" class="nav-link">Interactive API</a>
+            </div>
+        </div>
+
+        <!-- API Overview -->
+        <div class="api-overview" id="overview">
+            <div class="overview-card">
+                <div class="overview-number" id="totalEndpoints">45+</div>
+                <div class="overview-label">Total Endpoints</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-number" id="categories">8</div>
+                <div class="overview-label">Categories</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-number">v2.2.0</div>
+                <div class="overview-label">API Version</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-number">JWT</div>
+                <div class="overview-label">Authentication</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="docs-content">
+            <!-- Sidebar -->
+            <div class="docs-sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Getting Started</div>
+                    <a href="#authentication" class="sidebar-link">Authentication</a>
+                    <a href="#quickstart" class="sidebar-link">Quick Start</a>
+                    <a href="#rate-limits" class="sidebar-link">Rate Limits</a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">API Categories</div>
+                    <a href="#core-api" class="sidebar-link">Core API</a>
+                    <a href="#security" class="sidebar-link">Security Audit</a>
+                    <a href="#engineering" class="sidebar-link">Engineering Intel</a>
+                    <a href="#pipelines" class="sidebar-link">CI/CD Pipelines</a>
+                    <a href="#kubernetes" class="sidebar-link">Kubernetes</a>
+                    <a href="#git-analytics" class="sidebar-link">Git Analytics</a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Resources</div>
+                    <a href="#examples" class="sidebar-link">Code Examples</a>
+                    <a href="#errors" class="sidebar-link">Error Codes</a>
+                    <a href="#changelog" class="sidebar-link">Changelog</a>
+                </div>
+            </div>
+
+            <!-- Main Documentation -->
+            <div class="docs-main">
+                <!-- Authentication Section -->
+                <div class="doc-section" id="authentication">
+                    <div class="section-title">
+                        <div class="section-icon">🔑</div>
+                        Authentication
+                    </div>
+                    <div class="section-description">
+                        OpsSight Platform uses JWT-based authentication with GitHub OAuth integration for secure API access.
+                    </div>
+                    
+                    <div class="auth-flow">
+                        <div class="auth-step">
+                            <div class="auth-step-number">1</div>
+                            <div class="auth-step-title">Initiate OAuth</div>
+                            <div class="auth-step-desc">Start GitHub authentication flow</div>
+                        </div>
+                        <div class="auth-step">
+                            <div class="auth-step-number">2</div>
+                            <div class="auth-step-title">User Auth</div>
+                            <div class="auth-step-desc">User authenticates with GitHub</div>
+                        </div>
+                        <div class="auth-step">
+                            <div class="auth-step-number">3</div>
+                            <div class="auth-step-title">Generate JWT</div>
+                            <div class="auth-step-desc">System generates JWT token</div>
+                        </div>
+                        <div class="auth-step">
+                            <div class="auth-step-number">4</div>
+                            <div class="auth-step-title">API Access</div>
+                            <div class="auth-step-desc">Use Bearer token for requests</div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-examples">
+                        <div class="code-tabs">
+                            <div class="code-tab active" onclick="showCode('auth-curl')">cURL</div>
+                            <div class="code-tab" onclick="showCode('auth-js')">JavaScript</div>
+                            <div class="code-tab" onclick="showCode('auth-python')">Python</div>
+                        </div>
+                        
+                        <div class="code-block" id="auth-curl">
+                            <pre># Get demo token for testing
+curl -X GET "http://localhost:8000/auth/demo-token" \
+  -H "Content-Type: application/json"
+
+# Use token in API requests
+curl -X GET "http://localhost:8000/api/v1/metrics" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json"</pre>
+                        </div>
+                        
+                        <div class="code-block" id="auth-js" style="display: none;">
+                            <pre>// Get demo token
+const tokenResponse = await fetch('http://localhost:8000/auth/demo-token');
+const tokenData = await tokenResponse.json();
+const authToken = tokenData.access_token;
+
+// Use token for API requests
+const response = await fetch('http://localhost:8000/api/v1/metrics', {
+  headers: {
+    'Authorization': `Bearer ${authToken}`,
+    'Content-Type': 'application/json'
+  }
+});
+const data = await response.json();</pre>
+                        </div>
+                        
+                        <div class="code-block" id="auth-python" style="display: none;">
+                            <pre>import requests
+
+# Get demo token
+response = requests.get('http://localhost:8000/auth/demo-token')
+token_data = response.json()
+auth_token = token_data['access_token']
+
+# Use token for API requests
+headers = {
+    'Authorization': f'Bearer {auth_token}',
+    'Content-Type': 'application/json'
+}
+response = requests.get('http://localhost:8000/api/v1/metrics', headers=headers)
+data = response.json()</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Audit API -->
+                <div class="doc-section" id="security">
+                    <div class="section-title">
+                        <div class="section-icon">🔒</div>
+                        Security Audit API
+                    </div>
+                    <div class="section-description">
+                        Comprehensive security vulnerability management and compliance monitoring endpoints.
+                    </div>
+                    
+                    <div class="endpoint-grid" id="securityEndpoints">
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/security/overview</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get Security Overview</div>
+                            <div class="endpoint-description">
+                                Comprehensive security posture overview including vulnerability counts, security score, and compliance status.
+                            </div>
+                        </div>
+                        
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/security/vulnerabilities</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get Vulnerability Details</div>
+                            <div class="endpoint-description">
+                                Detailed vulnerability information with filtering by severity (critical, high, medium, low) and status (open, in_progress, resolved).
+                            </div>
+                        </div>
+                        
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/security/compliance</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get Compliance Dashboard</div>
+                            <div class="endpoint-description">
+                                Compliance framework status for SOC2, PCI-DSS, GDPR, and ISO27001 with upcoming review dates.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engineering Intelligence API -->
+                <div class="doc-section" id="engineering">
+                    <div class="section-title">
+                        <div class="section-icon">🧬</div>
+                        Engineering Intelligence API
+                    </div>
+                    <div class="section-description">
+                        SDLC visibility, DORA metrics, and developer experience insights (Typo-style engineering intelligence).
+                    </div>
+                    
+                    <div class="endpoint-grid" id="engineeringEndpoints">
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/engineering/sdlc</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get SDLC Overview</div>
+                            <div class="endpoint-description">
+                                Software Development Lifecycle visibility with delivery metrics, cycle time analysis, and quality indicators.
+                            </div>
+                        </div>
+                        
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/engineering/dora</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get DORA Metrics</div>
+                            <div class="endpoint-description">
+                                DevOps Research & Assessment metrics: Deployment Frequency, Lead Time for Changes, Mean Time to Recovery, and Change Failure Rate.
+                            </div>
+                        </div>
+                        
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/engineering/devex</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get Developer Experience</div>
+                            <div class="endpoint-description">
+                                Developer satisfaction metrics, friction point analysis, and productivity blocker identification.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CI/CD Pipeline API -->
+                <div class="doc-section" id="pipelines">
+                    <div class="section-title">
+                        <div class="section-icon">🚀</div>
+                        CI/CD Pipeline API
+                    </div>
+                    <div class="section-description">
+                        Real-time pipeline monitoring, deployment analytics, and environment status tracking.
+                    </div>
+                    
+                    <div class="endpoint-grid" id="pipelineEndpoints">
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/pipeline/overview</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get Pipeline Overview</div>
+                            <div class="endpoint-description">
+                                Real-time pipeline status, active executions, success rates, and environment health monitoring.
+                            </div>
+                        </div>
+                        
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get">GET</div>
+                                <div class="endpoint-path">/api/v1/pipeline/analytics</div>
+                                <div class="auth-required">Auth Required</div>
+                            </div>
+                            <div class="endpoint-summary">Get Deployment Analytics</div>
+                            <div class="endpoint-description">
+                                DORA metrics for deployments, deployment frequency trends, and failure rate analysis.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Codes Section -->
+                <div class="doc-section" id="errors">
+                    <div class="section-title">
+                        <div class="section-icon">⚠️</div>
+                        Error Codes
+                    </div>
+                    <div class="section-description">
+                        Standard HTTP error codes and their meanings in the OpsSight Platform API.
+                    </div>
+                    
+                    <div class="endpoint-grid">
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">400</div>
+                                <div class="endpoint-path">Bad Request</div>
+                            </div>
+                            <div class="endpoint-description">
+                                Invalid parameters or request format. Check your request syntax and parameter values.
+                            </div>
+                        </div>
+                        
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">401</div>
+                                <div class="endpoint-path">Unauthorized</div>
+                            </div>
+                            <div class="endpoint-description">
+                                Authentication required or invalid token. Include a valid Bearer token in the Authorization header.
+                            </div>
+                        </div>
+                        
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <div class="http-method method-get" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">403</div>
+                                <div class="endpoint-path">Forbidden</div>
+                            </div>
+                            <div class="endpoint-description">
+                                Insufficient permissions for the requested resource. Admin or specific permissions may be required.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        
+        // Code tab switching
+        function showCode(codeId) {
+            // Hide all code blocks
+            const codeBlocks = document.querySelectorAll('.code-block');
+            codeBlocks.forEach(block => block.style.display = 'none');
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.code-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected code block
+            document.getElementById(codeId).style.display = 'block';
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+        
+        // Load API documentation data
+        async function loadAPIDocumentation() {
+            if (!authToken) {
+                console.log('Using static documentation data');
+                return;
+            }
+            
+            try {
+                // Fetch API documentation (would be real endpoint in production)
+                const response = await fetch('http://localhost:8000/api/v1/docs/summary', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const docData = await response.json();
+                    updateDocumentationStats(docData);
+                }
+            } catch (error) {
+                console.error('Failed to load API documentation:', error);
+            }
+        }
+        
+        // Update documentation statistics
+        function updateDocumentationStats(data) {
+            if (data.total_endpoints) {
+                document.getElementById('totalEndpoints').textContent = data.total_endpoints;
+            }
+            if (data.categories) {
+                document.getElementById('categories').textContent = data.categories.length;
+            }
+        }
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Update active sidebar links based on scroll position
+        function updateActiveSidebarLink() {
+            const sections = document.querySelectorAll('.doc-section[id]');
+            const sidebarLinks = document.querySelectorAll('.sidebar-link[href^="#"]');
+            
+            let currentSection = '';
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 100) {
+                    currentSection = section.id;
+                }
+            });
+            
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${currentSection}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Initialize documentation
+        function initializeAPIDocumentation() {
+            console.log('📚 Initializing API Documentation');
+            
+            // Load documentation data
+            loadAPIDocumentation();
+            
+            // Set up scroll listener for active sidebar links
+            window.addEventListener('scroll', updateActiveSidebarLink);
+            
+            console.log('✅ API documentation initialization complete');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeAPIDocumentation);
+    </script>
+</body>
+</html>

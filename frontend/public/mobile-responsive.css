@@ -1,0 +1,657 @@
+/* Mobile-Responsive Enhancement CSS for OpsSight Platform
+   This file provides mobile-responsive enhancements for all dashboard components */
+
+/* Base Mobile Styles */
+@media (max-width: 768px) {
+    /* General Container Adjustments */
+    .container,
+    .dashboard-container,
+    .security-container,
+    .alerting-container,
+    .observability-container,
+    .cost-container,
+    .collaboration-container,
+    .pipeline-container,
+    .performance-container {
+        padding: 12px !important;
+        margin: 0 auto !important;
+    }
+    
+    /* Header Adjustments */
+    .header,
+    .dashboard-header,
+    .security-header,
+    .alerting-header,
+    .observability-header,
+    .cost-header,
+    .collaboration-header,
+    .pipeline-header,
+    .performance-header {
+        padding: 24px 20px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .header h1,
+    .dashboard-header h1,
+    .security-header h1,
+    .alerting-header h1,
+    .observability-header h1,
+    .cost-header h1,
+    .collaboration-header h1,
+    .pipeline-header h1,
+    .performance-header h1 {
+        font-size: 32px !important;
+        line-height: 1.2 !important;
+    }
+    
+    .subtitle,
+    .dashboard-subtitle,
+    .security-subtitle,
+    .alerting-subtitle,
+    .observability-subtitle,
+    .cost-subtitle,
+    .collaboration-subtitle,
+    .pipeline-subtitle,
+    .performance-subtitle {
+        font-size: 16px !important;
+        line-height: 1.4 !important;
+    }
+    
+    /* Grid System Adjustments */
+    .dashboard-grid,
+    .security-grid,
+    .alerting-grid,
+    .observability-grid,
+    .cost-grid,
+    .collaboration-grid,
+    .pipeline-grid,
+    .performance-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    /* Card and Component Adjustments */
+    .card,
+    .dashboard-card,
+    .security-card,
+    .alerting-card,
+    .observability-card,
+    .cost-card,
+    .cost-main-card,
+    .collaboration-card,
+    .pipeline-card,
+    .performance-card {
+        padding: 20px !important;
+        margin-bottom: 16px !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Overview Cards Grid */
+    .overview,
+    .metrics-overview,
+    .security-overview,
+    .ml-stats-grid,
+    .health-overview,
+    .cost-overview,
+    .pipeline-overview,
+    .perf-overview {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+    
+    /* Navigation and Buttons */
+    .nav,
+    .navigation {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    
+    .nav-item,
+    .nav-link {
+        width: 100% !important;
+        text-align: center !important;
+        padding: 12px !important;
+    }
+    
+    .btn,
+    .button,
+    .action-btn {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        min-width: auto !important;
+    }
+    
+    /* Tables and Lists */
+    .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .table {
+        min-width: 600px !important;
+        font-size: 12px !important;
+    }
+    
+    .list-item,
+    .alert-item,
+    .service-item,
+    .recommendation-item,
+    .vulnerability-item,
+    .trace-item {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        padding: 16px !important;
+    }
+    
+    /* Charts and Visualizations */
+    .chart-container {
+        height: 250px !important;
+        margin: 16px 0 !important;
+    }
+    
+    .chart-wrapper {
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    /* Modal and Popup Adjustments */
+    .modal,
+    .popup,
+    .dropdown {
+        width: 95vw !important;
+        max-width: none !important;
+        margin: 20px auto !important;
+    }
+    
+    .modal-content,
+    .popup-content {
+        padding: 20px !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+    }
+    
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 16px !important;
+    }
+    
+    .form-control,
+    .input,
+    .select,
+    .textarea {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+    
+    .form-row {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    
+    /* Text and Typography */
+    .title {
+        font-size: 20px !important;
+        line-height: 1.3 !important;
+    }
+    
+    .subtitle {
+        font-size: 16px !important;
+    }
+    
+    .text-small {
+        font-size: 12px !important;
+    }
+    
+    /* Spacing Utilities */
+    .m-4 { margin: 16px !important; }
+    .p-4 { padding: 16px !important; }
+    .mb-4 { margin-bottom: 16px !important; }
+    .mt-4 { margin-top: 16px !important; }
+    
+    /* Flexbox Adjustments */
+    .flex-row {
+        flex-direction: column !important;
+    }
+    
+    .flex-wrap {
+        flex-wrap: wrap !important;
+    }
+    
+    .justify-between {
+        justify-content: flex-start !important;
+        gap: 8px !important;
+    }
+}
+
+/* Tablet Styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container,
+    .dashboard-container,
+    .security-container,
+    .alerting-container,
+    .observability-container,
+    .cost-container,
+    .collaboration-container,
+    .pipeline-container,
+    .performance-container {
+        padding: 20px !important;
+    }
+    
+    .dashboard-grid,
+    .security-grid,
+    .alerting-grid,
+    .observability-grid,
+    .cost-grid,
+    .collaboration-grid,
+    .pipeline-grid,
+    .performance-grid {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+    }
+    
+    .overview,
+    .metrics-overview,
+    .security-overview,
+    .ml-stats-grid,
+    .health-overview,
+    .cost-overview,
+    .pipeline-overview,
+    .perf-overview {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    .chart-container {
+        height: 300px !important;
+    }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+    .overview,
+    .metrics-overview,
+    .security-overview,
+    .ml-stats-grid,
+    .health-overview,
+    .cost-overview,
+    .pipeline-overview,
+    .perf-overview {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .header h1,
+    .dashboard-header h1,
+    .security-header h1,
+    .alerting-header h1,
+    .observability-header h1,
+    .cost-header h1,
+    .collaboration-header h1,
+    .pipeline-header h1,
+    .performance-header h1 {
+        font-size: 28px !important;
+    }
+    
+    .card,
+    .dashboard-card,
+    .security-card,
+    .alerting-card,
+    .observability-card,
+    .cost-card,
+    .cost-main-card,
+    .collaboration-card,
+    .pipeline-card,
+    .performance-card {
+        padding: 16px !important;
+    }
+    
+    .chart-container {
+        height: 200px !important;
+    }
+    
+    .table {
+        font-size: 11px !important;
+    }
+    
+    .btn,
+    .button,
+    .action-btn {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* Dashboard-Specific Mobile Enhancements */
+
+/* Security Dashboard Mobile */
+@media (max-width: 768px) {
+    .vulnerability-item {
+        padding: 16px !important;
+    }
+    
+    .vulnerability-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+    
+    .severity-badge {
+        align-self: flex-start !important;
+    }
+    
+    .compliance-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Intelligent Alerting Mobile */
+@media (max-width: 768px) {
+    .intelligent-alert {
+        padding: 16px !important;
+    }
+    
+    .alert-content h4 {
+        font-size: 16px !important;
+    }
+    
+    .confidence-score {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+    }
+    
+    .confidence-bar {
+        width: 100% !important;
+    }
+    
+    .ml-insights {
+        margin-top: 12px !important;
+    }
+    
+    .recommended-actions {
+        padding-left: 0 !important;
+    }
+    
+    .recommended-actions li {
+        padding-left: 20px !important;
+    }
+}
+
+/* System Observability Mobile */
+@media (max-width: 768px) {
+    .service-item {
+        padding: 16px !important;
+    }
+    
+    .service-metrics {
+        flex-direction: column !important;
+        gap: 4px !important;
+    }
+    
+    .dependency-graph {
+        height: 200px !important;
+    }
+    
+    .dependency-node {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 8px !important;
+    }
+    
+    .trace-item {
+        padding: 12px !important;
+    }
+    
+    .trace-spans {
+        margin: 8px 0 !important;
+    }
+    
+    .business-metric {
+        padding: 12px !important;
+    }
+    
+    .metric-icon {
+        width: 32px !important;
+        height: 32px !important;
+    }
+}
+
+/* Cost Optimization Mobile */
+@media (max-width: 768px) {
+    .recommendation-item {
+        padding: 16px !important;
+    }
+    
+    .recommendation-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+    
+    .recommendation-savings {
+        align-self: flex-start !important;
+        text-align: left !important;
+    }
+    
+    .recommendation-meta {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+    
+    .breakdown-item {
+        padding: 12px !important;
+    }
+    
+    .breakdown-info {
+        flex: 1 !important;
+    }
+    
+    .breakdown-cost {
+        margin-left: auto !important;
+    }
+    
+    .waste-item {
+        padding: 12px !important;
+    }
+}
+
+/* Collaboration Dashboard Mobile */
+@media (max-width: 768px) {
+    .chat-container {
+        height: 300px !important;
+    }
+    
+    .message-item {
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .message-input {
+        padding: 12px !important;
+        font-size: 16px !important;
+    }
+    
+    .channel-list {
+        max-height: 200px !important;
+    }
+    
+    .notification-item {
+        padding: 12px !important;
+    }
+}
+
+/* Performance Monitoring Mobile */
+@media (max-width: 768px) {
+    .health-score-card {
+        padding: 24px !important;
+    }
+    
+    .health-score {
+        font-size: 48px !important;
+    }
+    
+    .alert-item {
+        padding: 16px !important;
+    }
+    
+    .alert-actions {
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+    
+    .optimization-item {
+        padding: 16px !important;
+    }
+    
+    .optimization-metrics {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+}
+
+/* Deployment Pipeline Mobile */
+@media (max-width: 768px) {
+    .pipeline-stage {
+        min-width: 120px !important;
+        padding: 16px !important;
+    }
+    
+    .stage-timeline {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .deployment-item {
+        padding: 16px !important;
+    }
+    
+    .environment-card {
+        padding: 16px !important;
+    }
+}
+
+/* Utility Classes for Mobile */
+.mobile-hidden {
+    display: none !important;
+}
+
+@media (min-width: 769px) {
+    .desktop-hidden {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+    
+    .desktop-hidden {
+        display: block !important;
+    }
+    
+    .mobile-full-width {
+        width: 100% !important;
+    }
+    
+    .mobile-center {
+        text-align: center !important;
+    }
+    
+    .mobile-stack {
+        flex-direction: column !important;
+    }
+    
+    .mobile-scroll {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+}
+
+/* Touch-Friendly Enhancements */
+@media (pointer: coarse) {
+    .btn,
+    .button,
+    .action-btn,
+    .nav-link,
+    .tab-button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        padding: 12px 16px !important;
+    }
+    
+    .clickable,
+    .interactive {
+        cursor: pointer !important;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .input,
+    .select,
+    .textarea {
+        min-height: 44px !important;
+        padding: 12px !important;
+    }
+}
+
+/* Dark Mode Mobile Adjustments */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+    .card,
+    .dashboard-card,
+    .security-card,
+    .alerting-card,
+    .observability-card,
+    .cost-card,
+    .collaboration-card,
+    .pipeline-card,
+    .performance-card {
+        background: rgba(30, 41, 59, 0.98) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    .modal,
+    .popup {
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+    }
+}
+
+/* Animation Performance Optimizations for Mobile */
+@media (max-width: 768px) {
+    * {
+        animation-duration: 0.2s !important;
+        transition-duration: 0.2s !important;
+    }
+    
+    .chart-container,
+    .graph-container {
+        will-change: transform !important;
+        transform: translateZ(0) !important;
+    }
+}
+
+/* Print Styles for Mobile */
+@media print {
+    .mobile-print-hidden,
+    .nav,
+    .navigation,
+    .sidebar,
+    .header-actions,
+    .floating-actions {
+        display: none !important;
+    }
+    
+    .container,
+    .dashboard-container {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .card,
+    .dashboard-card {
+        border: 1px solid #ccc !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+}

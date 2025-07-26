@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OpsSight Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        
+        .login-container {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { background-position: 200% 0; }
+            50% { background-position: -200% 0; }
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .logo p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .login-methods {
+            margin: 30px 0;
+        }
+        
+        .login-button {
+            display: block;
+            width: 100%;
+            padding: 16px 24px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .github-login {
+            background: #24292e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .github-login:hover {
+            background: #1a1e22;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(36, 41, 46, 0.3);
+        }
+        
+        .demo-login {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .demo-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .github-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        
+        .divider {
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        
+        .divider span {
+            background: rgba(255,255,255,0.95);
+            padding: 0 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .features {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .features h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .status.loading {
+            background: #e3f2fd;
+            color: #1565c0;
+            display: block;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+        
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            display: block;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e3f2fd;
+            border-top: 2px solid #1565c0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>OpsSight</h1>
+            <p>DevOps Platform</p>
+        </div>
+        
+        <div class="login-methods">
+            <a href="#" class="login-button github-login" id="githubLogin">
+                <svg class="github-icon" viewBox="0 0 16 16">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                Continue with GitHub
+            </a>
+            
+            <div class="divider">
+                <span>or for development</span>
+            </div>
+            
+            <button class="login-button demo-login" id="demoLogin">
+                🧪 Use Demo Account
+            </button>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="features">
+            <h3>What you'll get access to:</h3>
+            <div class="feature-list">
+                <div class="feature-item">📊 Real-time Dashboard</div>
+                <div class="feature-item">🚀 Deployment Tracking</div>
+                <div class="feature-item">📈 System Metrics</div>
+                <div class="feature-item">⚡ Live Monitoring</div>
+                <div class="feature-item">🔒 Secure Access</div>
+                <div class="feature-item">👥 Team Management</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Protected by industry-standard OAuth 2.0<br>
+                <a href="/">← Back to Home</a> • 
+                <a href="/live-dashboard.html">Public Dashboard</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Authentication state
+        let isAuthenticating = false;
+        
+        // DOM elements
+        const githubLogin = document.getElementById('githubLogin');
+        const demoLogin = document.getElementById('demoLogin');
+        const status = document.getElementById('status');
+        
+        // Check if already authenticated
+        function checkExistingAuth() {
+            const token = localStorage.getItem('opssight_token');
+            if (token) {
+                // Verify token is still valid
+                fetch('http://localhost:8000/api/v1/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Already authenticated, redirect to dashboard
+                        window.location.href = '/authenticated-dashboard.html';
+                    } else {
+                        // Token invalid, remove it
+                        localStorage.removeItem('opssight_token');
+                        localStorage.removeItem('opssight_user');
+                    }
+                })
+                .catch(error => {
+                    console.error('Auth check failed:', error);
+                });
+            }
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'loading') {
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'loading') {
+                status.innerHTML = `<span class="loading-spinner"></span>${message}`;
+            } else {
+                status.innerHTML = message;
+            }
+        }
+        
+        // Hide status message
+        function hideStatus() {
+            status.style.display = 'none';
+        }
+        
+        // Handle authentication success
+        function handleAuthSuccess(authData) {
+            // Store token and user info
+            localStorage.setItem('opssight_token', authData.access_token);
+            localStorage.setItem('opssight_user', JSON.stringify(authData.user));
+            
+            showStatus('✅ Authentication successful! Redirecting...', 'success');
+            
+            // Redirect to authenticated dashboard
+            setTimeout(() => {
+                window.location.href = '/authenticated-dashboard.html';
+            }, 1500);
+        }
+        
+        // GitHub OAuth login
+        githubLogin.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            if (isAuthenticating) return;
+            isAuthenticating = true;
+            
+            showStatus('Initiating GitHub OAuth...', 'loading');
+            
+            try {
+                // Get GitHub OAuth URL
+                const response = await fetch('http://localhost:8000/auth/github');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showStatus('Redirecting to GitHub...', 'loading');
+                    // Redirect to GitHub OAuth
+                    window.location.href = data.auth_url;
+                } else {
+                    throw new Error(data.detail || 'Failed to initiate GitHub OAuth');
+                }
+            } catch (error) {
+                console.error('GitHub OAuth error:', error);
+                showStatus('❌ GitHub OAuth failed. Please try again.', 'error');
+                isAuthenticating = false;
+                
+                setTimeout(hideStatus, 3000);
+            }
+        });
+        
+        // Demo login
+        demoLogin.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            if (isAuthenticating) return;
+            isAuthenticating = true;
+            
+            showStatus('Getting demo access token...', 'loading');
+            
+            try {
+                const response = await fetch('http://localhost:8000/auth/demo-token');
+                const authData = await response.json();
+                
+                if (response.ok) {
+                    handleAuthSuccess(authData);
+                } else {
+                    throw new Error(authData.detail || 'Demo login failed');
+                }
+            } catch (error) {
+                console.error('Demo login error:', error);
+                showStatus('❌ Demo login failed. Please try again.', 'error');
+                isAuthenticating = false;
+                
+                setTimeout(hideStatus, 3000);
+            }
+        });
+        
+        // Handle OAuth callback (if returned from GitHub)
+        function handleOAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+            
+            if (error) {
+                showStatus('❌ GitHub OAuth was cancelled or failed.', 'error');
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                setTimeout(hideStatus, 3000);
+                return;
+            }
+            
+            if (code && state) {
+                showStatus('Processing GitHub OAuth callback...', 'loading');
+                
+                // Exchange code for token
+                fetch(`http://localhost:8000/auth/github/callback?code=${code}&state=${state}`)
+                    .then(response => response.json())
+                    .then(authData => {
+                        if (authData.access_token) {
+                            handleAuthSuccess(authData);
+                        } else {
+                            throw new Error(authData.detail || 'OAuth callback failed');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('OAuth callback error:', error);
+                        showStatus('❌ Authentication failed. Please try again.', 'error');
+                        setTimeout(hideStatus, 3000);
+                    });
+                
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('OpsSight Login Page Initialized');
+            
+            // Check for existing authentication
+            checkExistingAuth();
+            
+            // Handle OAuth callback if present
+            handleOAuthCallback();
+        });
+    </script>
+</body>
+</html>

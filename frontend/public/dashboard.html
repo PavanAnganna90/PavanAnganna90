@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsSight Dashboard - Redirecting...</title>
+    <meta http-equiv="refresh" content="1;url=live-dashboard.html">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .card h3 {
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-icon {
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .metric-unit {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .metric-cpu { color: #FF6B6B; }
+        .metric-memory { color: #4ECDC4; }
+        .metric-disk { color: #45B7D1; }
+        .metric-success { color: #96CEB4; }
+        
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 16px;
+        }
+        
+        .deployments-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .deployment-item {
+            padding: 12px;
+            border-left: 4px solid #4CAF50;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        
+        .deployment-item.failed {
+            border-left-color: #FF6B6B;
+        }
+        
+        .deployment-item.pending {
+            border-left-color: #FFA726;
+        }
+        
+        .deployment-version {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .deployment-time {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .connected {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .disconnected {
+            background: #FF6B6B;
+            color: white;
+        }
+        
+        .alerts-container {
+            margin-top: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid;
+        }
+        
+        .alert-warning {
+            background: #FFF3CD;
+            border-left-color: #FFA726;
+            color: #856404;
+        }
+        
+        .alert-info {
+            background: #D1ECF1;
+            border-left-color: #17A2B8;
+            color: #0C5460;
+        }
+        
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .last-updated {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1><span class="status-indicator"></span>OpsSight Dashboard</h1>
+            <p>Real-time DevOps monitoring and insights</p>
+        </div>
+        
+        <div class="connection-status" id="connectionStatus">
+            🔌 Connecting...
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3><span class="card-icon">🖥️</span>CPU Usage</h3>
+                <div class="metric-value metric-cpu" id="cpuValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div class="chart-container">
+                    <canvas id="cpuChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="card-icon">💾</span>Memory Usage</h3>
+                <div class="metric-value metric-memory" id="memoryValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div class="chart-container">
+                    <canvas id="memoryChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="card-icon">💿</span>Disk Usage</h3>
+                <div class="metric-value metric-disk" id="diskValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div class="chart-container">
+                    <canvas id="diskChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="card-icon">✅</span>Success Rate</h3>
+                <div class="metric-value metric-success" id="successValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div style="margin-top: 16px;">
+                    <div style="font-size: 0.9rem; color: #666;">Pipeline runs today</div>
+                    <div style="font-size: 1.5rem; font-weight: bold;" id="pipelineRuns">--</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3><span class="card-icon">🚀</span>Recent Deployments</h3>
+                <div class="deployments-list" id="deploymentsList">
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        Loading deployments...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><span class="card-icon">⚠️</span>System Alerts</h3>
+                <div class="alerts-container" id="alertsContainer">
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        Loading alerts...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="last-updated" id="lastUpdated">
+            Last updated: --
+        </div>
+    </div>
+
+    <script>
+        // Dashboard state
+        let websocket = null;
+        let isConnected = false;
+        let charts = {};
+        let metricsHistory = {
+            cpu: [],
+            memory: [],
+            disk: [],
+            labels: []
+        };
+
+        // Chart configurations
+        const chartConfig = {
+            type: 'line',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.4
+                    }
+                }
+            }
+        };
+
+        // Initialize charts
+        function initCharts() {
+            const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+            const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+            const diskCtx = document.getElementById('diskChart').getContext('2d');
+
+            charts.cpu = new Chart(cpuCtx, {
+                ...chartConfig,
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: '#FF6B6B',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        fill: true
+                    }]
+                }
+            });
+
+            charts.memory = new Chart(memoryCtx, {
+                ...chartConfig,
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: '#4ECDC4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                        fill: true
+                    }]
+                }
+            });
+
+            charts.disk = new Chart(diskCtx, {
+                ...chartConfig,
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: '#45B7D1',
+                        backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                        fill: true
+                    }]
+                }
+            });
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            try {
+                websocket = new WebSocket('ws://localhost:8000/ws');
+                
+                websocket.onopen = function(event) {
+                    console.log('WebSocket connected');
+                    updateConnectionStatus(true);
+                };
+                
+                websocket.onmessage = function(event) {
+                    const message = JSON.parse(event.data);
+                    handleWebSocketMessage(message);
+                };
+                
+                websocket.onclose = function(event) {
+                    console.log('WebSocket disconnected');
+                    updateConnectionStatus(false);
+                    // Attempt to reconnect after 5 seconds
+                    setTimeout(connectWebSocket, 5000);
+                };
+                
+                websocket.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus(false);
+                };
+            } catch (error) {
+                console.error('Failed to connect WebSocket:', error);
+                updateConnectionStatus(false);
+                setTimeout(connectWebSocket, 5000);
+            }
+        }
+
+        // Handle WebSocket messages
+        function handleWebSocketMessage(message) {
+            if (message.type === 'metrics_update') {
+                updateMetrics(message.data);
+            } else if (message.type === 'deployment_created') {
+                loadDeployments();
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            isConnected = connected;
+            
+            if (connected) {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.className = 'connection-status connected';
+            } else {
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        // Update metrics display
+        function updateMetrics(data) {
+            document.getElementById('cpuValue').textContent = Math.round(data.cpu_usage) + '%';
+            document.getElementById('memoryValue').textContent = Math.round(data.memory_usage) + '%';
+            document.getElementById('diskValue').textContent = Math.round(data.disk_usage) + '%';
+            document.getElementById('successValue').textContent = data.success_rate + '%';
+            document.getElementById('pipelineRuns').textContent = data.pipeline_runs_today;
+            
+            // Update charts
+            const now = new Date().toLocaleTimeString();
+            
+            // Keep only last 20 data points
+            if (metricsHistory.labels.length >= 20) {
+                metricsHistory.labels.shift();
+                metricsHistory.cpu.shift();
+                metricsHistory.memory.shift();
+                metricsHistory.disk.shift();
+            }
+            
+            metricsHistory.labels.push(now);
+            metricsHistory.cpu.push(data.cpu_usage);
+            metricsHistory.memory.push(data.memory_usage);
+            metricsHistory.disk.push(data.disk_usage);
+            
+            // Update chart data
+            charts.cpu.data.labels = [...metricsHistory.labels];
+            charts.cpu.data.datasets[0].data = [...metricsHistory.cpu];
+            charts.cpu.update('none');
+            
+            charts.memory.data.labels = [...metricsHistory.labels];
+            charts.memory.data.datasets[0].data = [...metricsHistory.memory];
+            charts.memory.update('none');
+            
+            charts.disk.data.labels = [...metricsHistory.labels];
+            charts.disk.data.datasets[0].data = [...metricsHistory.disk];
+            charts.disk.update('none');
+            
+            // Update last updated time
+            document.getElementById('lastUpdated').textContent = 
+                `Last updated: ${new Date().toLocaleString()}`;
+        }
+
+        // Load deployments
+        async function loadDeployments() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/deployments');
+                const deployments = await response.json();
+                
+                const deploymentsEl = document.getElementById('deploymentsList');
+                deploymentsEl.innerHTML = '';
+                
+                deployments.slice(0, 10).forEach(deployment => {
+                    const item = document.createElement('div');
+                    item.className = `deployment-item ${deployment.status}`;
+                    item.innerHTML = `
+                        <div class="deployment-version">${deployment.project_name} ${deployment.version}</div>
+                        <div style="font-size: 0.85rem; margin: 4px 0;">${deployment.commit_message}</div>
+                        <div class="deployment-time">
+                            Status: ${deployment.status} • 
+                            ${new Date(deployment.created_at).toLocaleString()}
+                        </div>
+                    `;
+                    deploymentsEl.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Failed to load deployments:', error);
+            }
+        }
+
+        // Load alerts
+        async function loadAlerts() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/alerts');
+                const alerts = await response.json();
+                
+                const alertsEl = document.getElementById('alertsContainer');
+                alertsEl.innerHTML = '';
+                
+                if (alerts.length === 0) {
+                    alertsEl.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No active alerts</div>';
+                    return;
+                }
+                
+                alerts.forEach(alert => {
+                    const item = document.createElement('div');
+                    item.className = `alert alert-${alert.severity}`;
+                    item.innerHTML = `
+                        <div class="alert-title">${alert.title}</div>
+                        <div>${alert.message}</div>
+                        <div style="font-size: 0.8rem; margin-top: 8px; opacity: 0.8;">
+                            ${new Date(alert.triggered_at).toLocaleString()}
+                        </div>
+                    `;
+                    alertsEl.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Failed to load alerts:', error);
+            }
+        }
+
+        // Initialize dashboard
+        function initDashboard() {
+            initCharts();
+            connectWebSocket();
+            loadDeployments();
+            loadAlerts();
+            
+            // Fallback polling if WebSocket fails
+            setInterval(() => {
+                if (!isConnected) {
+                    fetch('http://localhost:8000/api/v1/metrics')
+                        .then(response => response.json())
+                        .then(data => updateMetrics(data))
+                        .catch(console.error);
+                }
+            }, 10000);
+            
+            // Refresh deployments and alerts periodically
+            setInterval(loadDeployments, 60000);
+            setInterval(loadAlerts, 30000);
+        }
+
+        // Start dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsSight Engineering Intelligence - Typo Style</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+        
+        .typo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Typo-style Header */
+        .typo-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .typo-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+        
+        .typo-subtitle {
+            font-size: 18px;
+            color: #64748b;
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+        
+        /* Key Metrics Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        }
+        
+        .metric-value {
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        
+        .metric-label {
+            font-size: 16px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .metric-trend {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .trend-up {
+            background: #dcfdf7;
+            color: #065f46;
+        }
+        
+        .trend-down {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .trend-stable {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        /* Typo Card Style */
+        .typo-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+        
+        /* DORA Metrics Style */
+        .dora-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .dora-metric {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .dora-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .dora-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .dora-tier {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .tier-high {
+            background: #dcfdf7;
+            color: #065f46;
+        }
+        
+        .tier-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .tier-low {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        
+        /* AI Insights */
+        .ai-insights {
+            list-style: none;
+        }
+        
+        .ai-insight {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid #6366f1;
+            position: relative;
+        }
+        
+        .ai-insight::before {
+            content: "🤖";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 18px;
+        }
+        
+        .insight-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .insight-description {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        
+        /* Team Performance */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        
+        .team-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .team-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+        
+        .team-score {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .team-members {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        /* PR Health Score */
+        .pr-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .pr-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .pr-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .pr-author {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .pr-score {
+            font-size: 18px;
+            font-weight: 700;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: white;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .score-high {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+        
+        .score-medium {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .score-low {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        /* Buttons */
+        .typo-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .typo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+        
+        .typo-btn-secondary {
+            background: rgba(100, 116, 139, 0.1);
+            color: #64748b;
+        }
+        
+        /* Loading Animation */
+        .typo-loading {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .dora-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .typo-container {
+                padding: 16px;
+            }
+            
+            .typo-header {
+                padding: 24px;
+            }
+            
+            .typo-card {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="typo-container">
+        <!-- Header -->
+        <div class="typo-header">
+            <h1>🚀 OpsSight Engineering Intelligence</h1>
+            <p class="typo-subtitle">AI-driven insights to accelerate your development team's productivity and code quality</p>
+            
+            <!-- Key Metrics -->
+            <div class="metrics-grid" id="keyMetrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="deliverySpeed">--</div>
+                    <div class="metric-label">Delivery Speed</div>
+                    <span class="metric-trend trend-up" id="deliveryTrend">Loading...</span>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="codeQuality">--</div>
+                    <div class="metric-label">Code Quality Score</div>
+                    <span class="metric-trend trend-stable" id="qualityTrend">Loading...</span>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="teamVelocity">--</div>
+                    <div class="metric-label">Team Velocity</div>
+                    <span class="metric-trend trend-up" id="velocityTrend">Loading...</span>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="devSatisfaction">--</div>
+                    <div class="metric-label">Developer Satisfaction</div>
+                    <span class="metric-trend trend-stable" id="satisfactionTrend">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard-grid">
+            <!-- Main Panel -->
+            <div class="main-panel">
+                <!-- DORA Metrics -->
+                <div class="typo-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">📊</div>
+                            DORA Metrics
+                        </div>
+                        <button class="typo-btn" onclick="refreshDORA()">Refresh</button>
+                    </div>
+                    
+                    <div class="dora-metrics" id="doraMetrics">
+                        <div class="dora-metric">
+                            <div class="dora-value" id="leadTime">--</div>
+                            <div class="dora-label">Lead Time</div>
+                            <span class="dora-tier tier-high" id="leadTimeTier">Loading...</span>
+                        </div>
+                        <div class="dora-metric">
+                            <div class="dora-value" id="deployFreq">--</div>
+                            <div class="dora-label">Deploy Frequency</div>
+                            <span class="dora-tier tier-high" id="deployTier">Loading...</span>
+                        </div>
+                        <div class="dora-metric">
+                            <div class="dora-value" id="mttr">--</div>
+                            <div class="dora-label">MTTR</div>
+                            <span class="dora-tier tier-medium" id="mttrTier">Loading...</span>
+                        </div>
+                        <div class="dora-metric">
+                            <div class="dora-value" id="changeFailure">--</div>
+                            <div class="dora-label">Change Failure Rate</div>
+                            <span class="dora-tier tier-high" id="failureTier">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Performance -->
+                <div class="typo-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">👥</div>
+                            Team Performance
+                        </div>
+                        <button class="typo-btn-secondary typo-btn" onclick="refreshTeams()">View Details</button>
+                    </div>
+                    
+                    <div class="team-grid" id="teamPerformance">
+                        <div class="team-card">
+                            <div class="team-name">Loading...</div>
+                            <div class="team-score">--</div>
+                            <div class="team-members">Loading members...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SDLC Visibility Chart -->
+                <div class="typo-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">📈</div>
+                            SDLC Visibility
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="sdlcChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div class="side-panel">
+                <!-- AI Insights -->
+                <div class="typo-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">🤖</div>
+                            AI Insights
+                        </div>
+                    </div>
+                    
+                    <ul class="ai-insights" id="aiInsights">
+                        <li class="ai-insight">
+                            <div class="insight-title">Loading AI insights...</div>
+                            <div class="insight-description">Please wait while we analyze your data.</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- PR Health Scores -->
+                <div class="typo-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">🔍</div>
+                            PR Health Scores
+                        </div>
+                        <button class="typo-btn" onclick="analyzePRs()">Analyze All</button>
+                    </div>
+                    
+                    <div class="pr-list" id="prHealthScores">
+                        <div class="pr-item">
+                            <div>
+                                <div class="pr-title">Loading pull requests...</div>
+                                <div class="pr-author">Please wait</div>
+                            </div>
+                            <div class="pr-score score-medium">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Quality Trends -->
+                <div class="typo-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">✨</div>
+                            Quality Trends
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        let charts = {};
+        let refreshInterval;
+        
+        // Check authentication
+        if (!authToken) {
+            window.location.href = '/login.html';
+        }
+        
+        // API helper
+        async function apiCall(endpoint) {
+            try {
+                const response = await fetch(`http://localhost:8000${endpoint}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    window.location.href = '/login.html';
+                    return null;
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                return null;
+            }
+        }
+        
+        // Load key metrics
+        async function loadKeyMetrics() {
+            try {
+                const [sdlcData, doraData, devexData] = await Promise.all([
+                    apiCall('/api/v1/engineering/sdlc'),
+                    apiCall('/api/v1/engineering/dora'),
+                    apiCall('/api/v1/engineering/devex')
+                ]);
+                
+                if (sdlcData) {
+                    document.getElementById('deliverySpeed').textContent = 
+                        `${sdlcData.delivery_metrics.average_cycle_time_hours}h`;
+                    document.getElementById('deliveryTrend').textContent = '↗️ Improving';
+                    document.getElementById('deliveryTrend').className = 'metric-trend trend-up';
+                    
+                    document.getElementById('codeQuality').textContent = 
+                        `${sdlcData.productivity_insights.code_quality_score}/10`;
+                    document.getElementById('qualityTrend').textContent = '→ Stable';
+                    document.getElementById('qualityTrend').className = 'metric-trend trend-stable';
+                }
+                
+                if (doraData) {
+                    document.getElementById('teamVelocity').textContent = 
+                        `${doraData.deployment_frequency.value_per_day}/day`;
+                    document.getElementById('velocityTrend').textContent = '↗️ Strong';
+                    document.getElementById('velocityTrend').className = 'metric-trend trend-up';
+                }
+                
+                if (devexData) {
+                    document.getElementById('devSatisfaction').textContent = 
+                        `${devexData.overall_satisfaction}/10`;
+                    document.getElementById('satisfactionTrend').textContent = '→ Stable';
+                    document.getElementById('satisfactionTrend').className = 'metric-trend trend-stable';
+                }
+            } catch (error) {
+                console.error('Failed to load key metrics:', error);
+            }
+        }
+        
+        // Load DORA metrics
+        async function loadDORAMetrics() {
+            const data = await apiCall('/api/v1/engineering/dora');
+            if (!data) return;
+            
+            document.getElementById('leadTime').textContent = 
+                `${data.lead_time_for_changes.value_days}d`;
+            document.getElementById('leadTimeTier').textContent = 
+                data.lead_time_for_changes.performance_tier;
+            document.getElementById('leadTimeTier').className = 
+                `dora-tier tier-${data.lead_time_for_changes.performance_tier.toLowerCase()}`;
+            
+            document.getElementById('deployFreq').textContent = 
+                `${data.deployment_frequency.value_per_day}/day`;
+            document.getElementById('deployTier').textContent = 
+                data.deployment_frequency.performance_tier;
+            document.getElementById('deployTier').className = 
+                `dora-tier tier-${data.deployment_frequency.performance_tier.toLowerCase()}`;
+            
+            document.getElementById('mttr').textContent = 
+                `${data.mean_time_to_recovery.value_hours}h`;
+            document.getElementById('mttrTier').textContent = 
+                data.mean_time_to_recovery.performance_tier;
+            document.getElementById('mttrTier').className = 
+                `dora-tier tier-${data.mean_time_to_recovery.performance_tier.toLowerCase()}`;
+            
+            document.getElementById('changeFailure').textContent = 
+                `${data.change_failure_rate.value_percentage}%`;
+            document.getElementById('failureTier').textContent = 
+                data.change_failure_rate.performance_tier;
+            document.getElementById('failureTier').className = 
+                `dora-tier tier-${data.change_failure_rate.performance_tier.toLowerCase()}`;
+        }
+        
+        // Load team performance
+        async function loadTeamPerformance() {
+            const data = await apiCall('/api/v1/engineering/teams');
+            if (!data) return;
+            
+            const teamGrid = document.getElementById('teamPerformance');
+            teamGrid.innerHTML = '';
+            
+            Object.entries(data.teams).forEach(([teamName, teamData]) => {
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+                teamCard.innerHTML = `
+                    <div class="team-name">${teamName}</div>
+                    <div class="team-score">${teamData.productivity_score}</div>
+                    <div class="team-members">${teamData.team_size} members</div>
+                `;
+                teamGrid.appendChild(teamCard);
+            });
+        }
+        
+        // Load AI insights
+        async function loadAIInsights() {
+            const data = await apiCall('/api/v1/code-review/summary');
+            if (!data) return;
+            
+            const insightsList = document.getElementById('aiInsights');
+            insightsList.innerHTML = '';
+            
+            data.ai_insights.forEach(insight => {
+                const insightItem = document.createElement('li');
+                insightItem.className = 'ai-insight';
+                insightItem.innerHTML = `
+                    <div class="insight-title">${insight.title}</div>
+                    <div class="insight-description">${insight.description}</div>
+                `;
+                insightsList.appendChild(insightItem);
+            });
+        }
+        
+        // Load PR health scores
+        async function loadPRHealthScores() {
+            const data = await apiCall('/api/v1/code-review/summary');
+            if (!data) return;
+            
+            const prList = document.getElementById('prHealthScores');
+            prList.innerHTML = '';
+            
+            data.recent_analyses.slice(0, 5).forEach(analysis => {
+                const healthScore = analysis.analysis_summary.health_score;
+                const scoreClass = healthScore >= 8 ? 'score-high' : 
+                                  healthScore >= 6 ? 'score-medium' : 'score-low';
+                
+                const prItem = document.createElement('div');
+                prItem.className = 'pr-item';
+                prItem.innerHTML = `
+                    <div>
+                        <div class="pr-title">${analysis.analysis_summary.title}</div>
+                        <div class="pr-author">Risk: ${analysis.analysis_summary.risk_level}</div>
+                    </div>
+                    <div class="pr-score ${scoreClass}">${healthScore}</div>
+                `;
+                prList.appendChild(prItem);
+            });
+        }
+        
+        // Create SDLC chart
+        async function createSDLCChart() {
+            const data = await apiCall('/api/v1/engineering/sdlc');
+            if (!data) return;
+            
+            const ctx = document.getElementById('sdlcChart').getContext('2d');
+            
+            if (charts.sdlc) {
+                charts.sdlc.destroy();
+            }
+            
+            charts.sdlc = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Cycle Time (hours)',
+                        data: [48, 42, 38, data.delivery_metrics.average_cycle_time_hours],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Merge Rate (%)',
+                        data: [85, 88, 92, data.delivery_metrics.merge_rate],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create quality chart
+        async function createQualityChart() {
+            const data = await apiCall('/api/v1/engineering/quality');
+            if (!data) return;
+            
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            
+            if (charts.quality) {
+                charts.quality.destroy();
+            }
+            
+            charts.quality = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High Quality', 'Medium Quality', 'Needs Improvement'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: [
+                            '#22c55e',
+                            '#f59e0b', 
+                            '#ef4444'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Refresh functions
+        async function refreshDORA() {
+            await loadDORAMetrics();
+        }
+        
+        async function refreshTeams() {
+            await loadTeamPerformance();
+        }
+        
+        async function analyzePRs() {
+            await loadPRHealthScores();
+        }
+        
+        // Initialize dashboard
+        async function initializeTypoDashboard() {
+            console.log('🚀 Initializing OpsSight Engineering Intelligence (Typo Style)');
+            
+            await Promise.all([
+                loadKeyMetrics(),
+                loadDORAMetrics(),
+                loadTeamPerformance(),
+                loadAIInsights(),
+                loadPRHealthScores(),
+                createSDLCChart(),
+                createQualityChart()
+            ]);
+            
+            console.log('✅ Typo-style dashboard initialization complete');
+        }
+        
+        // Auto-refresh every 2 minutes
+        refreshInterval = setInterval(async () => {
+            await loadKeyMetrics();
+            await loadDORAMetrics();
+        }, 120000);
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeTypoDashboard);
+    </script>
+</body>
+</html>

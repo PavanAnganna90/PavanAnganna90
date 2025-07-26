@@ -30,8 +30,11 @@ services:
       - frontend-net
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://backend:8000
-      - NEXT_PUBLIC_APP_VERSION=1.0.0
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:8000/api/v1
+      - NEXT_PUBLIC_WS_BASE_URL=ws://backend:8000
+      - NEXT_PUBLIC_APP_VERSION=2.0.0
+      - NEXT_PUBLIC_ENABLE_REAL_TIME=true
+      - NEXT_PUBLIC_ENABLE_CACHE_METRICS=true
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
       interval: 30s

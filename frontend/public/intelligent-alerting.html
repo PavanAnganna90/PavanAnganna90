@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Alerting - OpsSight Platform</title>
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .alerting-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .alerting-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 50%, #4338ca 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .alerting-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .alerting-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .alerting-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* ML Performance Card */
+        .ml-performance-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .ml-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .ml-stat {
+            text-align: center;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .ml-stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .ml-stat-label {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Main Grid */
+        .alerting-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .alerting-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .alerting-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alerting-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Intelligent Alerts */
+        .intelligent-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .intelligent-alert::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+        }
+        
+        .alert-priority {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+        
+        .priority-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .priority-high {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .priority-medium {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+        
+        .priority-low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-content h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+        
+        .alert-description {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .alert-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+        
+        .confidence-score {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .confidence-bar {
+            width: 100px;
+            height: 4px;
+            background: rgba(100, 116, 139, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #5b21b6);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        .ml-insights {
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        
+        .ml-insights-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a78bfa;
+            margin-bottom: 8px;
+        }
+        
+        .recommended-actions {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recommended-actions li {
+            font-size: 13px;
+            color: #cbd5e1;
+            padding: 4px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+        
+        .recommended-actions li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #7c3aed;
+            font-weight: bold;
+        }
+        
+        /* Pattern Analysis */
+        .pattern-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .pattern-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .pattern-type {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .pattern-confidence {
+            font-size: 12px;
+            padding: 2px 6px;
+            background: rgba(124, 58, 237, 0.2);
+            color: #a78bfa;
+            border-radius: 4px;
+        }
+        
+        .pattern-description {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .pattern-frequency {
+            font-size: 11px;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        /* Anomaly Detection */
+        .anomaly-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .anomaly-severity {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .anomaly-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .anomaly-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .anomaly-low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .anomaly-info {
+            flex: 1;
+        }
+        
+        .anomaly-info h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .anomaly-info p {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        .anomaly-score {
+            font-size: 16px;
+            font-weight: 600;
+            color: #7c3aed;
+        }
+        
+        /* Predictive Insights */
+        .prediction-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+        }
+        
+        .prediction-item::before {
+            content: '🔮';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 16px;
+        }
+        
+        .prediction-type {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+        
+        .prediction-description {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .prediction-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        .prediction-confidence {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .alerting-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .ml-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .alerting-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="alerting-container">
+        <!-- Header -->
+        <div class="alerting-header">
+            <h1>🤖 Intelligent Alerting</h1>
+            <p class="alerting-subtitle">AI-powered predictive alerts with machine learning insights</p>
+        </div>
+
+        <!-- ML Performance Overview -->
+        <div class="ml-performance-card">
+            <div class="alerting-title">
+                <div class="alerting-icon">🧠</div>
+                Machine Learning Performance
+            </div>
+            
+            <div class="ml-stats-grid">
+                <div class="ml-stat">
+                    <div class="ml-stat-value" id="mlAccuracy">89.2%</div>
+                    <div class="ml-stat-label">ML Accuracy</div>
+                </div>
+                <div class="ml-stat">
+                    <div class="ml-stat-value" id="predictiveAlerts">7</div>
+                    <div class="ml-stat-label">Predictive Alerts</div>
+                </div>
+                <div class="ml-stat">
+                    <div class="ml-stat-value" id="patternsDetected">15</div>
+                    <div class="ml-stat-label">Patterns Detected</div>
+                </div>
+                <div class="ml-stat">
+                    <div class="ml-stat-value" id="costSavings">$23.4K</div>
+                    <div class="ml-stat-label">Cost Savings</div>
+                </div>
+                <div class="ml-stat">
+                    <div class="ml-stat-value" id="preventionRate">73%</div>
+                    <div class="ml-stat-label">Prevention Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="alerting-grid">
+            <!-- Intelligent Alerts -->
+            <div class="alerting-card">
+                <div class="alerting-title">
+                    <div class="alerting-icon">🚨</div>
+                    Intelligent Alerts
+                </div>
+                
+                <div id="intelligentAlertsList">
+                    <div class="intelligent-alert">
+                        <div class="alert-priority priority-high">High</div>
+                        <div class="alert-content">
+                            <h4>Predictive CPU Overload Alert</h4>
+                            <p class="alert-description">ML models predict CPU overload in the next 30 minutes based on current trends</p>
+                            
+                            <div class="confidence-score">
+                                <span style="font-size: 12px; color: #94a3b8;">Confidence:</span>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" style="width: 89%"></div>
+                                </div>
+                                <span style="font-size: 12px; color: #7c3aed; font-weight: 600;">89%</span>
+                            </div>
+                            
+                            <div class="alert-meta">
+                                <span>Impact: Service degradation affecting 2,500+ users</span>
+                                <span>ETA: 15 min</span>
+                                <span>Services: frontend, nginx</span>
+                            </div>
+                            
+                            <div class="ml-insights">
+                                <div class="ml-insights-title">🤖 ML Recommendations</div>
+                                <ul class="recommended-actions">
+                                    <li>Scale out frontend instances immediately</li>
+                                    <li>Defer non-critical batch jobs</li>
+                                    <li>Enable auto-scaling policies</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="intelligent-alert">
+                        <div class="alert-priority priority-critical">Critical</div>
+                        <div class="alert-content">
+                            <h4>Security Threat Pattern Recognition</h4>
+                            <p class="alert-description">ML pattern recognition detected coordinated security threat indicators</p>
+                            
+                            <div class="confidence-score">
+                                <span style="font-size: 12px; color: #94a3b8;">Confidence:</span>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" style="width: 96%"></div>
+                                </div>
+                                <span style="font-size: 12px; color: #7c3aed; font-weight: 600;">96%</span>
+                            </div>
+                            
+                            <div class="alert-meta">
+                                <span>Impact: Potential data breach - immediate action required</span>
+                                <span>ETA: 120 min</span>
+                                <span>Services: backend, nginx, auth</span>
+                            </div>
+                            
+                            <div class="ml-insights">
+                                <div class="ml-insights-title">🤖 ML Recommendations</div>
+                                <ul class="recommended-actions">
+                                    <li>Enable emergency security protocols</li>
+                                    <li>Block suspicious IP ranges</li>
+                                    <li>Notify security team immediately</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="intelligent-alert">
+                        <div class="alert-priority priority-medium">Medium</div>
+                        <div class="alert-content">
+                            <h4>Business Impact Prediction Alert</h4>
+                            <p class="alert-description">ML models predict significant business impact based on current system trends</p>
+                            
+                            <div class="confidence-score">
+                                <span style="font-size: 12px; color: #94a3b8;">Confidence:</span>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" style="width: 84%"></div>
+                                </div>
+                                <span style="font-size: 12px; color: #7c3aed; font-weight: 600;">84%</span>
+                            </div>
+                            
+                            <div class="alert-meta">
+                                <span>Impact: Estimated revenue loss of $15,000</span>
+                                <span>ETA: 180 min</span>
+                                <span>Services: frontend, mobile-app</span>
+                            </div>
+                            
+                            <div class="ml-insights">
+                                <div class="ml-insights-title">🤖 ML Recommendations</div>
+                                <ul class="recommended-actions">
+                                    <li>Optimize critical user journey performance</li>
+                                    <li>Deploy mobile app hotfix</li>
+                                    <li>Implement A/B testing for UI improvements</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pattern Analysis -->
+            <div class="alerting-card">
+                <div class="alerting-title">
+                    <div class="alerting-icon">🔍</div>
+                    Pattern Analysis
+                </div>
+                
+                <div id="patternAnalysisList">
+                    <div class="pattern-item">
+                        <div class="pattern-header">
+                            <div class="pattern-type">CPU Spike Pattern</div>
+                            <div class="pattern-confidence">94% confidence</div>
+                        </div>
+                        <div class="pattern-description">
+                            CPU spikes correlate with increased user activity and batch job executions
+                        </div>
+                        <div class="pattern-frequency">Daily during peak hours (2-4 PM)</div>
+                    </div>
+                    
+                    <div class="pattern-item">
+                        <div class="pattern-header">
+                            <div class="pattern-type">Memory Leak Pattern</div>
+                            <div class="pattern-confidence">89% confidence</div>
+                        </div>
+                        <div class="pattern-description">
+                            Memory usage gradually increases over 48-72 hours after deployments
+                        </div>
+                        <div class="pattern-frequency">Weekly on Mondays after deployments</div>
+                    </div>
+                    
+                    <div class="pattern-item">
+                        <div class="pattern-header">
+                            <div class="pattern-type">Connection Pool Exhaustion</div>
+                            <div class="pattern-confidence">85% confidence</div>
+                        </div>
+                        <div class="pattern-description">
+                            Database connections spike during concurrent user sessions
+                        </div>
+                        <div class="pattern-frequency">Random during high traffic periods</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Grid -->
+        <div class="alerting-grid">
+            <!-- Anomaly Detection -->
+            <div class="alerting-card">
+                <div class="alerting-title">
+                    <div class="alerting-icon">⚡</div>
+                    Anomaly Detection
+                </div>
+                
+                <div id="anomalyDetectionList">
+                    <div class="anomaly-item">
+                        <div class="anomaly-severity anomaly-high">High</div>
+                        <div class="anomaly-info">
+                            <h5>opssight-backend</h5>
+                            <p>CPU usage deviation from baseline</p>
+                        </div>
+                        <div class="anomaly-score">0.87</div>
+                    </div>
+                    
+                    <div class="anomaly-item">
+                        <div class="anomaly-severity anomaly-medium">Medium</div>
+                        <div class="anomaly-info">
+                            <h5>postgres</h5>
+                            <p>Query execution time anomaly</p>
+                        </div>
+                        <div class="anomaly-score">0.63</div>
+                    </div>
+                    
+                    <div class="anomaly-item">
+                        <div class="anomaly-severity anomaly-medium">Medium</div>
+                        <div class="anomaly-info">
+                            <h5>redis</h5>
+                            <p>Memory usage pattern deviation</p>
+                        </div>
+                        <div class="anomaly-score">0.58</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Insights -->
+            <div class="alerting-card">
+                <div class="alerting-title">
+                    <div class="alerting-icon">🔮</div>
+                    Predictive Insights
+                </div>
+                
+                <div id="predictiveInsightsList">
+                    <div class="prediction-item">
+                        <div class="prediction-type">Resource Scaling</div>
+                        <div class="prediction-description">
+                            Based on current trends, recommend scaling up by 25% within 6 hours
+                        </div>
+                        <div class="prediction-meta">
+                            <span class="prediction-confidence">91% confidence</span>
+                            <span>6 hours</span>
+                            <span>+$45/day</span>
+                        </div>
+                    </div>
+                    
+                    <div class="prediction-item">
+                        <div class="prediction-type">Security Incident</div>
+                        <div class="prediction-description">
+                            Unusual patterns suggest potential security event in next 2-4 hours
+                        </div>
+                        <div class="prediction-meta">
+                            <span class="prediction-confidence">78% confidence</span>
+                            <span>2-4 hours</span>
+                            <span>Prevention: $0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="prediction-item">
+                        <div class="prediction-type">Performance Degradation</div>
+                        <div class="prediction-description">
+                            Database query performance will degrade by 40% in next 12 hours
+                        </div>
+                        <div class="prediction-meta">
+                            <span class="prediction-confidence">86% confidence</span>
+                            <span>12 hours</span>
+                            <span>4h eng time</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        
+        // Load intelligent alerting data from backend
+        async function loadIntelligentAlertingData() {
+            if (!authToken) {
+                console.log('Using demo data for intelligent alerting');
+                return;
+            }
+            
+            try {
+                // Fetch overview data
+                const overviewResponse = await fetch('http://localhost:8000/api/v1/intelligent-alerting/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (overviewResponse.ok) {
+                    const overviewData = await overviewResponse.json();
+                    updateOverviewData(overviewData);
+                }
+                
+                // Fetch intelligent alerts
+                const alertsResponse = await fetch('http://localhost:8000/api/v1/intelligent-alerting/alerts', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (alertsResponse.ok) {
+                    const alertsData = await alertsResponse.json();
+                    updateIntelligentAlerts(alertsData);
+                }
+                
+                // Fetch pattern analysis
+                const patternsResponse = await fetch('http://localhost:8000/api/v1/intelligent-alerting/patterns', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (patternsResponse.ok) {
+                    const patternsData = await patternsResponse.json();
+                    updatePatternAnalysis(patternsData);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load intelligent alerting data:', error);
+            }
+        }
+        
+        // Update overview data
+        function updateOverviewData(data) {
+            if (data.ml_performance) {
+                document.getElementById('mlAccuracy').textContent = `${data.ml_performance.accuracy_rate}%`;
+            }
+            
+            if (data.overview) {
+                document.getElementById('predictiveAlerts').textContent = data.overview.predictive_alerts;
+            }
+            
+            if (data.predictive_insights) {
+                document.getElementById('costSavings').textContent = data.predictive_insights.cost_savings_this_month;
+                document.getElementById('preventionRate').textContent = data.predictive_insights.prevention_success_rate;
+            }
+        }
+        
+        // Update intelligent alerts
+        function updateIntelligentAlerts(alerts) {
+            const alertsList = document.getElementById('intelligentAlertsList');
+            if (!alerts || alerts.length === 0) return;
+            
+            alertsList.innerHTML = '';
+            
+            alerts.slice(0, 5).forEach(alert => {
+                const alertElement = document.createElement('div');
+                alertElement.className = 'intelligent-alert';
+                
+                const priorityClass = `priority-${alert.priority}`;
+                const confidenceWidth = Math.round(alert.confidence_score * 100);
+                const confidencePercent = `${confidenceWidth}%`;
+                
+                alertElement.innerHTML = `
+                    <div class="alert-priority ${priorityClass}">${alert.priority}</div>
+                    <div class="alert-content">
+                        <h4>${alert.title}</h4>
+                        <p class="alert-description">${alert.description}</p>
+                        
+                        <div class="confidence-score">
+                            <span style="font-size: 12px; color: #94a3b8;">Confidence:</span>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: ${confidenceWidth}%"></div>
+                            </div>
+                            <span style="font-size: 12px; color: #7c3aed; font-weight: 600;">${confidencePercent}</span>
+                        </div>
+                        
+                        <div class="alert-meta">
+                            <span>Impact: ${alert.predicted_impact}</span>
+                            <span>ETA: ${alert.predicted_resolution_time} min</span>
+                            <span>Services: ${alert.affected_services ? alert.affected_services.join(', ') : 'N/A'}</span>
+                        </div>
+                        
+                        <div class="ml-insights">
+                            <div class="ml-insights-title">🤖 ML Recommendations</div>
+                            <ul class="recommended-actions">
+                                ${alert.recommended_actions.map(action => `<li>${action}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                
+                alertsList.appendChild(alertElement);
+            });
+        }
+        
+        // Update pattern analysis
+        function updatePatternAnalysis(data) {
+            if (!data.patterns || data.patterns.length === 0) return;
+            
+            const patternsList = document.getElementById('patternAnalysisList');
+            patternsList.innerHTML = '';
+            
+            data.patterns.slice(0, 5).forEach(pattern => {
+                const patternElement = document.createElement('div');
+                patternElement.className = 'pattern-item';
+                
+                const confidencePercent = Math.round(pattern.confidence * 100);
+                
+                patternElement.innerHTML = `
+                    <div class="pattern-header">
+                        <div class="pattern-type">${pattern.pattern_type}</div>
+                        <div class="pattern-confidence">${confidencePercent}% confidence</div>
+                    </div>
+                    <div class="pattern-description">${pattern.description}</div>
+                    <div class="pattern-frequency">${pattern.frequency}</div>
+                `;
+                
+                patternsList.appendChild(patternElement);
+            });
+        }
+        
+        // Initialize intelligent alerting dashboard
+        function initializeIntelligentAlerting() {
+            console.log('🤖 Initializing Intelligent Alerting Dashboard');
+            
+            // Load initial data
+            loadIntelligentAlertingData();
+            
+            // Set up periodic data refresh
+            setInterval(loadIntelligentAlertingData, 30000); // Refresh every 30 seconds
+            
+            console.log('✅ Intelligent alerting initialization complete');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeIntelligentAlerting);
+    </script>
+</body>
+</html>

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Audit Dashboard - OpsSight</title>
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .security-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .security-header {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .security-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .security-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .security-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Security Score Card */
+        .security-score-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            text-align: center;
+        }
+        
+        .security-score {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .score-low { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .score-medium { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .security-score-label {
+            font-size: 24px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        
+        .security-score-description {
+            font-size: 16px;
+            color: #64748b;
+        }
+        
+        /* Vulnerability Overview */
+        .vuln-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .vuln-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .vuln-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .vuln-critical::before { background: linear-gradient(90deg, #dc2626, #b91c1c); }
+        .vuln-high::before { background: linear-gradient(90deg, #ea580c, #c2410c); }
+        .vuln-medium::before { background: linear-gradient(90deg, #d97706, #b45309); }
+        .vuln-low::before { background: linear-gradient(90deg, #0891b2, #0e7490); }
+        
+        .vuln-count {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .vuln-critical .vuln-count { color: #dc2626; }
+        .vuln-high .vuln-count { color: #ea580c; }
+        .vuln-medium .vuln-count { color: #d97706; }
+        .vuln-low .vuln-count { color: #0891b2; }
+        
+        .vuln-label {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Main Grid */
+        .security-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .security-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .security-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .security-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Vulnerability List */
+        .vuln-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .vuln-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .vuln-item:hover {
+            transform: translateX(4px);
+            border-color: rgba(220, 38, 38, 0.5);
+        }
+        
+        .vuln-severity {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+        
+        .severity-critical { background: #dc2626; }
+        .severity-high { background: #ea580c; }
+        .severity-medium { background: #d97706; }
+        .severity-low { background: #0891b2; }
+        
+        .vuln-info {
+            flex: 1;
+        }
+        
+        .vuln-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #e2e8f0;
+        }
+        
+        .vuln-info p {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        
+        .vuln-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .vuln-status {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .status-open { background: rgba(220, 38, 38, 0.2); color: #dc2626; }
+        .status-in-progress { background: rgba(217, 119, 6, 0.2); color: #d97706; }
+        .status-resolved { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        
+        /* Compliance Section */
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .compliance-card {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .compliance-high { border-color: #10b981; }
+        .compliance-medium { border-color: #d97706; }
+        .compliance-low { border-color: #dc2626; }
+        
+        .compliance-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .compliance-percentage {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .compliance-high .compliance-percentage { color: #10b981; }
+        .compliance-medium .compliance-percentage { color: #d97706; }
+        .compliance-low .compliance-percentage { color: #dc2626; }
+        
+        .compliance-status {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Scan Results */
+        .scan-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .scan-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            margin-bottom: 8px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .scan-type {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+        
+        .scan-info {
+            flex: 1;
+        }
+        
+        .scan-info h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .scan-info p {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .scan-vulns {
+            font-size: 18px;
+            font-weight: 600;
+            color: #dc2626;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .security-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .vuln-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .security-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="security-container">
+        <!-- Header -->
+        <div class="security-header">
+            <h1>🔒 Security Audit Dashboard</h1>
+            <p class="security-subtitle">Comprehensive vulnerability management and compliance monitoring</p>
+        </div>
+
+        <!-- Security Score -->
+        <div class="security-score-card">
+            <div class="security-score" id="securityScore">87</div>
+            <div class="security-score-label">Security Score</div>
+            <div class="security-score-description">Your organization's overall security posture</div>
+        </div>
+
+        <!-- Vulnerability Overview -->
+        <div class="vuln-overview">
+            <div class="vuln-card vuln-critical">
+                <div class="vuln-count" id="criticalCount">3</div>
+                <div class="vuln-label">Critical</div>
+            </div>
+            <div class="vuln-card vuln-high">
+                <div class="vuln-count" id="highCount">8</div>
+                <div class="vuln-label">High</div>
+            </div>
+            <div class="vuln-card vuln-medium">
+                <div class="vuln-count" id="mediumCount">15</div>
+                <div class="vuln-label">Medium</div>
+            </div>
+            <div class="vuln-card vuln-low">
+                <div class="vuln-count" id="lowCount">22</div>
+                <div class="vuln-label">Low</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="security-grid">
+            <!-- Vulnerability Details -->
+            <div class="security-card">
+                <div class="security-title">
+                    <div class="security-icon">⚠️</div>
+                    Recent Vulnerabilities
+                </div>
+                
+                <div class="vuln-list" id="vulnerabilityList">
+                    <div class="vuln-item">
+                        <div class="vuln-severity severity-critical"></div>
+                        <div class="vuln-info">
+                            <h4>SQL Injection in user authentication</h4>
+                            <p>User input not properly sanitized in login endpoint</p>
+                            <div class="vuln-meta">
+                                <span>CVE-2024-1234</span>
+                                <span>CVSS: 9.8</span>
+                                <span>opssight-backend</span>
+                                <span class="vuln-status status-open">Open</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="vuln-item">
+                        <div class="vuln-severity severity-high"></div>
+                        <div class="vuln-info">
+                            <h4>Cross-Site Scripting (XSS) vulnerability</h4>
+                            <p>Unescaped user input displayed in dashboard</p>
+                            <div class="vuln-meta">
+                                <span>CVE-2024-5678</span>
+                                <span>CVSS: 7.5</span>
+                                <span>opssight-frontend</span>
+                                <span class="vuln-status status-in-progress">In Progress</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="vuln-item">
+                        <div class="vuln-severity severity-high"></div>
+                        <div class="vuln-info">
+                            <h4>Outdated dependency with known vulnerabilities</h4>
+                            <p>Using vulnerable version of express.js library</p>
+                            <div class="vuln-meta">
+                                <span>CVE-2024-9012</span>
+                                <span>CVSS: 8.1</span>
+                                <span>opssight-backend</span>
+                                <span class="vuln-status status-open">Open</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="vuln-item">
+                        <div class="vuln-severity severity-medium"></div>
+                        <div class="vuln-info">
+                            <h4>Insecure container configuration</h4>
+                            <p>Container running with root privileges</p>
+                            <div class="vuln-meta">
+                                <span>No CVE</span>
+                                <span>CVSS: 5.5</span>
+                                <span>opssight-infrastructure</span>
+                                <span class="vuln-status status-resolved">Resolved</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Status -->
+            <div class="security-card">
+                <div class="security-title">
+                    <div class="security-icon">✅</div>
+                    Compliance Status
+                </div>
+                
+                <div class="compliance-grid" id="complianceGrid">
+                    <div class="compliance-card compliance-high">
+                        <div class="compliance-name">SOC2</div>
+                        <div class="compliance-percentage">92%</div>
+                        <div class="compliance-status">Compliant</div>
+                    </div>
+                    
+                    <div class="compliance-card compliance-medium">
+                        <div class="compliance-name">PCI-DSS</div>
+                        <div class="compliance-percentage">78%</div>
+                        <div class="compliance-status">In Progress</div>
+                    </div>
+                    
+                    <div class="compliance-card compliance-high">
+                        <div class="compliance-name">GDPR</div>
+                        <div class="compliance-percentage">95%</div>
+                        <div class="compliance-status">Compliant</div>
+                    </div>
+                    
+                    <div class="compliance-card compliance-medium">
+                        <div class="compliance-name">ISO27001</div>
+                        <div class="compliance-percentage">85%</div>
+                        <div class="compliance-status">In Progress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Grid -->
+        <div class="security-grid">
+            <!-- Security Trends Chart -->
+            <div class="security-card">
+                <div class="security-title">
+                    <div class="security-icon">📊</div>
+                    Vulnerability Trends
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="vulnerabilityTrendsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Security Scans -->
+            <div class="security-card">
+                <div class="security-title">
+                    <div class="security-icon">🔍</div>
+                    Recent Security Scans
+                </div>
+                
+                <div class="scan-list" id="scanList">
+                    <div class="scan-item">
+                        <div class="scan-type">SAST</div>
+                        <div class="scan-info">
+                            <h5>opssight-backend</h5>
+                            <p>2 hours ago • main branch</p>
+                        </div>
+                        <div class="scan-vulns">12</div>
+                    </div>
+                    
+                    <div class="scan-item">
+                        <div class="scan-type">DAST</div>
+                        <div class="scan-info">
+                            <h5>opssight-frontend</h5>
+                            <p>4 hours ago • staging environment</p>
+                        </div>
+                        <div class="scan-vulns">5</div>
+                    </div>
+                    
+                    <div class="scan-item">
+                        <div class="scan-type">SCA</div>
+                        <div class="scan-info">
+                            <h5>opssight-mobile</h5>
+                            <p>1 day ago • dependencies check</p>
+                        </div>
+                        <div class="scan-vulns">8</div>
+                    </div>
+                    
+                    <div class="scan-item">
+                        <div class="scan-type">Container</div>
+                        <div class="scan-info">
+                            <h5>opssight-infrastructure</h5>
+                            <p>2 days ago • Docker images</p>
+                        </div>
+                        <div class="scan-vulns">3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        let charts = {};
+        
+        // Initialize Vulnerability Trends Chart
+        function initVulnerabilityTrendsChart() {
+            const ctx = document.getElementById('vulnerabilityTrendsChart').getContext('2d');
+            
+            charts.vulnerabilityTrends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'Discovered',
+                            data: [12, 19, 8, 15],
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Resolved',
+                            data: [8, 12, 10, 13],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load security data from backend
+        async function loadSecurityData() {
+            if (!authToken) {
+                console.log('Using demo data for security dashboard');
+                return;
+            }
+            
+            try {
+                // Fetch security overview
+                const overviewResponse = await fetch('http://localhost:8000/api/v1/security/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (overviewResponse.ok) {
+                    const overviewData = await overviewResponse.json();
+                    updateSecurityOverview(overviewData);
+                }
+                
+                // Fetch vulnerability details
+                const vulnResponse = await fetch('http://localhost:8000/api/v1/security/vulnerabilities', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (vulnResponse.ok) {
+                    const vulnData = await vulnResponse.json();
+                    updateVulnerabilityList(vulnData);
+                }
+                
+                // Fetch compliance data
+                const complianceResponse = await fetch('http://localhost:8000/api/v1/security/compliance', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (complianceResponse.ok) {
+                    const complianceData = await complianceResponse.json();
+                    updateComplianceStatus(complianceData);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load security data:', error);
+            }
+        }
+        
+        // Update security overview with real data
+        function updateSecurityOverview(data) {
+            if (data.security_overview) {
+                const overview = data.security_overview;
+                
+                // Update security score
+                const scoreElement = document.getElementById('securityScore');
+                const score = overview.security_score;
+                scoreElement.textContent = score;
+                
+                // Update score styling based on value
+                scoreElement.className = 'security-score';
+                if (score < 60) {
+                    scoreElement.classList.add('score-low');
+                } else if (score < 80) {
+                    scoreElement.classList.add('score-medium');
+                }
+                
+                // Update vulnerability counts
+                document.getElementById('criticalCount').textContent = overview.critical_vulns;
+                document.getElementById('highCount').textContent = overview.high_vulns;
+                document.getElementById('mediumCount').textContent = overview.medium_vulns;
+                document.getElementById('lowCount').textContent = overview.low_vulns;
+            }
+        }
+        
+        // Update vulnerability list with real data
+        function updateVulnerabilityList(data) {
+            if (data.vulnerabilities) {
+                const vulnList = document.getElementById('vulnerabilityList');
+                vulnList.innerHTML = '';
+                
+                data.vulnerabilities.slice(0, 10).forEach(vuln => {
+                    const item = document.createElement('div');
+                    item.className = 'vuln-item';
+                    
+                    const severityClass = `severity-${vuln.severity}`;
+                    const statusClass = `status-${vuln.status.replace('_', '-')}`;
+                    
+                    item.innerHTML = `
+                        <div class="vuln-severity ${severityClass}"></div>
+                        <div class="vuln-info">
+                            <h4>${vuln.title}</h4>
+                            <p>${vuln.description}</p>
+                            <div class="vuln-meta">
+                                <span>${vuln.cve_id || 'No CVE'}</span>
+                                <span>CVSS: ${vuln.cvss_score}</span>
+                                <span>${vuln.repository}</span>
+                                <span class="vuln-status ${statusClass}">${vuln.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                            </div>
+                        </div>
+                    `;
+                    vulnList.appendChild(item);
+                });
+            }
+        }
+        
+        // Update compliance status with real data
+        function updateComplianceStatus(data) {
+            if (data.framework_status) {
+                const complianceGrid = document.getElementById('complianceGrid');
+                complianceGrid.innerHTML = '';
+                
+                Object.entries(data.framework_status).forEach(([framework, status]) => {
+                    const percentage = status.compliance_percentage;
+                    const complianceClass = percentage >= 90 ? 'compliance-high' : 
+                                          percentage >= 70 ? 'compliance-medium' : 'compliance-low';
+                    const statusText = percentage >= 90 ? 'Compliant' : 'In Progress';
+                    
+                    const card = document.createElement('div');
+                    card.className = `compliance-card ${complianceClass}`;
+                    card.innerHTML = `
+                        <div class="compliance-name">${framework}</div>
+                        <div class="compliance-percentage">${percentage}%</div>
+                        <div class="compliance-status">${statusText}</div>
+                    `;
+                    complianceGrid.appendChild(card);
+                });
+            }
+        }
+        
+        // Initialize dashboard
+        function initializeSecurityDashboard() {
+            console.log('🔒 Initializing Security Audit Dashboard');
+            
+            // Initialize charts
+            initVulnerabilityTrendsChart();
+            
+            // Load initial data
+            loadSecurityData();
+            
+            // Set up periodic data refresh
+            setInterval(loadSecurityData, 30000); // Refresh every 30 seconds
+            
+            console.log('✅ Security dashboard initialization complete');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeSecurityDashboard);
+    </script>
+</body>
+</html>

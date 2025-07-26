@@ -1,0 +1,148 @@
+version: '3.8'
+
+networks:
+  opssight-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: opssight-postgres
+    environment:
+      POSTGRES_DB: opssight_prod
+      POSTGRES_USER: opssight
+      POSTGRES_PASSWORD: secure_prod_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - opssight-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opssight -d opssight_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: opssight-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - opssight-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Backend API (using Python Alpine image for smaller footprint)
+  backend:
+    image: python:3.11-alpine
+    container_name: opssight-backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - opssight-network
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DATABASE_URL=postgresql://opssight:secure_prod_password@postgres:5432/opssight_prod
+      - REDIS_URL=redis://redis:6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=opssight_prod
+      - DB_USER=opssight
+      - DB_PASSWORD=secure_prod_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=production-jwt-secret-change-me
+      - CSRF_SECRET=production-csrf-secret-change-me
+      - API_V1_STR=/api/v1
+      - ALLOWED_ORIGINS=http://localhost:3000
+      # Required settings for backend initialization
+      - APP_NAME=OpsSight Platform
+      - APP_ENV=production
+      - SECRET_KEY=production-secret-key-change-me-in-production
+      - GITHUB_CLIENT_ID=placeholder-client-id
+      - GITHUB_CLIENT_SECRET=placeholder-client-secret
+      - GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
+      - JWT_SECRET_KEY=production-jwt-secret-change-me
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        pip install --no-cache-dir fastapi uvicorn websockets httpx pyjwt &&
+        python auth_server.py
+      "
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   redis:
+    #     condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend (using nginx for static serving)
+  frontend:
+    image: nginx:alpine
+    container_name: opssight-frontend
+    volumes:
+      - ./frontend/public:/usr/share/nginx/html
+    ports:
+      - "3000:80"
+    networks:
+      - opssight-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: opssight-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - opssight-network
+    restart: unless-stopped
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: opssight-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./monitoring/grafana:/var/lib/grafana
+    networks:
+      - opssight-network
+    restart: unless-stopped

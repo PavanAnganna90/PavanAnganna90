@@ -1,10 +1,12 @@
 /**
- * Authentication context for managing user session state.
- * Provides authentication state, user data, and auth methods to components.
+ * Enhanced Authentication context for managing user session state.
+ * Provides authentication state, user data, auth methods, and backend integration.
+ * Optimized for enterprise-grade authentication flow.
  */
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import { apiService } from '@/services/apiService';
 
 // Types for authentication state
 interface Role {
@@ -214,6 +216,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             payload: { user, tokens },
           });
 
+          // Set token in API service
+          apiService.setAuthToken(accessToken);
+          
           // Verify token is still valid by fetching current user
           await getCurrentUser();
         } catch (error) {
@@ -233,10 +238,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+    apiService.setAuthToken(null);
+    apiService.clearCache(); // Clear any cached authenticated data
   };
 
   /**
-   * Store authentication data in localStorage.
+   * Store authentication data in localStorage and API service.
    */
   const storeAuthData = (user: User, tokens: AuthTokens): void => {
     localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.access_token);
@@ -244,6 +251,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refresh_token);
     }
     localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+    
+    // Set token in API service for authenticated requests
+    apiService.setAuthToken(tokens.access_token);
   };
 
   /**

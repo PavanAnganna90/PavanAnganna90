@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - OpsSight Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: none;
+        }
+        
+        .dashboard.loaded {
+            display: block;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+        }
+        
+        .user-details h3 {
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+        
+        .user-role {
+            font-size: 0.8rem;
+            color: #666;
+            background: #e3f2fd;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .logout-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .permissions-badge {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .permission {
+            font-size: 0.7rem;
+            background: #4caf50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .metric-value {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        
+        .metric-unit {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .metric-cpu { color: #FF6B6B; }
+        .metric-memory { color: #4ECDC4; }
+        .metric-disk { color: #45B7D1; }
+        .metric-success { color: #96CEB4; }
+        
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 16px;
+        }
+        
+        .deployments-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .deployment-item {
+            padding: 16px;
+            border-left: 4px solid #4CAF50;
+            background: #f8f9fa;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .deployment-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .deployment-version {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .deployment-meta {
+            color: #666;
+            margin: 6px 0;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .authenticated {
+            background: linear-gradient(45deg, #4CAF50, #45A049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .error {
+            background: linear-gradient(45deg, #FF6B6B, #E53E3E);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .admin-panel {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border: 2px solid #ff6b9d;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .admin-stat {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+        }
+        
+        .admin-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d81b60;
+        }
+        
+        .admin-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .last-updated {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-top: 30px;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Authenticating...</h2>
+            <p>Verifying your credentials</p>
+        </div>
+    </div>
+    
+    <div class="dashboard" id="dashboard">
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">OpsSight</div>
+                <div class="user-info">
+                    <img class="user-avatar" id="userAvatar" src="" alt="User Avatar">
+                    <div class="user-details">
+                        <h3 id="userName">Loading...</h3>
+                        <div class="user-role" id="userRole">user</div>
+                        <div class="permissions-badge" id="userPermissions"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="/live-dashboard.html" class="nav-link">📊 Public Dashboard</a>
+                <a href="http://localhost:8000/docs" target="_blank" class="nav-link">📚 API Docs</a>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+        
+        <div class="status-indicator authenticated" id="statusIndicator">
+            🔒 Authenticated
+        </div>
+        
+        <!-- Main Metrics Grid -->
+        <div class="grid">
+            <div class="card">
+                <h3>🖥️ CPU Usage</h3>
+                <div class="metric-value metric-cpu" id="cpuValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div class="chart-container">
+                    <canvas id="cpuChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>💾 Memory Usage</h3>
+                <div class="metric-value metric-memory" id="memoryValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div class="chart-container">
+                    <canvas id="memoryChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>💿 Disk Usage</h3>
+                <div class="metric-value metric-disk" id="diskValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div class="chart-container">
+                    <canvas id="diskChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>✅ Success Rate</h3>
+                <div class="metric-value metric-success" id="successValue">--</div>
+                <div class="metric-unit">percent</div>
+                <div style="margin-top: 16px;">
+                    <div style="font-size: 0.9rem; color: #666;">Pipeline runs today</div>
+                    <div style="font-size: 1.5rem; font-weight: bold;" id="pipelineRuns">--</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Secondary Grid -->
+        <div class="grid">
+            <div class="card">
+                <h3>🚀 Your Deployments</h3>
+                <div class="deployments-list" id="deploymentsList">
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        Loading deployments...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin Panel (only shown for admin users) -->
+            <div class="card admin-panel" id="adminPanel" style="display: none;">
+                <h3>👑 Admin Panel</h3>
+                <p>System administration and user management</p>
+                <div class="admin-stats" id="adminStats">
+                    <!-- Admin stats will be loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="last-updated" id="lastUpdated">
+            Authenticated dashboard loaded
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let userToken = null;
+        let currentUser = null;
+        let charts = {};
+        let metricsHistory = {
+            cpu: [],
+            memory: [],
+            disk: [],
+            labels: []
+        };
+        let updateInterval;
+
+        // Authentication check
+        async function checkAuthentication() {
+            const token = localStorage.getItem('opssight_token');
+            
+            if (!token) {
+                redirectToLogin();
+                return false;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    userToken = token;
+                    currentUser = userData.user;
+                    return true;
+                } else {
+                    // Token invalid
+                    localStorage.removeItem('opssight_token');
+                    localStorage.removeItem('opssight_user');
+                    redirectToLogin();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Authentication check failed:', error);
+                redirectToLogin();
+                return false;
+            }
+        }
+        
+        function redirectToLogin() {
+            window.location.href = '/login.html';
+        }
+        
+        // Initialize user interface
+        function initUserInterface() {
+            if (!currentUser) return;
+            
+            // Update user info
+            document.getElementById('userName').textContent = currentUser.full_name || currentUser.username;
+            document.getElementById('userRole').textContent = currentUser.role;
+            
+            if (currentUser.avatar_url) {
+                document.getElementById('userAvatar').src = currentUser.avatar_url;
+            } else {
+                document.getElementById('userAvatar').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23667eea"/><text x="20" y="25" text-anchor="middle" fill="white" font-size="16">' + currentUser.username.charAt(0).toUpperCase() + '</text></svg>';
+            }
+            
+            // Update permissions
+            const permissionsEl = document.getElementById('userPermissions');
+            permissionsEl.innerHTML = '';
+            if (currentUser.permissions) {
+                currentUser.permissions.forEach(permission => {
+                    const badge = document.createElement('span');
+                    badge.className = 'permission';
+                    badge.textContent = permission;
+                    permissionsEl.appendChild(badge);
+                });
+            }
+            
+            // Show admin panel if user is admin
+            if (currentUser.role === 'admin' || currentUser.permissions.includes('admin')) {
+                document.getElementById('adminPanel').style.display = 'block';
+                loadAdminStats();
+            }
+        }
+        
+        // Chart initialization
+        function initCharts() {
+            const chartConfig = {
+                type: 'line',
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.4
+                        }
+                    }
+                }
+            };
+
+            const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+            const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+            const diskCtx = document.getElementById('diskChart').getContext('2d');
+
+            charts.cpu = new Chart(cpuCtx, {
+                ...chartConfig,
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: '#FF6B6B',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        fill: true
+                    }]
+                }
+            });
+
+            charts.memory = new Chart(memoryCtx, {
+                ...chartConfig,
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: '#4ECDC4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                        fill: true
+                    }]
+                }
+            });
+
+            charts.disk = new Chart(diskCtx, {
+                ...chartConfig,
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: '#45B7D1',
+                        backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                        fill: true
+                    }]
+                }
+            });
+        }
+        
+        // Load authenticated metrics
+        async function loadMetrics() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/metrics', {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateMetrics(data);
+                } else if (response.status === 401) {
+                    redirectToLogin();
+                }
+            } catch (error) {
+                console.error('Failed to load metrics:', error);
+            }
+        }
+        
+        // Update metrics display
+        function updateMetrics(data) {
+            document.getElementById('cpuValue').textContent = Math.round(data.cpu_usage) + '%';
+            document.getElementById('memoryValue').textContent = Math.round(data.memory_usage) + '%';
+            document.getElementById('diskValue').textContent = Math.round(data.disk_usage) + '%';
+            document.getElementById('successValue').textContent = data.success_rate + '%';
+            document.getElementById('pipelineRuns').textContent = data.pipeline_runs_today;
+            
+            // Update charts
+            const now = new Date().toLocaleTimeString();
+            
+            if (metricsHistory.labels.length >= 20) {
+                metricsHistory.labels.shift();
+                metricsHistory.cpu.shift();
+                metricsHistory.memory.shift();
+                metricsHistory.disk.shift();
+            }
+            
+            metricsHistory.labels.push(now);
+            metricsHistory.cpu.push(data.cpu_usage);
+            metricsHistory.memory.push(data.memory_usage);
+            metricsHistory.disk.push(data.disk_usage);
+            
+            // Update chart data
+            Object.keys(charts).forEach(chartName => {
+                charts[chartName].data.labels = [...metricsHistory.labels];
+                charts[chartName].data.datasets[0].data = [...metricsHistory[chartName]];
+                charts[chartName].update('none');
+            });
+            
+            document.getElementById('lastUpdated').textContent = 
+                `Last updated: ${new Date().toLocaleString()} • Requested by ${data.requested_by}`;
+        }
+        
+        // Load deployments
+        async function loadDeployments() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/deployments', {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const deployments = await response.json();
+                    const deploymentsEl = document.getElementById('deploymentsList');
+                    
+                    deploymentsEl.innerHTML = '';
+                    deployments.forEach(deployment => {
+                        const item = document.createElement('div');
+                        item.className = 'deployment-item';
+                        item.innerHTML = `
+                            <div class="deployment-version">${deployment.name} ${deployment.version}</div>
+                            <div class="deployment-meta">Environment: ${deployment.environment}</div>
+                            <div class="deployment-meta">Created by: ${deployment.created_by} • Status: ${deployment.status}</div>
+                            <div class="deployment-meta">${new Date(deployment.updated_at).toLocaleString()}</div>
+                        `;
+                        deploymentsEl.appendChild(item);
+                    });
+                } else if (response.status === 401) {
+                    redirectToLogin();
+                }
+            } catch (error) {
+                console.error('Failed to load deployments:', error);
+            }
+        }
+        
+        // Load admin stats
+        async function loadAdminStats() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/admin/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    const adminStatsEl = document.getElementById('adminStats');
+                    
+                    adminStatsEl.innerHTML = `
+                        <div class="admin-stat">
+                            <div class="admin-stat-value">${stats.total_users}</div>
+                            <div class="admin-stat-label">Total Users</div>
+                        </div>
+                        <div class="admin-stat">
+                            <div class="admin-stat-value">${stats.active_sessions}</div>
+                            <div class="admin-stat-label">Active Sessions</div>
+                        </div>
+                        <div class="admin-stat">
+                            <div class="admin-stat-value">${stats.version}</div>
+                            <div class="admin-stat-label">System Version</div>
+                        </div>
+                        <div class="admin-stat">
+                            <div class="admin-stat-value">${stats.system_uptime}</div>
+                            <div class="admin-stat-label">Uptime</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load admin stats:', error);
+            }
+        }
+        
+        // Logout
+        function logout() {
+            localStorage.removeItem('opssight_token');
+            localStorage.removeItem('opssight_user');
+            redirectToLogin();
+        }
+        
+        // Initialize dashboard
+        async function initDashboard() {
+            console.log('Initializing authenticated dashboard...');
+            
+            // Check authentication first
+            const isAuthenticated = await checkAuthentication();
+            if (!isAuthenticated) return;
+            
+            // Initialize UI
+            initUserInterface();
+            initCharts();
+            
+            // Load initial data
+            await loadMetrics();
+            await loadDeployments();
+            
+            // Hide loading screen and show dashboard
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('dashboard').classList.add('loaded');
+            
+            // Set up auto-refresh
+            updateInterval = setInterval(() => {
+                loadMetrics();
+                if (Math.random() < 0.3) {
+                    loadDeployments();
+                }
+            }, 15000); // 15 second refresh for authenticated users
+            
+            console.log('Authenticated dashboard loaded');
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', initDashboard);
+        
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) clearInterval(updateInterval);
+        });
+    </script>
+</body>
+</html>

@@ -69,7 +69,7 @@ export default function LoginPage() {
     if (code && state) {
       handleGitHubCallback(code, state);
     }
-  }, []);
+  }, [addToast, handleGitHubCallback]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};

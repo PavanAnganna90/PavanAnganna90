@@ -7,7 +7,7 @@
 
 import React, { forwardRef, useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { cn } from '@/utils/cn';
+import { cn } from '@/lib/utils';
 
 export interface SelectOption {
   value: string;

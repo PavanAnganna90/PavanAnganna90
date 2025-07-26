@@ -1,15 +1,15 @@
 {
-  "name": "OpsSight - DevOps Visibility Platform",
+  "name": "OpsSight Platform - Enterprise DevOps Intelligence",
   "short_name": "OpsSight",
-  "description": "Professional DevOps monitoring and visibility platform with real-time insights",
+  "description": "Enterprise-grade DevOps monitoring, AI-powered alerting, cost optimization, and real-time collaboration platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1E1E1E",
-  "theme_color": "#007ACC",
+  "background_color": "#0a0e27",
+  "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en",
-  "categories": ["productivity", "utilities", "developer"],
+  "lang": "en-US",
+  "categories": ["productivity", "utilities", "business", "developer"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -60,45 +60,88 @@
       "purpose": "maskable any"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "OpsSight Dashboard - Desktop View"
+    },
+    {
+      "src": "/screenshots/mobile-responsive.png", 
+      "sizes": "375x812",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "OpsSight Mobile - Touch Optimized"
+    }
+  ],
   "shortcuts": [
     {
-      "name": "Dashboard",
+      "name": "Live Dashboard",
       "short_name": "Dashboard",
-      "description": "View system overview and metrics",
-      "url": "/dashboard",
-      "icons": [{ "src": "/icons/shortcut-dashboard.png", "sizes": "192x192" }]
+      "description": "Real-time infrastructure monitoring",
+      "url": "/live-dashboard.html",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "Infrastructure",
-      "short_name": "Infra",
-      "description": "Monitor Kubernetes and infrastructure",
-      "url": "/infrastructure",
-      "icons": [{ "src": "/icons/shortcut-infrastructure.png", "sizes": "192x192" }]
+      "name": "Security Dashboard",
+      "short_name": "Security",
+      "description": "Security monitoring and vulnerability tracking",
+      "url": "/security-dashboard.html",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "Pipelines",
-      "short_name": "CI/CD",
-      "description": "View CI/CD pipelines and deployments",
-      "url": "/pipelines",
-      "icons": [{ "src": "/icons/shortcut-pipelines.png", "sizes": "192x192" }]
+      "name": "Performance Monitoring",
+      "short_name": "Performance",
+      "description": "AI-powered performance optimization",
+      "url": "/performance-monitoring.html",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "Alerts",
-      "short_name": "Alerts",
-      "description": "Check system alerts and notifications",
-      "url": "/alerts",
-      "icons": [{ "src": "/icons/shortcut-alerts.png", "sizes": "192x192" }]
+      "name": "Cost Optimization",
+      "short_name": "Costs",
+      "description": "Cloud cost analysis and savings",
+      "url": "/cost-optimization.html",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Team Collaboration",
+      "short_name": "Teams",
+      "description": "Real-time team chat and notifications",
+      "url": "/collaboration-dashboard.html",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ],
   "features": [
     "Cross Platform",
-    "fast",
-    "simple"
+    "AI-Powered Insights",
+    "Real-time Monitoring", 
+    "Offline Capable",
+    "Enterprise Security"
   ],
   "edge_side_panel": {
     "preferred_width": 400
   },
   "launch_handler": {
     "client_mode": "navigate-existing"
-  }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "mailto",
+      "url": "/contact?email=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/import-logs",
+      "accept": {
+        "application/json": [".json"],
+        "text/plain": [".log", ".txt"],
+        "application/x-yaml": [".yml", ".yaml"]
+      }
+    }
+  ],
+  "handle_links": "preferred",
+  "prefer_related_applications": false
 }

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Experience Dashboard - OpsSight</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .devex-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .devex-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #6d28d9 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .devex-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .devex-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .devex-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Satisfaction Score */
+        .satisfaction-score {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .score-display {
+            font-size: 96px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        
+        .score-label {
+            font-size: 24px;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+        
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+        
+        .score-item {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .score-item-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+        
+        .score-item-label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        /* Grid Layout */
+        .devex-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .devex-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3730a3 0%, #6d28d9 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Developer List */
+        .developer-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .developer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .developer-item:hover {
+            transform: translateX(4px);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .developer-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .developer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #6d28d9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .developer-details h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .developer-details p {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        .developer-score {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        /* Friction Points */
+        .friction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .friction-item {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .friction-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .friction-description {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+        
+        .friction-impact {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .impact-score {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ef4444;
+        }
+        
+        .affected-count {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        /* Productivity Metrics */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .metric-box {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Recommendations */
+        .recommendation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .recommendation-item {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .recommendation-item h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #10b981;
+        }
+        
+        .recommendation-item p {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .devex-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .score-display {
+                font-size: 72px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="devex-container">
+        <!-- Header -->
+        <div class="devex-header">
+            <h1>👩‍💻 Developer Experience Dashboard</h1>
+            <p class="devex-subtitle">Real-time insights into developer satisfaction, productivity, and team health</p>
+        </div>
+
+        <!-- Overall Satisfaction Score -->
+        <div class="satisfaction-score">
+            <div class="score-display" id="overallScore">8.2</div>
+            <div class="score-label">Overall Developer Satisfaction</div>
+            
+            <div class="score-breakdown">
+                <div class="score-item">
+                    <div class="score-item-value">7.8</div>
+                    <div class="score-item-label">Development Tools</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-item-value">8.5</div>
+                    <div class="score-item-label">Team Collaboration</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-item-value">7.2</div>
+                    <div class="score-item-label">Code Review Process</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-item-value">8.9</div>
+                    <div class="score-item-label">Deployment Pipeline</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-item-value">6.8</div>
+                    <div class="score-item-label">Documentation</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-item-value">7.5</div>
+                    <div class="score-item-label">Learning & Growth</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="devex-grid">
+            <!-- Developer Productivity Rankings -->
+            <div class="devex-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon">🏆</div>
+                        Developer Productivity Rankings
+                    </div>
+                </div>
+                
+                <div class="developer-list" id="developerList">
+                    <div class="developer-item">
+                        <div class="developer-info">
+                            <div class="developer-avatar">SC</div>
+                            <div class="developer-details">
+                                <h3>Sarah Chen</h3>
+                                <p>Frontend • Senior Developer</p>
+                            </div>
+                        </div>
+                        <div class="developer-score">9.2</div>
+                    </div>
+                    
+                    <div class="developer-item">
+                        <div class="developer-info">
+                            <div class="developer-avatar">MJ</div>
+                            <div class="developer-details">
+                                <h3>Mike Johnson</h3>
+                                <p>Backend • Tech Lead</p>
+                            </div>
+                        </div>
+                        <div class="developer-score">8.8</div>
+                    </div>
+                    
+                    <div class="developer-item">
+                        <div class="developer-info">
+                            <div class="developer-avatar">AK</div>
+                            <div class="developer-details">
+                                <h3>Alex Kumar</h3>
+                                <p>DevOps • Platform Engineer</p>
+                            </div>
+                        </div>
+                        <div class="developer-score">8.5</div>
+                    </div>
+                    
+                    <div class="developer-item">
+                        <div class="developer-info">
+                            <div class="developer-avatar">ED</div>
+                            <div class="developer-details">
+                                <h3>Emily Davis</h3>
+                                <p>Frontend • Developer</p>
+                            </div>
+                        </div>
+                        <div class="developer-score">8.1</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friction Points -->
+            <div class="devex-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon">⚠️</div>
+                        Current Friction Points
+                    </div>
+                </div>
+                
+                <div class="friction-list">
+                    <div class="friction-item">
+                        <h4 class="friction-title">Slow CI/CD Pipeline</h4>
+                        <p class="friction-description">Build times averaging 18 minutes, causing delays</p>
+                        <div class="friction-impact">
+                            <span class="impact-score">Impact: 7.2/10</span>
+                            <span class="affected-count">5 developers affected</span>
+                        </div>
+                    </div>
+                    
+                    <div class="friction-item">
+                        <h4 class="friction-title">Complex Environment Setup</h4>
+                        <p class="friction-description">New developers taking 2+ days to set up local environment</p>
+                        <div class="friction-impact">
+                            <span class="impact-score">Impact: 6.8/10</span>
+                            <span class="affected-count">3 developers affected</span>
+                        </div>
+                    </div>
+                    
+                    <div class="friction-item">
+                        <h4 class="friction-title">Outdated Documentation</h4>
+                        <p class="friction-description">API docs and setup guides need updating</p>
+                        <div class="friction-impact">
+                            <span class="impact-score">Impact: 6.5/10</span>
+                            <span class="affected-count">7 developers affected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productivity Metrics -->
+            <div class="devex-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon">📊</div>
+                        Team Productivity Metrics
+                    </div>
+                </div>
+                
+                <div class="metric-grid">
+                    <div class="metric-box">
+                        <div class="metric-value">3.2</div>
+                        <div class="metric-label">Avg Commits/Day</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">92%</div>
+                        <div class="metric-label">PR Merge Rate</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">4.5h</div>
+                        <div class="metric-label">Avg Review Time</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">8.4</div>
+                        <div class="metric-label">Code Quality Score</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="productivityTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Satisfaction Trends -->
+            <div class="devex-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon">📈</div>
+                        Satisfaction Trends
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="satisfactionTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Team Health Heatmap -->
+            <div class="devex-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon">🔥</div>
+                        Team Health Heatmap
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="teamHealthHeatmap"></canvas>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="devex-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon">💡</div>
+                        AI-Powered Recommendations
+                    </div>
+                </div>
+                
+                <div class="recommendation-list">
+                    <div class="recommendation-item">
+                        <h4>Optimize CI/CD Pipeline</h4>
+                        <p>Implement parallel test execution and caching to reduce build times by 40%</p>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <h4>Streamline Development Setup</h4>
+                        <p>Create Docker-based development environment to reduce setup time to < 30 minutes</p>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <h4>Implement Pair Programming</h4>
+                        <p>Schedule weekly pair programming sessions to improve knowledge sharing</p>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <h4>Documentation Sprint</h4>
+                        <p>Dedicate one sprint to updating critical documentation and API guides</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let authToken = localStorage.getItem('auth_token');
+        let charts = {};
+        
+        // Check authentication
+        if (!authToken) {
+            // Redirect to login if not authenticated
+            console.log('No auth token found, using demo mode');
+        }
+        
+        // Initialize Productivity Trend Chart
+        function initProductivityTrendChart() {
+            const ctx = document.getElementById('productivityTrendChart').getContext('2d');
+            
+            charts.productivity = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: [{
+                        label: 'Commits',
+                        data: [28, 32, 25, 35, 30],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'PRs Merged',
+                        data: [8, 12, 10, 15, 11],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize Satisfaction Trend Chart
+        function initSatisfactionTrendChart() {
+            const ctx = document.getElementById('satisfactionTrendChart').getContext('2d');
+            
+            charts.satisfaction = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Overall Satisfaction',
+                        data: [7.5, 7.8, 7.6, 8.0, 8.1, 8.2],
+                        borderColor: '#6d28d9',
+                        backgroundColor: 'rgba(109, 40, 217, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 10,
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize Team Health Heatmap
+        function initTeamHealthHeatmap() {
+            const ctx = document.getElementById('teamHealthHeatmap').getContext('2d');
+            
+            // Create heatmap data
+            const teams = ['Frontend', 'Backend', 'DevOps', 'QA'];
+            const metrics = ['Productivity', 'Satisfaction', 'Collaboration', 'Code Quality', 'Work-Life Balance'];
+            
+            // Generate heatmap data
+            const data = [];
+            teams.forEach((team, teamIndex) => {
+                metrics.forEach((metric, metricIndex) => {
+                    data.push({
+                        x: metricIndex,
+                        y: teamIndex,
+                        v: Math.random() * 3 + 7 // Random values between 7-10
+                    });
+                });
+            });
+            
+            charts.heatmap = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Team Health',
+                        data: data,
+                        backgroundColor: (context) => {
+                            const value = context.raw.v;
+                            if (value >= 9) return 'rgba(16, 185, 129, 0.8)';
+                            if (value >= 7) return 'rgba(59, 130, 246, 0.8)';
+                            return 'rgba(239, 68, 68, 0.8)';
+                        },
+                        borderColor: 'transparent',
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    return `${teams[context.raw.y]} - ${metrics[context.raw.x]}: ${context.raw.v.toFixed(1)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'category',
+                            labels: metrics,
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'category',
+                            labels: teams,
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: 10
+                    },
+                    elements: {
+                        point: {
+                            radius: (context) => {
+                                const size = 30;
+                                return size;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load DevEx data from backend
+        async function loadDevExData() {
+            if (!authToken) {
+                console.log('Using demo data');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/engineering/devex', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateDashboard(data);
+                }
+            } catch (error) {
+                console.error('Failed to load DevEx data:', error);
+            }
+        }
+        
+        // Update dashboard with real data
+        function updateDashboard(data) {
+            // Update overall score
+            if (data.overall_satisfaction) {
+                document.getElementById('overallScore').textContent = data.overall_satisfaction.toFixed(1);
+            }
+            
+            // Update other metrics as needed
+        }
+        
+        // Initialize dashboard
+        function initializeDevExDashboard() {
+            console.log('Initializing Developer Experience Dashboard');
+            
+            // Initialize all charts
+            initProductivityTrendChart();
+            initSatisfactionTrendChart();
+            initTeamHealthHeatmap();
+            
+            // Load data from backend
+            loadDevExData();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(loadDevExData, 300000);
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeDevExDashboard);
+    </script>
+</body>
+</html>

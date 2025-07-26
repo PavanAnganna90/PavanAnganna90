@@ -1,0 +1,229 @@
+/* Dashboard Theme Variables */
+:root {
+  /* Primary Colors */
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  
+  /* Dashboard Specific Colors */
+  --dashboard-bg: 0 0% 98%;
+  --dashboard-card: 0 0% 100%;
+  --dashboard-border: 214 32% 91%;
+  
+  /* Status Colors */
+  --status-healthy: 142 76% 36%;
+  --status-warning: 38 92% 50%;
+  --status-critical: 0 84% 60%;
+  --status-info: 217 91% 60%;
+  
+  /* Chart Colors */
+  --chart-1: 217 91% 60%;
+  --chart-2: 142 76% 36%;
+  --chart-3: 38 92% 50%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+}
+
+.dark {
+  /* Primary Colors */
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 98%;
+  
+  /* Dashboard Specific Colors */
+  --dashboard-bg: 222 47% 11%;
+  --dashboard-card: 224 71% 4%;
+  --dashboard-border: 215 27% 17%;
+  
+  /* Status Colors */
+  --status-healthy: 142 72% 29%;
+  --status-warning: 38 92% 50%;
+  --status-critical: 0 73% 42%;
+  --status-info: 217 91% 60%;
+  
+  /* Chart Colors */
+  --chart-1: 217 91% 60%;
+  --chart-2: 142 72% 29%;
+  --chart-3: 38 92% 50%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+}
+
+/* Dashboard Layout Styles */
+.dashboard-shell {
+  @apply bg-dashboard-bg min-h-screen;
+}
+
+.dashboard-sidebar {
+  @apply bg-dashboard-card border-r border-dashboard-border;
+}
+
+.dashboard-header {
+  @apply bg-dashboard-card border-b border-dashboard-border;
+}
+
+/* Status Indicators */
+.status-healthy {
+  @apply text-status-healthy bg-status-healthy/10;
+}
+
+.status-warning {
+  @apply text-status-warning bg-status-warning/10;
+}
+
+.status-critical {
+  @apply text-status-critical bg-status-critical/10;
+}
+
+.status-info {
+  @apply text-status-info bg-status-info/10;
+}
+
+/* Animations */
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Chart Container Styles */
+.chart-container {
+  @apply bg-dashboard-card border border-dashboard-border rounded-lg p-4;
+}
+
+.chart-tooltip {
+  @apply bg-dashboard-card border border-dashboard-border shadow-lg rounded-md px-3 py-2 text-sm;
+}
+
+/* Metric Card Enhancements */
+.metric-card {
+  @apply bg-dashboard-card border border-dashboard-border rounded-lg p-6 hover:shadow-lg transition-all duration-200;
+}
+
+.metric-trend-up {
+  @apply text-status-healthy;
+}
+
+.metric-trend-down {
+  @apply text-status-critical;
+}
+
+/* Pipeline Status Styles */
+.pipeline-running {
+  @apply border-l-4 border-blue-500;
+}
+
+.pipeline-success {
+  @apply border-l-4 border-green-500;
+}
+
+.pipeline-failed {
+  @apply border-l-4 border-red-500;
+}
+
+/* Alert Panel Styles */
+.alert-critical {
+  @apply border-l-4 border-red-500 bg-red-50 dark:bg-red-900/10;
+}
+
+.alert-warning {
+  @apply border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10;
+}
+
+.alert-info {
+  @apply border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/10;
+}
+
+/* Resource Monitor Styles */
+.resource-healthy {
+  @apply bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800;
+}
+
+.resource-warning {
+  @apply bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800;
+}
+
+.resource-critical {
+  @apply bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800;
+}
+
+/* Git Activity Styles */
+.git-commit {
+  @apply border-l-2 border-blue-400;
+}
+
+.git-merge {
+  @apply border-l-2 border-purple-400;
+}
+
+.git-pr {
+  @apply border-l-2 border-green-400;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .dashboard-sidebar {
+    @apply w-full;
+  }
+  
+  .dashboard-content {
+    @apply px-4;
+  }
+}
+
+/* Custom Scrollbar */
+.dashboard-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--dashboard-border)) transparent;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--dashboard-border));
+  border-radius: 4px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--dashboard-border) / 0.8);
+}

@@ -31,6 +31,16 @@ export {
   type SkeletonSize,
 } from './LoadingSkeleton';
 
+// Card Components
+export {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from './card';
+
 // Button Components
 export { Button, buttonVariants } from './button';
 

@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Monitoring - OpsSight Platform</title>
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .performance-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .performance-header {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .performance-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .performance-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .performance-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Health Score Card */
+        .health-score-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            text-align: center;
+        }
+        
+        .health-score {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .score-degraded { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .score-critical { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .health-score-label {
+            font-size: 24px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        
+        .health-status {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .status-healthy {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .status-degraded {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .status-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        /* Performance Overview */
+        .perf-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .perf-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .perf-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #16a34a, #10b981);
+        }
+        
+        .perf-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #16a34a;
+        }
+        
+        .perf-label {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .perf-change {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        
+        .change-positive {
+            color: #10b981;
+        }
+        
+        .change-negative {
+            color: #ef4444;
+        }
+        
+        /* Main Grid */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .performance-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .performance-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .performance-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Active Alerts */
+        .alert-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .alert-item:hover {
+            transform: translateX(4px);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        
+        .alert-severity {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+        
+        .severity-critical { background: #ef4444; }
+        .severity-warning { background: #f59e0b; }
+        .severity-info { background: #3b82f6; }
+        
+        .alert-info {
+            flex: 1;
+        }
+        
+        .alert-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #e2e8f0;
+        }
+        
+        .alert-info p {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        
+        .alert-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .alert-value {
+            font-weight: 600;
+            color: #ef4444;
+        }
+        
+        .alert-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .alert-action {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .action-acknowledge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .action-runbook {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .alert-action:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Optimization Recommendations */
+        .optimization-grid {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .optimization-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+        }
+        
+        .optimization-item.implemented::before {
+            content: '✅';
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 16px;
+        }
+        
+        .optimization-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .optimization-category {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .category-performance { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .category-resource { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .category-cost { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .category-security { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .category-capacity { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        
+        .optimization-priority {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .optimization-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .optimization-description {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+        
+        .optimization-metrics {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+        }
+        
+        .optimization-impact,
+        .optimization-effort,
+        .optimization-savings {
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Anomaly Detection */
+        .anomaly-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .anomaly-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .anomaly-severity {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .anomaly-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .anomaly-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        
+        .anomaly-info {
+            flex: 1;
+        }
+        
+        .anomaly-info h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .anomaly-info p {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .anomaly-deviation {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ef4444;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .performance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .perf-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .performance-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="performance-container">
+        <!-- Header -->
+        <div class="performance-header">
+            <h1>📊 Performance Monitoring</h1>
+            <p class="performance-subtitle">Advanced system optimization and intelligent alerting</p>
+        </div>
+
+        <!-- Health Score -->
+        <div class="health-score-card">
+            <div class="health-score" id="healthScore">87</div>
+            <div class="health-score-label">System Health Score</div>
+            <div class="health-status status-healthy" id="healthStatus">Healthy</div>
+        </div>
+
+        <!-- Performance Overview -->
+        <div class="perf-overview">
+            <div class="perf-card">
+                <div class="perf-value" id="avgCpuUsage">34.2%</div>
+                <div class="perf-label">Average CPU</div>
+                <div class="perf-change change-positive">↓ 2.1% from yesterday</div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-value" id="avgMemoryUsage">58.7%</div>
+                <div class="perf-label">Average Memory</div>
+                <div class="perf-change change-positive">↓ 1.8% from yesterday</div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-value" id="avgResponseTime">142ms</div>
+                <div class="perf-label">Response Time</div>
+                <div class="perf-change change-negative">↑ 12ms from yesterday</div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-value" id="activeAlerts">5</div>
+                <div class="perf-label">Active Alerts</div>
+                <div class="perf-change change-negative">↑ 2 new today</div>
+            </div>
+            <div class="perf-card">
+                <div class="perf-value" id="potentialSavings">$1,800</div>
+                <div class="perf-label">Monthly Savings</div>
+                <div class="perf-change change-positive">Available optimizations</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="performance-grid">
+            <!-- Active Alerts -->
+            <div class="performance-card">
+                <div class="performance-title">
+                    <div class="performance-icon">🚨</div>
+                    Active Performance Alerts
+                </div>
+                
+                <div class="alert-list" id="alertsList">
+                    <div class="alert-item">
+                        <div class="alert-severity severity-critical"></div>
+                        <div class="alert-info">
+                            <h4>High CPU usage detected</h4>
+                            <p>CPU usage has exceeded 85% for more than 5 minutes on prod-web-02</p>
+                            <div class="alert-meta">
+                                <span>Current: <span class="alert-value">87.3%</span></span>
+                                <span>Threshold: 85%</span>
+                                <span>Duration: 12 minutes</span>
+                                <span>Service: opssight-backend</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <a href="#" class="alert-action action-acknowledge">Acknowledge</a>
+                            <a href="#" class="alert-action action-runbook">Runbook</a>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-item">
+                        <div class="alert-severity severity-warning"></div>
+                        <div class="alert-info">
+                            <h4>Memory usage approaching limit</h4>
+                            <p>Memory usage has exceeded 75% threshold on database server</p>
+                            <div class="alert-meta">
+                                <span>Current: <span class="alert-value">78.5%</span></span>
+                                <span>Threshold: 75%</span>
+                                <span>Duration: 28 minutes</span>
+                                <span>Service: postgres</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <a href="#" class="alert-action action-acknowledge">Acknowledge</a>
+                            <a href="#" class="alert-action action-runbook">Runbook</a>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-item">
+                        <div class="alert-severity severity-warning"></div>
+                        <div class="alert-info">
+                            <h4>API response time degraded</h4>
+                            <p>Average response time has exceeded 800ms for the past 10 minutes</p>
+                            <div class="alert-meta">
+                                <span>Current: <span class="alert-value">850.2ms</span></span>
+                                <span>Threshold: 500ms</span>
+                                <span>Duration: 45 minutes</span>
+                                <span>Service: opssight-frontend</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <a href="#" class="alert-action action-acknowledge">Acknowledge</a>
+                            <a href="#" class="alert-action action-runbook">Runbook</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anomaly Detection -->
+            <div class="performance-card">
+                <div class="performance-title">
+                    <div class="performance-icon">🔍</div>
+                    Anomaly Detection
+                </div>
+                
+                <div class="anomaly-list" id="anomalyList">
+                    <div class="anomaly-item">
+                        <div class="anomaly-severity anomaly-high">High</div>
+                        <div class="anomaly-info">
+                            <h5>opssight-backend</h5>
+                            <p>CPU usage deviation from baseline</p>
+                        </div>
+                        <div class="anomaly-deviation">+73%</div>
+                    </div>
+                    
+                    <div class="anomaly-item">
+                        <div class="anomaly-severity anomaly-medium">Medium</div>
+                        <div class="anomaly-info">
+                            <h5>postgres</h5>
+                            <p>Memory usage above normal patterns</p>
+                        </div>
+                        <div class="anomaly-deviation">+58%</div>
+                    </div>
+                    
+                    <div class="anomaly-item">
+                        <div class="anomaly-severity anomaly-medium">Medium</div>
+                        <div class="anomaly-info">
+                            <h5>redis</h5>
+                            <p>Network traffic unusual pattern</p>
+                        </div>
+                        <div class="anomaly-deviation">+42%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimization Recommendations -->
+        <div class="performance-grid">
+            <div class="performance-card">
+                <div class="performance-title">
+                    <div class="performance-icon">💡</div>
+                    Optimization Recommendations
+                </div>
+                
+                <div class="optimization-grid" id="optimizationGrid">
+                    <div class="optimization-item implemented">
+                        <div class="optimization-header">
+                            <div class="optimization-category category-resource">Resource</div>
+                            <div class="optimization-priority">Priority: 75</div>
+                        </div>
+                        <div class="optimization-title">Right-size database instances</div>
+                        <div class="optimization-description">
+                            PostgreSQL instances are over-provisioned with 40% average CPU utilization. Consider downsizing to save costs.
+                        </div>
+                        <div class="optimization-metrics">
+                            <div class="optimization-impact">Impact: Medium</div>
+                            <div class="optimization-effort">Effort: Low</div>
+                            <div class="optimization-savings">Savings: $1,200/month</div>
+                        </div>
+                    </div>
+                    
+                    <div class="optimization-item">
+                        <div class="optimization-header">
+                            <div class="optimization-category category-performance">Performance</div>
+                            <div class="optimization-priority">Priority: 90</div>
+                        </div>
+                        <div class="optimization-title">Scale frontend servers horizontally</div>
+                        <div class="optimization-description">
+                            Frontend servers are approaching capacity limits during peak hours. Add 2 additional instances.
+                        </div>
+                        <div class="optimization-metrics">
+                            <div class="optimization-impact">Impact: High</div>
+                            <div class="optimization-effort">Effort: Low</div>
+                            <div class="optimization-savings">Prevents outages</div>
+                        </div>
+                    </div>
+                    
+                    <div class="optimization-item">
+                        <div class="optimization-header">
+                            <div class="optimization-category category-performance">Performance</div>
+                            <div class="optimization-priority">Priority: 85</div>
+                        </div>
+                        <div class="optimization-title">Implement Redis caching for API responses</div>
+                        <div class="optimization-description">
+                            API response times can be improved by 60% with strategic caching of frequently accessed data.
+                        </div>
+                        <div class="optimization-metrics">
+                            <div class="optimization-impact">Impact: High</div>
+                            <div class="optimization-effort">Effort: Medium</div>
+                            <div class="optimization-savings">Better UX</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Trends Chart -->
+            <div class="performance-card">
+                <div class="performance-title">
+                    <div class="performance-icon">📈</div>
+                    Performance Trends
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="performanceTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        let charts = {};
+        
+        // Initialize Performance Trends Chart
+        function initPerformanceTrendsChart() {
+            const ctx = document.getElementById('performanceTrendsChart').getContext('2d');
+            
+            charts.performanceTrends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
+                    datasets: [
+                        {
+                            label: 'CPU Usage %',
+                            data: [32, 28, 34, 45, 38, 42, 34],
+                            borderColor: '#16a34a',
+                            backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Memory Usage %',
+                            data: [55, 58, 62, 68, 65, 61, 59],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Response Time (ms)',
+                            data: [120, 135, 158, 180, 165, 155, 142],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            max: 100,
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            max: 200,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load performance data from backend
+        async function loadPerformanceData() {
+            if (!authToken) {
+                console.log('Using demo data for performance monitoring');
+                return;
+            }
+            
+            try {
+                // Fetch performance overview
+                const overviewResponse = await fetch('http://localhost:8000/api/v1/performance/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (overviewResponse.ok) {
+                    const overviewData = await overviewResponse.json();
+                    updatePerformanceOverview(overviewData);
+                }
+                
+                // Fetch active alerts
+                const alertsResponse = await fetch('http://localhost:8000/api/v1/performance/alerts', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (alertsResponse.ok) {
+                    const alertsData = await alertsResponse.json();
+                    updateAlertsList(alertsData);
+                }
+                
+                // Fetch optimization recommendations
+                const optimizationResponse = await fetch('http://localhost:8000/api/v1/performance/recommendations', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (optimizationResponse.ok) {
+                    const optimizationData = await optimizationResponse.json();
+                    updateOptimizationRecommendations(optimizationData);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load performance data:', error);
+            }
+        }
+        
+        // Update performance overview with real data
+        function updatePerformanceOverview(data) {
+            if (data.system_health) {
+                const health = data.system_health;
+                const score = health.health_score;
+                
+                // Update health score
+                const scoreElement = document.getElementById('healthScore');
+                scoreElement.textContent = score;
+                
+                // Update score styling
+                scoreElement.className = 'health-score';
+                if (score < 60) {
+                    scoreElement.classList.add('score-critical');
+                } else if (score < 80) {
+                    scoreElement.classList.add('score-degraded');
+                }
+                
+                // Update status
+                const statusElement = document.getElementById('healthStatus');
+                statusElement.textContent = health.status.charAt(0).toUpperCase() + health.status.slice(1);
+                statusElement.className = `health-status status-${health.status}`;
+            }
+            
+            if (data.performance_summary) {
+                const perf = data.performance_summary;
+                document.getElementById('avgCpuUsage').textContent = `${perf.avg_cpu_usage}%`;
+                document.getElementById('avgMemoryUsage').textContent = `${perf.avg_memory_usage}%`;
+                document.getElementById('avgResponseTime').textContent = `${perf.avg_response_time}ms`;
+            }
+            
+            if (data.system_health) {
+                document.getElementById('activeAlerts').textContent = data.system_health.active_alerts;
+            }
+            
+            if (data.optimization_insights) {
+                document.getElementById('potentialSavings').textContent = data.optimization_insights.potential_monthly_savings;
+            }
+        }
+        
+        // Update alerts list with real data
+        function updateAlertsList(alerts) {
+            const alertsList = document.getElementById('alertsList');
+            alertsList.innerHTML = '';
+            
+            alerts.slice(0, 5).forEach(alert => {
+                const alertElement = document.createElement('div');
+                alertElement.className = 'alert-item';
+                
+                const severityClass = `severity-${alert.severity}`;
+                
+                alertElement.innerHTML = `
+                    <div class="alert-severity ${severityClass}"></div>
+                    <div class="alert-info">
+                        <h4>${alert.message}</h4>
+                        <p>${alert.description}</p>
+                        <div class="alert-meta">
+                            <span>Current: <span class="alert-value">${alert.current_value}${getUnitSuffix(alert.metric_name)}</span></span>
+                            <span>Threshold: ${alert.threshold_value}${getUnitSuffix(alert.metric_name)}</span>
+                            <span>Duration: ${alert.duration_minutes} minutes</span>
+                            <span>Service: ${alert.service}</span>
+                        </div>
+                    </div>
+                    <div class="alert-actions">
+                        <a href="#" class="alert-action action-acknowledge" onclick="acknowledgeAlert('${alert.id}')">Acknowledge</a>
+                        <a href="${alert.runbook_url}" class="alert-action action-runbook" target="_blank">Runbook</a>
+                    </div>
+                `;
+                
+                alertsList.appendChild(alertElement);
+            });
+        }
+        
+        // Update optimization recommendations
+        function updateOptimizationRecommendations(recommendations) {
+            const optimizationGrid = document.getElementById('optimizationGrid');
+            optimizationGrid.innerHTML = '';
+            
+            recommendations.slice(0, 3).forEach(rec => {
+                const recElement = document.createElement('div');
+                recElement.className = `optimization-item ${rec.implemented ? 'implemented' : ''}`;
+                
+                const categoryClass = getCategoryClass(rec.category);
+                
+                recElement.innerHTML = `
+                    <div class="optimization-header">
+                        <div class="optimization-category ${categoryClass}">${rec.category}</div>
+                        <div class="optimization-priority">Priority: ${rec.priority_score}</div>
+                    </div>
+                    <div class="optimization-title">${rec.title}</div>
+                    <div class="optimization-description">${rec.description}</div>
+                    <div class="optimization-metrics">
+                        <div class="optimization-impact">Impact: ${rec.impact}</div>
+                        <div class="optimization-effort">Effort: ${rec.effort}</div>
+                        <div class="optimization-savings">Savings: ${rec.savings_estimate}</div>
+                    </div>
+                `;
+                
+                optimizationGrid.appendChild(recElement);
+            });
+        }
+        
+        // Acknowledge alert
+        async function acknowledgeAlert(alertId) {
+            if (!authToken) {
+                alert('Authentication required to acknowledge alerts');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/v1/performance/alerts/${alertId}/acknowledge`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Reload alerts to show updated status
+                    setTimeout(loadPerformanceData, 500);
+                }
+            } catch (error) {
+                console.error('Failed to acknowledge alert:', error);
+            }
+        }
+        
+        // Utility functions
+        function getUnitSuffix(metricName) {
+            if (metricName.includes('percent') || metricName.includes('usage')) return '%';
+            if (metricName.includes('time') || metricName.includes('ms')) return 'ms';
+            if (metricName.includes('rate')) return '%';
+            return '';
+        }
+        
+        function getCategoryClass(category) {
+            const categoryMap = {
+                'Resource Optimization': 'category-resource',
+                'Performance Tuning': 'category-performance',
+                'Cost Optimization': 'category-cost',
+                'Security Optimization': 'category-security',
+                'Capacity Planning': 'category-capacity'
+            };
+            return categoryMap[category] || 'category-performance';
+        }
+        
+        // Initialize performance monitoring dashboard
+        function initializePerformanceMonitoring() {
+            console.log('📊 Initializing Performance Monitoring Dashboard');
+            
+            // Initialize charts
+            initPerformanceTrendsChart();
+            
+            // Load initial data
+            loadPerformanceData();
+            
+            // Set up periodic data refresh
+            setInterval(loadPerformanceData, 30000); // Refresh every 30 seconds
+            
+            console.log('✅ Performance monitoring initialization complete');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializePerformanceMonitoring);
+    </script>
+</body>
+</html>

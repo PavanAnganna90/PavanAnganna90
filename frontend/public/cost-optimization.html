@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Optimization - OpsSight Platform</title>
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .cost-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .cost-header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cost-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .cost-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cost-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Cost Overview Cards */
+        .cost-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .cost-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cost-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #059669, #10b981);
+        }
+        
+        .cost-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .cost-value.negative {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .cost-label {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .cost-change {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        
+        .change-positive {
+            color: #10b981;
+        }
+        
+        .change-negative {
+            color: #ef4444;
+        }
+        
+        /* Budget Status */
+        .budget-status {
+            display: flex;
+            align-items: center;
+            gap: 8php;
+            margin-top: 8px;
+        }
+        
+        .budget-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(100, 116, 139, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .budget-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #059669, #10b981);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .budget-fill.warning {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+        
+        .budget-fill.danger {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+        
+        /* Main Grid */
+        .cost-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .cost-main-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .cost-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .cost-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Optimization Recommendations */
+        .recommendation-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .recommendation-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, #059669, #10b981);
+        }
+        
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .recommendation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+        
+        .recommendation-savings {
+            text-align: right;
+        }
+        
+        .savings-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 2px;
+        }
+        
+        .savings-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+        
+        .recommendation-description {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .recommendation-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .meta-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .priority-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .priority-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .priority-low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .effort-low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .effort-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .effort-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .confidence-badge {
+            background: rgba(5, 150, 105, 0.2);
+            color: #059669;
+        }
+        
+        .recommendation-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .action-primary {
+            background: #059669;
+            color: white;
+        }
+        
+        .action-primary:hover {
+            background: #047857;
+        }
+        
+        .action-secondary {
+            background: rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        
+        .action-secondary:hover {
+            background: rgba(148, 163, 184, 0.3);
+        }
+        
+        /* Cost Breakdown */
+        .cost-breakdown {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .breakdown-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .breakdown-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .breakdown-details h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .breakdown-details p {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .breakdown-cost {
+            text-align: right;
+        }
+        
+        .breakdown-amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .breakdown-percentage {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        /* Waste Analysis */
+        .waste-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+        }
+        
+        .waste-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .waste-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .waste-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .waste-percentage {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ef4444;
+        }
+        
+        .waste-description {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        
+        .waste-savings {
+            font-size: 12px;
+            color: #059669;
+            font-weight: 500;
+        }
+        
+        /* Forecast Chart */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .cost-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .cost-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .cost-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cost-container">
+        <!-- Header -->
+        <div class="cost-header">
+            <h1>💰 Cost Optimization</h1>
+            <p class="cost-subtitle">Advanced cost analysis and optimization recommendations</p>
+        </div>
+
+        <!-- Cost Overview -->
+        <div class="cost-overview">
+            <div class="cost-card">
+                <div class="cost-value" id="currentMonthlyCost">$7,320</div>
+                <div class="cost-label">Current Monthly</div>
+                <div class="cost-change change-negative">↑ $245 from last month</div>
+            </div>
+            <div class="cost-card">
+                <div class="cost-value" id="projectedMonthlyCost">$7,890</div>
+                <div class="cost-label">Projected Monthly</div>
+                <div class="cost-change change-negative">↑ 7.8% increase projected</div>
+            </div>
+            <div class="cost-card">
+                <div class="cost-value" id="potentialSavings">$1,485</div>
+                <div class="cost-label">Potential Savings</div>
+                <div class="cost-change change-positive">20.3% cost reduction available</div>
+            </div>
+            <div class="cost-card">
+                <div class="cost-value" id="wastePercentage">18.5%</div>
+                <div class="cost-label">Resource Waste</div>
+                <div class="cost-change change-negative">$1,354 monthly waste identified</div>
+            </div>
+            <div class="cost-card">
+                <div class="cost-value" id="budgetUtilization">48.8%</div>
+                <div class="cost-label">Budget Utilization</div>
+                <div class="budget-status">
+                    <div class="budget-bar">
+                        <div class="budget-fill" style="width: 48.8%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="cost-grid">
+            <!-- Optimization Recommendations -->
+            <div class="cost-main-card">
+                <div class="cost-title">
+                    <div class="cost-icon">💡</div>
+                    Cost Optimization Recommendations
+                </div>
+                
+                <div id="recommendationsList">
+                    <div class="recommendation-item">
+                        <div class="recommendation-header">
+                            <div>
+                                <div class="recommendation-title">Right-size Kubernetes cluster nodes</div>
+                                <div class="recommendation-description">
+                                    Current cluster nodes are over-provisioned with 45% average utilization. Reduce instance sizes to save costs.
+                                </div>
+                            </div>
+                            <div class="recommendation-savings">
+                                <div class="savings-amount">$1,100</div>
+                                <div class="savings-label">Monthly</div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-meta">
+                            <div class="meta-badge priority-high">High Priority</div>
+                            <div class="meta-badge effort-medium">Medium Effort</div>
+                            <div class="meta-badge confidence-badge">89% Confidence</div>
+                        </div>
+                        
+                        <div class="recommendation-actions">
+                            <button class="action-btn action-primary">Implement</button>
+                            <button class="action-btn action-secondary">View Details</button>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <div class="recommendation-header">
+                            <div>
+                                <div class="recommendation-title">Implement Reserved Instances</div>
+                                <div class="recommendation-description">
+                                    Purchase 1-year reserved instances for predictable workloads to achieve 30-40% cost savings.
+                                </div>
+                            </div>
+                            <div class="recommendation-savings">
+                                <div class="savings-amount">$420</div>
+                                <div class="savings-label">Monthly</div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-meta">
+                            <div class="meta-badge priority-high">High Priority</div>
+                            <div class="meta-badge effort-low">Low Effort</div>
+                            <div class="meta-badge confidence-badge">95% Confidence</div>
+                        </div>
+                        
+                        <div class="recommendation-actions">
+                            <button class="action-btn action-primary">Implement</button>
+                            <button class="action-btn action-secondary">View Details</button>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <div class="recommendation-header">
+                            <div>
+                                <div class="recommendation-title">Optimize Elasticsearch cluster</div>
+                                <div class="recommendation-description">
+                                    Elasticsearch cluster is under-utilized at 35%. Consider smaller instances or consolidation.
+                                </div>
+                            </div>
+                            <div class="recommendation-savings">
+                                <div class="savings-amount">$250</div>
+                                <div class="savings-label">Monthly</div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-meta">
+                            <div class="meta-badge priority-medium">Medium Priority</div>
+                            <div class="meta-badge effort-medium">Medium Effort</div>
+                            <div class="meta-badge confidence-badge">78% Confidence</div>
+                        </div>
+                        
+                        <div class="recommendation-actions">
+                            <button class="action-btn action-primary">Implement</button>
+                            <button class="action-btn action-secondary">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="cost-main-card">
+                <div class="cost-title">
+                    <div class="cost-icon">📊</div>
+                    Cost Breakdown
+                </div>
+                
+                <div class="cost-breakdown" id="costBreakdown">
+                    <div class="breakdown-item">
+                        <div class="breakdown-info">
+                            <div class="breakdown-icon">🖥️</div>
+                            <div class="breakdown-details">
+                                <h4>Compute</h4>
+                                <p>Kubernetes, EC2</p>
+                            </div>
+                        </div>
+                        <div class="breakdown-cost">
+                            <div class="breakdown-amount">$3,200</div>
+                            <div class="breakdown-percentage">43.7%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="breakdown-item">
+                        <div class="breakdown-info">
+                            <div class="breakdown-icon">💾</div>
+                            <div class="breakdown-details">
+                                <h4>Storage</h4>
+                                <p>S3, EBS, Glacier</p>
+                            </div>
+                        </div>
+                        <div class="breakdown-cost">
+                            <div class="breakdown-amount">$1,850</div>
+                            <div class="breakdown-percentage">25.3%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="breakdown-item">
+                        <div class="breakdown-info">
+                            <div class="breakdown-icon">🗄️</div>
+                            <div class="breakdown-details">
+                                <h4>Database</h4>
+                                <p>RDS, ElastiCache</p>
+                            </div>
+                        </div>
+                        <div class="breakdown-cost">
+                            <div class="breakdown-amount">$1,270</div>
+                            <div class="breakdown-percentage">17.4%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="breakdown-item">
+                        <div class="breakdown-info">
+                            <div class="breakdown-icon">🌐</div>
+                            <div class="breakdown-details">
+                                <h4>Network</h4>
+                                <p>Load Balancer, NAT</p>
+                            </div>
+                        </div>
+                        <div class="breakdown-cost">
+                            <div class="breakdown-amount">$305</div>
+                            <div class="breakdown-percentage">4.2%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="breakdown-item">
+                        <div class="breakdown-info">
+                            <div class="breakdown-icon">📈</div>
+                            <div class="breakdown-details">
+                                <h4>Monitoring</h4>
+                                <p>CloudWatch, Logs</p>
+                            </div>
+                        </div>
+                        <div class="breakdown-cost">
+                            <div class="breakdown-amount">$380</div>
+                            <div class="breakdown-percentage">5.2%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waste Analysis and Forecast -->
+        <div class="cost-grid">
+            <!-- Resource Waste Analysis -->
+            <div class="cost-main-card">
+                <div class="cost-title">
+                    <div class="cost-icon">🗑️</div>
+                    Resource Waste Analysis
+                </div>
+                
+                <div id="wasteAnalysisList">
+                    <div class="waste-item">
+                        <div class="waste-header">
+                            <div class="waste-name">opssight-prod-cluster</div>
+                            <div class="waste-percentage">55%</div>
+                        </div>
+                        <div class="waste-description">Over-provisioning: CPU at 45% utilization</div>
+                        <div class="waste-savings">Potential savings: $1,280/month</div>
+                    </div>
+                    
+                    <div class="waste-item">
+                        <div class="waste-header">
+                            <div class="waste-name">elasticsearch-logs</div>
+                            <div class="waste-percentage">65%</div>
+                        </div>
+                        <div class="waste-description">Under-utilization: Only 35% resource usage</div>
+                        <div class="waste-savings">Potential savings: $338/month</div>
+                    </div>
+                    
+                    <div class="waste-item">
+                        <div class="waste-header">
+                            <div class="waste-name">nat-gateway</div>
+                            <div class="waste-percentage">75%</div>
+                        </div>
+                        <div class="waste-description">Unnecessary resource: Low bandwidth usage</div>
+                        <div class="waste-savings">Potential savings: $94/month</div>
+                    </div>
+                    
+                    <div class="waste-item">
+                        <div class="waste-header">
+                            <div class="waste-name">backup-storage</div>
+                            <div class="waste-percentage">60%</div>
+                        </div>
+                        <div class="waste-description">Over-retention: Excessive backup storage</div>
+                        <div class="waste-savings">Potential savings: $46/month</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Forecast -->
+            <div class="cost-main-card">
+                <div class="cost-title">
+                    <div class="cost-icon">📈</div>
+                    Cost Forecast
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="costForecastChart"></canvas>
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 12px; color: #94a3b8;">
+                    <div>• Next month: +5.2% increase projected</div>
+                    <div>• Next quarter: +12.8% increase projected</div>
+                    <div>• Primary drivers: Traffic growth, new services</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        let costForecastChart;
+        
+        // Initialize cost forecast chart
+        function initCostForecastChart() {
+            const ctx = document.getElementById('costForecastChart').getContext('2d');
+            
+            costForecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Current', 'Next Month', 'Next Quarter', '6 Months', '1 Year'],
+                    datasets: [
+                        {
+                            label: 'Projected Cost',
+                            data: [7320, 7700, 8260, 8670, 9180],
+                            borderColor: '#059669',
+                            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'With Optimizations',
+                            data: [7320, 6215, 6580, 6890, 7125],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load cost optimization data from backend
+        async function loadCostOptimizationData() {
+            if (!authToken) {
+                console.log('Using demo data for cost optimization');
+                return;
+            }
+            
+            try {
+                // Fetch overview data
+                const overviewResponse = await fetch('http://localhost:8000/api/v1/cost-optimization/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (overviewResponse.ok) {
+                    const overviewData = await overviewResponse.json();
+                    updateOverviewData(overviewData);
+                }
+                
+                // Fetch optimization recommendations
+                const recommendationsResponse = await fetch('http://localhost:8000/api/v1/cost-optimization/recommendations', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (recommendationsResponse.ok) {
+                    const recommendationsData = await recommendationsResponse.json();
+                    updateRecommendations(recommendationsData);
+                }
+                
+                // Fetch waste analysis
+                const wasteResponse = await fetch('http://localhost:8000/api/v1/cost-optimization/waste', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (wasteResponse.ok) {
+                    const wasteData = await wasteResponse.json();
+                    updateWasteAnalysis(wasteData);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load cost optimization data:', error);
+            }
+        }
+        
+        // Update overview data
+        function updateOverviewData(data) {
+            if (data.cost_summary) {
+                document.getElementById('currentMonthlyCost').textContent = `$${data.cost_summary.current_monthly_cost.toLocaleString()}`;
+                document.getElementById('projectedMonthlyCost').textContent = `$${data.cost_summary.projected_monthly_cost.toLocaleString()}`;
+            }
+            
+            if (data.optimization_potential) {
+                document.getElementById('potentialSavings').textContent = `$${data.optimization_potential.potential_monthly_savings.toLocaleString()}`;
+            }
+            
+            if (data.waste_analysis_summary) {
+                document.getElementById('wastePercentage').textContent = `${data.waste_analysis_summary.waste_percentage}%`;
+            }
+            
+            if (data.budget_analysis) {
+                const utilization = data.budget_analysis.budget_utilization_percent;
+                document.getElementById('budgetUtilization').textContent = `${utilization}%`;
+                
+                const budgetFill = document.querySelector('.budget-fill');
+                budgetFill.style.width = `${utilization}%`;
+                
+                // Update color based on utilization
+                if (utilization >= 90) {
+                    budgetFill.classList.add('danger');
+                } else if (utilization >= 75) {
+                    budgetFill.classList.add('warning');
+                }
+            }
+        }
+        
+        // Update recommendations
+        function updateRecommendations(data) {
+            if (!data.recommendations || data.recommendations.length === 0) return;
+            
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            
+            data.recommendations.slice(0, 5).forEach(rec => {
+                const recElement = document.createElement('div');
+                recElement.className = 'recommendation-item';
+                
+                const priorityClass = `priority-${rec.priority}`;
+                const effortClass = `effort-${rec.implementation_effort}`;
+                const confidencePercent = Math.round(rec.confidence_score * 100);
+                
+                recElement.innerHTML = `
+                    <div class="recommendation-header">
+                        <div>
+                            <div class="recommendation-title">${rec.title}</div>
+                            <div class="recommendation-description">${rec.description}</div>
+                        </div>
+                        <div class="recommendation-savings">
+                            <div class="savings-amount">$${rec.monthly_savings.toLocaleString()}</div>
+                            <div class="savings-label">Monthly</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-meta">
+                        <div class="meta-badge ${priorityClass}">${rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)} Priority</div>
+                        <div class="meta-badge ${effortClass}">${rec.implementation_effort.charAt(0).toUpperCase() + rec.implementation_effort.slice(1)} Effort</div>
+                        <div class="meta-badge confidence-badge">${confidencePercent}% Confidence</div>
+                    </div>
+                    
+                    <div class="recommendation-actions">
+                        <button class="action-btn action-primary" onclick="implementRecommendation('${rec.id}')">Implement</button>
+                        <button class="action-btn action-secondary" onclick="showRecommendationDetails('${rec.id}')">View Details</button>
+                    </div>
+                `;
+                
+                recommendationsList.appendChild(recElement);
+            });
+        }
+        
+        // Update waste analysis
+        function updateWasteAnalysis(data) {
+            if (!data.waste_analysis || data.waste_analysis.length === 0) return;
+            
+            const wasteList = document.getElementById('wasteAnalysisList');
+            wasteList.innerHTML = '';
+            
+            data.waste_analysis.forEach(waste => {
+                const wasteElement = document.createElement('div');
+                wasteElement.className = 'waste-item';
+                
+                wasteElement.innerHTML = `
+                    <div class="waste-header">
+                        <div class="waste-name">${waste.resource_name}</div>
+                        <div class="waste-percentage">${waste.waste_percentage.toFixed(0)}%</div>
+                    </div>
+                    <div class="waste-description">${getWasteDescription(waste.waste_type)}</div>
+                    <div class="waste-savings">Potential savings: $${waste.potential_savings.toLocaleString()}/month</div>
+                `;
+                
+                wasteList.appendChild(wasteElement);
+            });
+        }
+        
+        // Utility functions
+        function getWasteDescription(wasteType) {
+            const descriptions = {
+                'over_provisioning': 'Over-provisioning: Resources exceed actual needs',
+                'under_utilization': 'Under-utilization: Low resource usage detected',
+                'unnecessary_resource': 'Unnecessary resource: May not be required',
+                'over_retention': 'Over-retention: Excessive data retention policies'
+            };
+            return descriptions[wasteType] || 'Resource optimization opportunity identified';
+        }
+        
+        function implementRecommendation(recId) {
+            alert(`Implementing recommendation ${recId}. This would typically trigger an automation workflow.`);
+        }
+        
+        function showRecommendationDetails(recId) {
+            alert(`Showing detailed implementation plan for recommendation ${recId}.`);
+        }
+        
+        // Initialize cost optimization dashboard
+        function initializeCostOptimization() {
+            console.log('💰 Initializing Cost Optimization Dashboard');
+            
+            // Initialize charts
+            initCostForecastChart();
+            
+            // Load initial data
+            loadCostOptimizationData();
+            
+            // Set up periodic data refresh
+            setInterval(loadCostOptimizationData, 60000); // Refresh every minute
+            
+            console.log('✅ Cost optimization initialization complete');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeCostOptimization);
+    </script>
+</body>
+</html>

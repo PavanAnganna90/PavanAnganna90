@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Observability - OpsSight Platform</title>
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .observability-container {
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .observability-header {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .observability-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .observability-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .observability-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* System Health Overview */
+        .health-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .health-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .health-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #0f766e, #14b8a6);
+        }
+        
+        .health-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .health-label {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .health-change {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        
+        .change-positive {
+            color: #10b981;
+        }
+        
+        .change-negative {
+            color: #ef4444;
+        }
+        
+        /* Main Grid */
+        .observability-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .observability-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .observability-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .observability-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        /* Service Health */
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .service-item:hover {
+            transform: translateX(4px);
+            border-color: rgba(20, 184, 166, 0.5);
+        }
+        
+        .service-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .status-healthy { background: #10b981; }
+        .status-warning { background: #f59e0b; }
+        .status-critical { background: #ef4444; }
+        .status-down { background: #6b7280; }
+        
+        .service-info {
+            flex: 1;
+        }
+        
+        .service-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #e2e8f0;
+        }
+        
+        .service-metrics {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .service-health-score {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f766e;
+        }
+        
+        /* Distributed Traces */
+        .trace-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .trace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .trace-id {
+            font-size: 12px;
+            font-family: monospace;
+            color: #94a3b8;
+        }
+        
+        .trace-duration {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f766e;
+        }
+        
+        .trace-operation {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+        
+        .trace-spans {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .trace-span {
+            height: 4px;
+            border-radius: 2px;
+            min-width: 8px;
+        }
+        
+        .span-frontend { background: #3b82f6; }
+        .span-backend { background: #0f766e; }
+        .span-database { background: #f59e0b; }
+        .span-cache { background: #ef4444; }
+        .span-external { background: #8b5cf6; }
+        
+        .trace-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        /* Service Dependency Graph */
+        .dependency-graph {
+            position: relative;
+            height: 300px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .dependency-node {
+            position: absolute;
+            background: rgba(15, 118, 110, 0.2);
+            border: 2px solid #0f766e;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dependency-node:hover {
+            transform: scale(1.1);
+            background: rgba(20, 184, 166, 0.3);
+            border-color: #14b8a6;
+        }
+        
+        .dependency-edge {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, #0f766e, #14b8a6);
+            transform-origin: left center;
+            opacity: 0.6;
+        }
+        
+        /* Business Metrics */
+        .business-metric {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0f766e, #14b8a6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .metric-info {
+            flex: 1;
+        }
+        
+        .metric-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #e2e8f0;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f766e;
+        }
+        
+        .metric-target {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-left: 8px;
+        }
+        
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        .trend-stable { color: #94a3b8; }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Correlation Matrix */
+        .correlation-matrix {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .correlation-cell {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 4px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .correlation-strong {
+            background: rgba(15, 118, 110, 0.3);
+            border-color: #0f766e;
+        }
+        
+        .correlation-moderate {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #f59e0b;
+        }
+        
+        .correlation-weak {
+            background: rgba(148, 163, 184, 0.2);
+            border-color: #94a3b8;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .observability-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .health-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .observability-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="observability-container">
+        <!-- Header -->
+        <div class="observability-header">
+            <h1>🔭 System Observability</h1>
+            <p class="observability-subtitle">Comprehensive distributed system monitoring and analysis</p>
+        </div>
+
+        <!-- System Health Overview -->
+        <div class="health-overview">
+            <div class="health-card">
+                <div class="health-value" id="overallHealthScore">92.3</div>
+                <div class="health-label">Overall Health</div>
+                <div class="health-change change-positive">↑ 2.1% from yesterday</div>
+            </div>
+            <div class="health-card">
+                <div class="health-value" id="totalServices">8</div>
+                <div class="health-label">Total Services</div>
+                <div class="health-change change-positive">6 healthy, 1 warning, 1 critical</div>
+            </div>
+            <div class="health-card">
+                <div class="health-value" id="slaCompliance">98.2%</div>
+                <div class="health-label">SLA Compliance</div>
+                <div class="health-change change-positive">↑ 0.3% from last week</div>
+            </div>
+            <div class="health-card">
+                <div class="health-value" id="totalThroughput">9.8K</div>
+                <div class="health-label">Total Throughput</div>
+                <div class="health-change change-positive">↑ 850 RPM from yesterday</div>
+            </div>
+            <div class="health-card">
+                <div class="health-value" id="avgResponseTime">78ms</div>
+                <div class="health-label">Avg Response Time</div>
+                <div class="health-change change-negative">↑ 12ms from yesterday</div>
+            </div>
+            <div class="health-card">
+                <div class="health-value" id="errorRate">1.2%</div>
+                <div class="health-label">Error Rate</div>
+                <div class="health-change change-positive">↓ 0.3% from yesterday</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="observability-grid">
+            <!-- Service Health -->
+            <div class="observability-card">
+                <div class="observability-title">
+                    <div class="observability-icon">🏥</div>
+                    Service Health
+                </div>
+                
+                <div id="serviceHealthList">
+                    <div class="service-item">
+                        <div class="service-status status-healthy"></div>
+                        <div class="service-info">
+                            <div class="service-name">opssight-frontend</div>
+                            <div class="service-metrics">
+                                <span>Uptime: 99.8%</span>
+                                <span>Response: 45ms</span>
+                                <span>Throughput: 1200 RPM</span>
+                            </div>
+                        </div>
+                        <div class="service-health-score">94.2</div>
+                    </div>
+                    
+                    <div class="service-item">
+                        <div class="service-status status-warning"></div>
+                        <div class="service-info">
+                            <div class="service-name">opssight-backend</div>
+                            <div class="service-metrics">
+                                <span>Uptime: 98.5%</span>
+                                <span>Response: 120ms</span>
+                                <span>Throughput: 800 RPM</span>
+                            </div>
+                        </div>
+                        <div class="service-health-score">87.6</div>
+                    </div>
+                    
+                    <div class="service-item">
+                        <div class="service-status status-healthy"></div>
+                        <div class="service-info">
+                            <div class="service-name">auth-service</div>
+                            <div class="service-metrics">
+                                <span>Uptime: 99.9%</span>
+                                <span>Response: 30ms</span>
+                                <span>Throughput: 400 RPM</span>
+                            </div>
+                        </div>
+                        <div class="service-health-score">96.8</div>
+                    </div>
+                    
+                    <div class="service-item">
+                        <div class="service-status status-critical"></div>
+                        <div class="service-info">
+                            <div class="service-name">elasticsearch</div>
+                            <div class="service-metrics">
+                                <span>Uptime: 87.2%</span>
+                                <span>Response: 350ms</span>
+                                <span>Throughput: 300 RPM</span>
+                            </div>
+                        </div>
+                        <div class="service-health-score">62.4</div>
+                    </div>
+                    
+                    <div class="service-item">
+                        <div class="service-status status-healthy"></div>
+                        <div class="service-info">
+                            <div class="service-name">postgres</div>
+                            <div class="service-metrics">
+                                <span>Uptime: 99.6%</span>
+                                <span>Response: 15ms</span>
+                                <span>Throughput: 2000 RPM</span>
+                            </div>
+                        </div>
+                        <div class="service-health-score">98.1</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Dependencies -->
+            <div class="observability-card">
+                <div class="observability-title">
+                    <div class="observability-icon">🕸️</div>
+                    Service Dependencies
+                </div>
+                
+                <div class="dependency-graph" id="dependencyGraph">
+                    <!-- Dependencies will be dynamically rendered here -->
+                    <div class="dependency-node" style="top: 20px; left: 50px;">Frontend</div>
+                    <div class="dependency-node" style="top: 120px; left: 150px;">Backend</div>
+                    <div class="dependency-node" style="top: 220px; left: 50px;">Auth</div>
+                    <div class="dependency-node" style="top: 220px; left: 250px;">DB</div>
+                    <div class="dependency-edge" style="top: 45px; left: 110px; width: 60px; transform: rotate(25deg);"></div>
+                    <div class="dependency-edge" style="top: 145px; left: 110px; width: 80px; transform: rotate(-25deg);"></div>
+                    <div class="dependency-edge" style="top: 145px; left: 210px; width: 80px; transform: rotate(25deg);"></div>
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 12px; color: #94a3b8;">
+                    <div>• 9 total dependencies</div>
+                    <div>• 7 healthy, 2 degraded</div>
+                    <div>• 1 circuit breaker open</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Grid -->
+        <div class="observability-grid">
+            <!-- Distributed Traces -->
+            <div class="observability-card">
+                <div class="observability-title">
+                    <div class="observability-icon">🔍</div>
+                    Distributed Traces
+                </div>
+                
+                <div id="distributedTracesList">
+                    <div class="trace-item">
+                        <div class="trace-header">
+                            <div class="trace-id">trace-a1b2c3d4</div>
+                            <div class="trace-duration">245ms</div>
+                        </div>
+                        <div class="trace-operation">GET /api/v1/dashboard</div>
+                        <div class="trace-spans">
+                            <div class="trace-span span-frontend" style="width: 20%;"></div>
+                            <div class="trace-span span-backend" style="width: 50%;"></div>
+                            <div class="trace-span span-database" style="width: 15%;"></div>
+                            <div class="trace-span span-cache" style="width: 15%;"></div>
+                        </div>
+                        <div class="trace-meta">
+                            <span>4 spans</span>
+                            <span>3 services</span>
+                            <span>No errors</span>
+                        </div>
+                    </div>
+                    
+                    <div class="trace-item">
+                        <div class="trace-header">
+                            <div class="trace-id">trace-e5f6g7h8</div>
+                            <div class="trace-duration">580ms</div>
+                        </div>
+                        <div class="trace-operation">POST /api/v1/alerts</div>
+                        <div class="trace-spans">
+                            <div class="trace-span span-backend" style="width: 35%;"></div>
+                            <div class="trace-span span-database" style="width: 10%;"></div>
+                            <div class="trace-span span-external" style="width: 55%;"></div>
+                        </div>
+                        <div class="trace-meta">
+                            <span>4 spans</span>
+                            <span>4 services</span>
+                            <span>1 slow span</span>
+                        </div>
+                    </div>
+                    
+                    <div class="trace-item">
+                        <div class="trace-header">
+                            <div class="trace-id">trace-i9j0k1l2</div>
+                            <div class="trace-duration">43ms</div>
+                        </div>
+                        <div class="trace-operation">GET /api/v1/auth/validate</div>
+                        <div class="trace-spans">
+                            <div class="trace-span span-backend" style="width: 70%;"></div>
+                            <div class="trace-span span-cache" style="width: 5%;"></div>
+                            <div class="trace-span span-database" style="width: 25%;"></div>
+                        </div>
+                        <div class="trace-meta">
+                            <span>3 spans</span>
+                            <span>3 services</span>
+                            <span>No errors</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Metrics -->
+            <div class="observability-card">
+                <div class="observability-title">
+                    <div class="observability-icon">📊</div>
+                    Business Metrics
+                </div>
+                
+                <div id="businessMetricsList">
+                    <div class="business-metric">
+                        <div class="metric-icon">👥</div>
+                        <div class="metric-info">
+                            <div class="metric-name">Active Users/Min</div>
+                            <div class="metric-value">1,250<span class="metric-target">/ 1,500</span></div>
+                            <div class="metric-trend trend-up">
+                                <span>↗</span>
+                                <span>Trending up</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="business-metric">
+                        <div class="metric-icon">🔄</div>
+                        <div class="metric-info">
+                            <div class="metric-name">API Requests/Sec</div>
+                            <div class="metric-value">450<span class="metric-target">/ 500</span></div>
+                            <div class="metric-trend trend-stable">
+                                <span>→</span>
+                                <span>Stable</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="business-metric">
+                        <div class="metric-icon">💰</div>
+                        <div class="metric-info">
+                            <div class="metric-name">Revenue/Hour</div>
+                            <div class="metric-value">$2,340<span class="metric-target">/ $2,500</span></div>
+                            <div class="metric-trend trend-up">
+                                <span>↗</span>
+                                <span>Trending up</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="business-metric">
+                        <div class="metric-icon">📈</div>
+                        <div class="metric-info">
+                            <div class="metric-name">Conversion Rate</div>
+                            <div class="metric-value">3.2%<span class="metric-target">/ 4.0%</span></div>
+                            <div class="metric-trend trend-down">
+                                <span>↘</span>
+                                <span>Trending down</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Correlations -->
+        <div class="observability-card">
+            <div class="observability-title">
+                <div class="observability-icon">🔗</div>
+                Metric Correlations
+            </div>
+            
+            <div class="correlation-matrix">
+                <div class="correlation-cell correlation-strong">
+                    <div style="font-size: 11px; color: #94a3b8;">CPU ↔ Response</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #0f766e;">0.85</div>
+                </div>
+                <div class="correlation-cell correlation-strong">
+                    <div style="font-size: 11px; color: #94a3b8;">Response ↔ Satisfaction</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #0f766e;">-0.91</div>
+                </div>
+                <div class="correlation-cell correlation-strong">
+                    <div style="font-size: 11px; color: #94a3b8;">Error ↔ Revenue</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #0f766e;">-0.82</div>
+                </div>
+                <div class="correlation-cell correlation-moderate">
+                    <div style="font-size: 11px; color: #94a3b8;">Memory ↔ Disk</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #f59e0b;">0.57</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; font-size: 12px; color: #94a3b8;">
+                <div>• 12 correlations identified</div>
+                <div>• 8 strong correlations (>0.8)</div>
+                <div>• Strongest: Response Time ↔ User Satisfaction (-0.91)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('auth_token');
+        
+        // Load system observability data from backend
+        async function loadSystemObservabilityData() {
+            if (!authToken) {
+                console.log('Using demo data for system observability');
+                return;
+            }
+            
+            try {
+                // Fetch overview data
+                const overviewResponse = await fetch('http://localhost:8000/api/v1/observability/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (overviewResponse.ok) {
+                    const overviewData = await overviewResponse.json();
+                    updateOverviewData(overviewData);
+                }
+                
+                // Fetch service health data
+                const serviceHealthResponse = await fetch('http://localhost:8000/api/v1/observability/services', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (serviceHealthResponse.ok) {
+                    const serviceHealthData = await serviceHealthResponse.json();
+                    updateServiceHealth(serviceHealthData);
+                }
+                
+                // Fetch distributed traces
+                const tracesResponse = await fetch('http://localhost:8000/api/v1/observability/traces', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (tracesResponse.ok) {
+                    const tracesData = await tracesResponse.json();
+                    updateDistributedTraces(tracesData);
+                }
+                
+                // Fetch business metrics
+                const businessResponse = await fetch('http://localhost:8000/api/v1/observability/business', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (businessResponse.ok) {
+                    const businessData = await businessResponse.json();
+                    updateBusinessMetrics(businessData);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load system observability data:', error);
+            }
+        }
+        
+        // Update overview data
+        function updateOverviewData(data) {
+            if (data.system_health) {
+                document.getElementById('overallHealthScore').textContent = data.system_health.overall_health_score;
+                document.getElementById('totalServices').textContent = data.system_health.total_services;
+                document.getElementById('slaCompliance').textContent = `${data.system_health.avg_sla_compliance}%`;
+            }
+            
+            if (data.performance_summary) {
+                document.getElementById('totalThroughput').textContent = `${(data.performance_summary.total_throughput_rpm / 1000).toFixed(1)}K`;
+                document.getElementById('avgResponseTime').textContent = `${data.performance_summary.avg_response_time}ms`;
+                document.getElementById('errorRate').textContent = `${data.performance_summary.avg_error_rate}%`;
+            }
+        }
+        
+        // Update service health list
+        function updateServiceHealth(data) {
+            if (!data.services || data.services.length === 0) return;
+            
+            const serviceHealthList = document.getElementById('serviceHealthList');
+            serviceHealthList.innerHTML = '';
+            
+            data.services.forEach(service => {
+                const serviceElement = document.createElement('div');
+                serviceElement.className = 'service-item';
+                
+                const statusClass = `status-${service.status}`;
+                
+                serviceElement.innerHTML = `
+                    <div class="service-status ${statusClass}"></div>
+                    <div class="service-info">
+                        <div class="service-name">${service.service_name}</div>
+                        <div class="service-metrics">
+                            <span>Uptime: ${service.uptime_percentage.toFixed(1)}%</span>
+                            <span>Response: ${service.response_time.avg.toFixed(0)}ms</span>
+                            <span>Throughput: ${service.throughput_rpm} RPM</span>
+                        </div>
+                    </div>
+                    <div class="service-health-score">${service.health_score}</div>
+                `;
+                
+                serviceHealthList.appendChild(serviceElement);
+            });
+        }
+        
+        // Update distributed traces
+        function updateDistributedTraces(data) {
+            if (!data.traces || data.traces.length === 0) return;
+            
+            const tracesList = document.getElementById('distributedTracesList');
+            tracesList.innerHTML = '';
+            
+            data.traces.slice(0, 5).forEach(trace => {
+                const traceElement = document.createElement('div');
+                traceElement.className = 'trace-item';
+                
+                // Generate trace spans visualization
+                const spansHtml = trace.spans.map((span, index) => {
+                    const spanClass = getSpanClass(span.service_name);
+                    const width = (span.duration_ms / trace.total_duration_ms * 100).toFixed(1);
+                    return `<div class="trace-span ${spanClass}" style="width: ${width}%;"></div>`;
+                }).join('');
+                
+                traceElement.innerHTML = `
+                    <div class="trace-header">
+                        <div class="trace-id">${trace.trace_id.substring(0, 12)}...</div>
+                        <div class="trace-duration">${trace.total_duration_ms.toFixed(0)}ms</div>
+                    </div>
+                    <div class="trace-operation">${trace.root_operation}</div>
+                    <div class="trace-spans">${spansHtml}</div>
+                    <div class="trace-meta">
+                        <span>${trace.span_count} spans</span>
+                        <span>${trace.service_count} services</span>
+                        <span>${trace.has_errors ? 'Has errors' : 'No errors'}</span>
+                    </div>
+                `;
+                
+                tracesList.appendChild(traceElement);
+            });
+        }
+        
+        // Update business metrics
+        function updateBusinessMetrics(data) {
+            if (!data.business_metrics || data.business_metrics.length === 0) return;
+            
+            const businessList = document.getElementById('businessMetricsList');
+            businessList.innerHTML = '';
+            
+            data.business_metrics.slice(0, 6).forEach(metric => {
+                const metricElement = document.createElement('div');
+                metricElement.className = 'business-metric';
+                
+                const icon = getMetricIcon(metric.metric_name);
+                const trendClass = `trend-${metric.trend_direction === 'up' ? 'up' : metric.trend_direction === 'down' ? 'down' : 'stable'}`;
+                const trendSymbol = metric.trend_direction === 'up' ? '↗' : metric.trend_direction === 'down' ? '↘' : '→';
+                
+                metricElement.innerHTML = `
+                    <div class="metric-icon">${icon}</div>
+                    <div class="metric-info">
+                        <div class="metric-name">${formatMetricName(metric.metric_name)}</div>
+                        <div class="metric-value">${formatMetricValue(metric.current_value, metric.unit)}<span class="metric-target">/ ${formatMetricValue(metric.target_value, metric.unit)}</span></div>
+                        <div class="metric-trend ${trendClass}">
+                            <span>${trendSymbol}</span>
+                            <span>Trending ${metric.trend_direction}</span>
+                        </div>
+                    </div>
+                `;
+                
+                businessList.appendChild(metricElement);
+            });
+        }
+        
+        // Utility functions
+        function getSpanClass(serviceName) {
+            if (serviceName.includes('frontend')) return 'span-frontend';
+            if (serviceName.includes('backend')) return 'span-backend';
+            if (serviceName.includes('postgres') || serviceName.includes('database')) return 'span-database';
+            if (serviceName.includes('redis') || serviceName.includes('cache')) return 'span-cache';
+            return 'span-external';
+        }
+        
+        function getMetricIcon(metricName) {
+            if (metricName.includes('user')) return '👥';
+            if (metricName.includes('request') || metricName.includes('api')) return '🔄';
+            if (metricName.includes('revenue') || metricName.includes('dollar')) return '💰';
+            if (metricName.includes('conversion') || metricName.includes('rate')) return '📈';
+            if (metricName.includes('time') || metricName.includes('resolution')) return '⏱️';
+            if (metricName.includes('deployment') || metricName.includes('deploy')) return '🚀';
+            return '📊';
+        }
+        
+        function formatMetricName(name) {
+            return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        function formatMetricValue(value, unit) {
+            if (unit === 'dollars') return `$${value.toLocaleString()}`;
+            if (unit === 'percent') return `${value}%`;
+            if (unit.includes('/')) return value.toLocaleString();
+            return `${value} ${unit}`;
+        }
+        
+        // Initialize system observability dashboard
+        function initializeSystemObservability() {
+            console.log('🔭 Initializing System Observability Dashboard');
+            
+            // Load initial data
+            loadSystemObservabilityData();
+            
+            // Set up periodic data refresh
+            setInterval(loadSystemObservabilityData, 30000); // Refresh every 30 seconds
+            
+            console.log('✅ System observability initialization complete');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeSystemObservability);
+    </script>
+</body>
+</html>
