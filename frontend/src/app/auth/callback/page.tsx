@@ -44,36 +44,41 @@ function CallbackPageContent() {
           return;
         }
 
-        // Fallback: OAuth code flow (for other providers)
+        // GitHub OAuth code flow
         const code = searchParams?.get('code');
+        const state = searchParams?.get('state');
+        
         if (!code) {
           throw new Error('No authorization code or token received');
         }
 
-        // Exchange code for tokens via backend OAuth endpoint
-        const response = await fetch('/api/v1/auth/oauth/github/callback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            code,
-            redirect_uri: `${window.location.origin}/auth/callback`,
-            state: searchParams?.get('state') 
-          }),
-        });
+        console.log('Processing GitHub OAuth callback...');
+
+        // Exchange code for tokens via our SSO endpoint
+        const response = await fetch(`http://localhost:3003/api/auth/sso/callback?code=${code}&state=${state || ''}`);
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.message || 'Failed to authenticate');
+          throw new Error(error.error || 'Failed to authenticate with GitHub');
         }
 
         const data = await response.json();
-
-        if (data.access_token) {
-          localStorage.setItem('auth_token', data.access_token);
-          localStorage.setItem('user_data', JSON.stringify(data.user || {}));
+        
+        if (!data.success) {
+          throw new Error(data.error || 'GitHub authentication failed');
         }
+
+        // Store authentication data
+        localStorage.setItem('auth_token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        localStorage.setItem('auth_provider', 'github');
+        
+        console.log('GitHub OAuth successful:', data.data.user.name);
+
+        // Clean up session storage
+        sessionStorage.removeItem('oauth_state');
+        sessionStorage.removeItem('oauth_provider'); 
+        sessionStorage.removeItem('oauth_redirect_url');
 
         router.push('/dashboard');
       } catch (error) {

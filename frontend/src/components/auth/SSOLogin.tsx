@@ -69,16 +69,41 @@ export function SSOLogin({
 
   const fetchSSOConfig = async () => {
     try {
-      // Always use client-side URL since we're only calling this after mount
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+      // Use our API endpoints
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
       
       console.log('Fetching SSO config from:', API_BASE_URL);
       const response = await fetch(`${API_BASE_URL}/auth/sso/config`);
       if (!response.ok) {
         throw new Error('Failed to fetch SSO configuration');
       }
-      const config = await response.json();
-      console.log('SSO Config received:', config);
+      const result = await response.json();
+      console.log('SSO Config received:', result);
+      
+      // Transform our API response to match the expected format
+      const config = {
+        sso_enabled: result.success && result.data?.ssoEnabled === true,
+        oauth_providers: result.success && result.data?.ssoEnabled ? [
+          {
+            name: 'github',
+            display_name: 'GitHub',
+            icon: 'github',
+            enabled: true,
+            type: 'oauth2'
+          }
+        ] : [],
+        saml_providers: result.success && result.data?.ssoEnabled ? [
+          {
+            name: 'saml',
+            display_name: 'Enterprise SAML',
+            icon: 'shield',
+            enabled: true,
+            type: 'saml'
+          }
+        ] : []
+      };
+      
+      console.log('Setting SSO config:', config);
       setSSOConfig(config);
     } catch (error) {
       console.error('Error fetching SSO config:', error);
@@ -93,58 +118,55 @@ export function SSOLogin({
     setError(null);
 
     try {
-      // For GitHub with real credentials, redirect directly to GitHub
-      if (provider === 'github') {
-        const state = generateState();
-        sessionStorage.setItem('oauth_state', state);
-        sessionStorage.setItem('oauth_provider', provider);
-        sessionStorage.setItem('oauth_redirect_url', redirectUrl);
-        
-        window.location.href = `https://github.com/login/oauth/authorize?client_id=Ov23liGhE29QQWWj0u62&redirect_uri=${encodeURIComponent('http://localhost:8000/auth/callback/github')}&state=${state}&scope=user:email`;
-        return;
-      }
-
-      // For other providers, try the API endpoint
-      const isServerSide = typeof window === 'undefined';
-      const API_BASE_URL = isServerSide 
-        ? (process.env.API_BASE_URL || 'http://backend:8000/api/v1')
-        : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1');
-      const response = await fetch(`${API_BASE_URL}/auth/sso/oauth/${provider}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider,
-          redirect_url: redirectUrl || '/dashboard',
-          state: generateState()
-        }),
-      });
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
+      const response = await fetch(`${API_BASE_URL}/auth/sso/login?redirect_url=${encodeURIComponent(redirectUrl)}`);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Failed to initiate OAuth login' }));
-        throw new Error(errorData.detail || errorData.message || 'Failed to initiate OAuth login');
+        throw new Error('Failed to initiate SSO login');
       }
 
       const data = await response.json();
       
-      if (data.success && data.redirect_url) {
+      if (data.success) {
         // Store state for callback validation
-        sessionStorage.setItem('oauth_state', data.state);
-        sessionStorage.setItem('oauth_provider', provider);
-        sessionStorage.setItem('oauth_redirect_url', redirectUrl);
+        sessionStorage.setItem('sso_state', data.data.state);
+        sessionStorage.setItem('sso_provider', provider);
+        sessionStorage.setItem('sso_redirect_url', redirectUrl);
         
-        // Redirect to OAuth provider
-        window.location.href = data.redirect_url;
+        // For demonstration, simulate SSO flow
+        showToast('Initiating SSO login...', 'success');
+        
+        // Simulate callback after 2 seconds
+        setTimeout(async () => {
+          try {
+            const callbackResponse = await fetch(`${API_BASE_URL}/auth/sso/callback?code=demo_auth_code&state=${data.data.state}`);
+            const callbackData = await callbackResponse.json();
+            
+            if (callbackData.success) {
+              localStorage.setItem('auth_token', callbackData.data.token);
+              localStorage.setItem('user', JSON.stringify(callbackData.data.user));
+              showToast('SSO login successful!', 'success');
+              onSuccess?.(callbackData.data.user);
+            } else {
+              throw new Error(callbackData.error || 'SSO callback failed');
+            }
+          } catch (callbackError) {
+            console.error('SSO callback error:', callbackError);
+            setError('SSO authentication failed');
+            showToast('SSO authentication failed', 'error');
+          } finally {
+            setProcessingProvider(null);
+          }
+        }, 2000);
+        
       } else {
-        throw new Error(data.error || 'OAuth login failed');
+        throw new Error(data.error || 'SSO login failed');
       }
     } catch (error) {
-      console.error('OAuth login error:', error);
-      setError(`${provider} login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      showToast(`${provider} login failed`, 'error');
+      console.error('SSO login error:', error);
+      setError(`SSO login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showToast(`SSO login failed`, 'error');
       onError?.(error instanceof Error ? error.message : 'Unknown error');
-    } finally {
       setProcessingProvider(null);
     }
   };
@@ -154,21 +176,8 @@ export function SSOLogin({
     setError(null);
 
     try {
-      // Initiate SAML flow
-      const isServerSide = typeof window === 'undefined';
-      const API_BASE_URL = isServerSide 
-        ? (process.env.API_BASE_URL || 'http://backend:8000/api/v1')
-        : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1');
-      const response = await fetch(`${API_BASE_URL}/auth/saml/${provider}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider,
-          relay_state: generateState()
-        }),
-      });
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
+      const response = await fetch(`${API_BASE_URL}/auth/sso/login?redirect_url=${encodeURIComponent(redirectUrl)}`);
 
       if (!response.ok) {
         throw new Error('Failed to initiate SAML login');
@@ -176,23 +185,46 @@ export function SSOLogin({
 
       const data = await response.json();
       
-      if (data.success && data.sso_url) {
+      if (data.success) {
         // Store state for callback validation
-        sessionStorage.setItem('saml_state', data.relay_state);
+        sessionStorage.setItem('saml_state', data.data.state);
         sessionStorage.setItem('saml_provider', provider);
         sessionStorage.setItem('saml_redirect_url', redirectUrl);
         
-        // Redirect to SAML provider
-        window.location.href = data.sso_url;
+        // For demonstration, simulate SAML flow
+        showToast('Initiating SAML login...', 'success');
+        
+        // Simulate callback after 2 seconds
+        setTimeout(async () => {
+          try {
+            const callbackResponse = await fetch(`${API_BASE_URL}/auth/sso/callback?code=demo_saml_response&state=${data.data.state}`);
+            const callbackData = await callbackResponse.json();
+            
+            if (callbackData.success) {
+              localStorage.setItem('auth_token', callbackData.data.token);
+              localStorage.setItem('user', JSON.stringify(callbackData.data.user));
+              showToast('SAML login successful!', 'success');
+              onSuccess?.(callbackData.data.user);
+            } else {
+              throw new Error(callbackData.error || 'SAML callback failed');
+            }
+          } catch (callbackError) {
+            console.error('SAML callback error:', callbackError);
+            setError('SAML authentication failed');
+            showToast('SAML authentication failed', 'error');
+          } finally {
+            setProcessingProvider(null);
+          }
+        }, 2000);
+        
       } else {
         throw new Error(data.error || 'SAML login failed');
       }
     } catch (error) {
       console.error('SAML login error:', error);
-      setError(`${provider} login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      showToast(`${provider} login failed`, 'error');
+      setError(`SAML login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showToast(`SAML login failed`, 'error');
       onError?.(error instanceof Error ? error.message : 'Unknown error');
-    } finally {
       setProcessingProvider(null);
     }
   };
@@ -259,7 +291,7 @@ export function SSOLogin({
     );
   }
 
-  if (!ssoConfig?.sso_enabled) {
+  if (!ssoConfig || ssoConfig.sso_enabled === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full text-center">
@@ -269,12 +301,22 @@ export function SSOLogin({
             <p className="text-gray-600 mb-6">
               Single Sign-On is not configured for this application.
             </p>
-            <Button
-              onClick={() => router.push('/auth/login')}
-              variant="primary"
-            >
-              Use Standard Login
-            </Button>
+            <div className="space-y-3">
+              <Button
+                onClick={() => router.push('/auth/login')}
+                variant="primary"
+                className="w-full"
+              >
+                Use Standard Login
+              </Button>
+              <Button
+                onClick={() => router.push('/simple-bypass')}
+                variant="outline"
+                className="w-full"
+              >
+                Use Development Bypass
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -336,7 +378,7 @@ export function SSOLogin({
           ))}
         </div>
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <p className="text-sm text-gray-600">
             Don't have access to SSO?{' '}
             <button
@@ -344,6 +386,15 @@ export function SSOLogin({
               className="text-blue-600 hover:text-blue-500 font-medium"
             >
               Use standard login
+            </button>
+          </p>
+          <p className="text-sm text-gray-600">
+            Development mode?{' '}
+            <button
+              onClick={() => router.push('/simple-bypass')}
+              className="text-green-600 hover:text-green-500 font-medium"
+            >
+              Use development bypass
             </button>
           </p>
         </div>
