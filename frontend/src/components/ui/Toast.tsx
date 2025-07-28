@@ -176,7 +176,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Limit maximum number of toasts to prevent alert storms
     const maxToasts = 3;
     
-    const id = Date.now().toString();
+    const id = `toast-${crypto.randomUUID()}`;
     const newToast = { ...toast, id };
     
     setToasts(prev => {
@@ -206,14 +206,17 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ addToast, removeToast, clearToasts, toasts }}>
       {children}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ToastContainer toasts={toasts} removeToast={removeToast} clearToasts={clearToasts} />
     </ToastContext.Provider>
   );
 };
 
-const ToastContainer: React.FC<{ toasts: Toast[]; removeToast: (id: string) => void }> = ({ toasts, removeToast }) => {
+const ToastContainer: React.FC<{ 
+  toasts: Toast[]; 
+  removeToast: (id: string) => void;
+  clearToasts: () => void;
+}> = ({ toasts, removeToast, clearToasts }) => {
   const [mounted, setMounted] = useState(false);
-  const { clearToasts } = useToast();
 
   useEffect(() => {
     setMounted(true);

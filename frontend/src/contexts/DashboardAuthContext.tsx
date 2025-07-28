@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, LoginRequest, RegisterRequest, ChangePasswordRequest } from '@/types/api';
 import { api } from '@/lib/api-client';
+import { AuthBypass } from '@/lib/auth-bypass';
 
 interface AuthState {
   user: User | null;
@@ -41,6 +42,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const initializeAuth = async () => {
     try {
+      const isDevMode = process.env.NEXT_PUBLIC_ENABLE_DEV_AUTH === 'true';
+      
+      if (isDevMode) {
+        console.log('🔧 Dev mode enabled - bypassing authentication');
+        
+        // Create a dev user directly without API calls
+        const devUser: User = {
+          id: 'dev-user-123',
+          email: 'dev@example.com',
+          name: 'Dev User',
+          role: 'ADMIN',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        setState(prev => ({
+          ...prev,
+          user: devUser,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        }));
+        
+        console.log('✅ Dev auth bypass successful - user authenticated as admin');
+        return;
+      }
+
+      // Normal auth flow for production
       if (api.auth.isAuthenticated()) {
         const response = await api.auth.getCurrentUser();
         setState(prev => ({

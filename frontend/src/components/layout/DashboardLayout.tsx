@@ -135,13 +135,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       await logout();
       addToast({
         title: 'Logged out',
-        message: 'You have been successfully logged out.',
+        description: 'You have been successfully logged out.',
         type: 'success',
       });
     } catch (error) {
       addToast({
         title: 'Error',
-        message: 'Failed to logout. Please try again.',
+        description: 'Failed to logout. Please try again.',
         type: 'error',
       });
     }

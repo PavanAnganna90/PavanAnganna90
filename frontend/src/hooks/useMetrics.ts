@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/DashboardAuthContext'
 
 /**
  * API Types for Metrics
@@ -138,12 +138,12 @@ async function createMetric(metricData: Omit<MetricData, 'id' | 'timestamp'>): P
  * Updates every 30 seconds for real-time monitoring
  */
 export function useSystemHealth() {
-  const { state: authState } = useAuth()
+  const { isAuthenticated } = useAuth()
   
   return useQuery({
     queryKey: metricsQueryKeys.systemHealth(),
     queryFn: fetchSystemHealth,
-    enabled: authState.isAuthenticated,
+    enabled: isAuthenticated,
     refetchInterval: 30 * 1000, // 30 seconds
     refetchIntervalInBackground: true,
     staleTime: 20 * 1000, // Consider fresh for 20 seconds
@@ -162,12 +162,12 @@ export function useSystemHealth() {
  * Updates every 2 minutes for less critical data
  */
 export function useDashboardMetrics() {
-  const { state: authState } = useAuth()
+  const { isAuthenticated } = useAuth()
   
   return useQuery({
     queryKey: metricsQueryKeys.dashboard(),
     queryFn: fetchDashboardMetrics,
-    enabled: authState.isAuthenticated,
+    enabled: isAuthenticated,
     refetchInterval: 2 * 60 * 1000, // 2 minutes
     staleTime: 60 * 1000, // Consider fresh for 1 minute
     retry: (failureCount, error: any) => {
@@ -183,12 +183,12 @@ export function useDashboardMetrics() {
  * Hook to fetch paginated/filtered metrics list
  */
 export function useMetricsList(filters: Record<string, any> = {}) {
-  const { state: authState } = useAuth()
+  const { isAuthenticated } = useAuth()
   
   return useQuery({
     queryKey: metricsQueryKeys.list(filters),
     queryFn: () => fetchMetricsList(filters),
-    enabled: authState.isAuthenticated,
+    enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
     retry: 2,
   })
@@ -234,12 +234,12 @@ export function useCreateMetric() {
  * Uses polling as a fallback for WebSocket-like behavior
  */
 export function useRealtimeMetric(metricType: string, enabled: boolean = true) {
-  const { state: authState } = useAuth()
+  const { isAuthenticated } = useAuth()
   
   return useQuery({
     queryKey: metricsQueryKeys.realtime(metricType),
     queryFn: () => fetchMetricsList({ type: metricType, limit: 1 }),
-    enabled: authState.isAuthenticated && enabled,
+    enabled: isAuthenticated && enabled,
     refetchInterval: 5 * 1000, // 5 seconds for real-time feel
     refetchIntervalInBackground: false, // Stop when tab is not active
     staleTime: 0, // Always consider stale for real-time data
@@ -254,10 +254,10 @@ export function useRealtimeMetric(metricType: string, enabled: boolean = true) {
  */
 export function usePrefetchMetrics() {
   const queryClient = useQueryClient()
-  const { state: authState } = useAuth()
+  const { isAuthenticated } = useAuth()
   
   const prefetchSystemHealth = () => {
-    if (!authState.isAuthenticated) return
+    if (!isAuthenticated) return
     
     queryClient.prefetchQuery({
       queryKey: metricsQueryKeys.systemHealth(),
@@ -267,7 +267,7 @@ export function usePrefetchMetrics() {
   }
   
   const prefetchDashboardMetrics = () => {
-    if (!authState.isAuthenticated) return
+    if (!isAuthenticated) return
     
     queryClient.prefetchQuery({
       queryKey: metricsQueryKeys.dashboard(),

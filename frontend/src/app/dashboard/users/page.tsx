@@ -1,20 +1,15 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { UserManagement } from '@/components/dashboard/UserManagement';
+import UserManagement from '@/components/dashboard/UserManagement';
 import { AuthProvider } from '@/contexts/DashboardAuthContext';
-import { ToastProvider } from '@/contexts/ToastContext';
-import { Toaster } from '@/components/ui/toaster';
 
 export default function UsersPage() {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <DashboardLayout>
-          <UserManagement />
-        </DashboardLayout>
-        <Toaster />
-      </ToastProvider>
+      <DashboardLayout>
+        <UserManagement />
+      </DashboardLayout>
     </AuthProvider>
   );
 }

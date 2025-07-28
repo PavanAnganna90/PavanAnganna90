@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Plus,
   Edit,
@@ -13,912 +11,359 @@ import {
   User as UserIcon,
   Tag,
   Folder,
-  Image,
   BarChart3,
   Clock,
 } from 'lucide-react';
-import { Post, PostStatus, CreatePostRequest, UpdatePostRequest, PostQueryParams } from '@/types/api';
-import { api } from '@/lib/api-client';
-import { useToast } from '@/components/ui/toast';
-import { useAuth, useRoleAccess } from '@/contexts/DashboardAuthContext';
-import { createPostSchema, updatePostSchema, CreatePostFormData, UpdatePostFormData } from '@/lib/validations';
-import { DataTable, Column, RowActions } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select-shadcn';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface PostManagementProps {
-  className?: string;
+// Simplified types for demo
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  status: 'published' | 'draft';
+  created_at: string;
+  updated_at?: string;
 }
 
-export function PostManagement({ className }: PostManagementProps) {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-  });
-  const [filters, setFilters] = useState<PostQueryParams>({});
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+// Demo data
+const demoaPosts: Post[] = [
+  {
+    id: '1',
+    title: 'Getting Started with OpsSight',
+    content: 'Welcome to the OpsSight platform. This guide will help you get started with monitoring your DevOps workflows.',
+    author: 'Admin User',
+    status: 'published',
+    created_at: '2025-01-15T10:00:00Z',
+    updated_at: '2025-01-15T10:00:00Z'
+  },
+  {
+    id: '2', 
+    title: 'Infrastructure Best Practices',
+    content: 'Learn about the key practices for maintaining robust DevOps infrastructure.',
+    author: 'Dev User',
+    status: 'published',
+    created_at: '2025-01-14T14:30:00Z',
+    updated_at: '2025-01-14T14:30:00Z'
+  },
+  {
+    id: '3',
+    title: 'Monitoring Guidelines (Draft)',
+    content: 'Draft guide for setting up comprehensive monitoring across your infrastructure.',
+    author: 'Admin User', 
+    status: 'draft',
+    created_at: '2025-01-13T09:15:00Z'
+  }
+];
+
+export default function PostManagement() {
+  const [posts, setPosts] = useState<Post[]>(demoaPosts);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
 
-  const { addToast } = useToast();
-  const { user } = useAuth();
-  const { isAdmin, canAccess } = useRoleAccess();
+  // Form state
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    status: 'draft' as 'published' | 'draft'
+  });
 
-  // Load posts
-  const loadPosts = async (newFilters?: PostQueryParams) => {
-    try {
-      setLoading(true);
-      const params = { ...filters, ...newFilters };
-      const response = await api.posts.getAll(params);
-      setPosts(response.data.data);
-      setPagination(response.data.pagination);
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to load posts',
-        type: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const filteredPosts = posts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
-  useEffect(() => {
-    loadPosts();
-  }, []);
-
-  // Get status badge variant
-  const getStatusBadgeVariant = (status: PostStatus) => {
-    switch (status) {
-      case PostStatus.PUBLISHED:
-        return 'success';
-      case PostStatus.DRAFT:
-        return 'secondary';
-      case PostStatus.ARCHIVED:
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
-  };
-
-  // Table columns
-  const columns: Column<Post>[] = [
-    {
-      key: 'featuredImage',
-      label: '',
-      width: '60px',
-      render: (featuredImage) => (
-        <div className="flex items-center justify-center">
-          {featuredImage ? (
-            <img
-              src={featuredImage}
-              alt="Featured"
-              className="w-10 h-10 rounded object-cover"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-              <Image className="w-4 h-4 text-gray-400" />
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'title',
-      label: 'Title',
-      sortable: true,
-      searchable: true,
-      render: (title, post) => (
-        <div>
-          <div className="font-medium text-gray-900 dark:text-white line-clamp-1">
-            {title}
-          </div>
-          {post.excerpt && (
-            <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
-              {post.excerpt}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'author',
-      label: 'Author',
-      sortable: true,
-      render: (_, post) => (
-        <div className="flex items-center">
-          <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
-          <span className="text-gray-900 dark:text-white">
-            {post.author.firstName} {post.author.lastName}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      sortable: true,
-      filterable: true,
-      render: (status) => (
-        <Badge variant={getStatusBadgeVariant(status)}>
-          <FileText className="w-3 h-3 mr-1" />
-          {status}
-        </Badge>
-      ),
-    },
-    {
-      key: 'tags',
-      label: 'Tags',
-      render: (tags) => (
-        <div className="flex flex-wrap gap-1">
-          {tags.slice(0, 2).map((tag: string, index: number) => (
-            <Badge key={index} variant="outline" className="text-xs">
-              <Tag className="w-2 h-2 mr-1" />
-              {tag}
-            </Badge>
-          ))}
-          {tags.length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{tags.length - 2}
-            </Badge>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'viewCount',
-      label: 'Views',
-      sortable: true,
-      align: 'center',
-      render: (viewCount) => (
-        <div className="flex items-center justify-center">
-          <BarChart3 className="w-4 h-4 mr-1 text-gray-400" />
-          <span className="text-gray-900 dark:text-white">{viewCount}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'publishedAt',
-      label: 'Published',
-      sortable: true,
-      render: (publishedAt) => (
-        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-          <Calendar className="w-4 h-4 mr-2" />
-          {publishedAt ? new Date(publishedAt).toLocaleDateString() : 'Not published'}
-        </div>
-      ),
-    },
-    {
-      key: 'updatedAt',
-      label: 'Updated',
-      sortable: true,
-      render: (updatedAt) => (
-        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-          <Clock className="w-4 h-4 mr-2" />
-          {new Date(updatedAt).toLocaleDateString()}
-        </div>
-      ),
-    },
-  ];
-
-  // Handle table actions
-  const handleSort = (key: keyof Post, direction: 'asc' | 'desc') => {
-    const newFilters = { ...filters, sortBy: key as any, sortOrder: direction };
-    setFilters(newFilters);
-    loadPosts(newFilters);
-  };
-
-  const handleSearch = (query: string) => {
-    const newFilters = { ...filters, search: query, page: 1 };
-    setFilters(newFilters);
-    loadPosts(newFilters);
-  };
-
-  const handlePageChange = (page: number) => {
-    const newFilters = { ...filters, page };
-    setFilters(newFilters);
-    loadPosts(newFilters);
-  };
-
-  const handlePageSizeChange = (limit: number) => {
-    const newFilters = { ...filters, limit, page: 1 };
-    setFilters(newFilters);
-    loadPosts(newFilters);
-  };
-
-  // Post actions
-  const handleCreatePost = async (data: CreatePostFormData) => {
-    try {
-      await api.posts.create(data);
-      addToast({
-        title: 'Success',
-        message: 'Post created successfully',
-        type: 'success',
-      });
-      setIsCreateModalOpen(false);
-      loadPosts();
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to create post',
-        type: 'error',
-      });
-    }
-  };
-
-  const handleUpdatePost = async (data: UpdatePostFormData) => {
-    if (!selectedPost) return;
-
-    try {
-      await api.posts.update(selectedPost.id, data);
-      addToast({
-        title: 'Success',
-        message: 'Post updated successfully',
-        type: 'success',
-      });
-      setIsEditModalOpen(false);
-      setSelectedPost(null);
-      loadPosts();
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to update post',
-        type: 'error',
-      });
-    }
-  };
-
-  const handleDeletePost = async (post: Post) => {
-    if (!confirm(`Are you sure you want to delete "${post.title}"?`)) {
+  const handleCreatePost = () => {
+    if (!formData.title.trim() || !formData.content.trim()) {
+      alert('Please fill in all required fields');
       return;
     }
 
-    try {
-      await api.posts.delete(post.id);
-      addToast({
-        title: 'Success',
-        message: 'Post deleted successfully',
-        type: 'success',
-      });
-      loadPosts();
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to delete post',
-        type: 'error',
-      });
-    }
+    const newPost: Post = {
+      id: Date.now().toString(),
+      title: formData.title,
+      content: formData.content,
+      author: 'Current User',
+      status: formData.status,
+      created_at: new Date().toISOString()
+    };
+
+    setPosts(prev => [newPost, ...prev]);
+    setFormData({ title: '', content: '', status: 'draft' });
+    setIsCreateModalOpen(false);
   };
 
-  // Check if user can edit/delete post
-  const canEditPost = (post: Post) => {
-    return isAdmin || (user && post.authorId === user.id);
-  };
-
-  // Row actions
-  const getRowActions = (post: Post) => (
-    <RowActions
-      onView={() => {
-        setSelectedPost(post);
-        setIsViewModalOpen(true);
-      }}
-      onEdit={() => {
-        setSelectedPost(post);
-        setIsEditModalOpen(true);
-      }}
-      onDelete={() => handleDeletePost(post)}
-      canEdit={canEditPost(post)}
-      canDelete={canEditPost(post)}
-    />
-  );
-
-  if (!canAccess()) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Access Denied
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            You don't have permission to access post management.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={className}>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl font-bold">Post Management</CardTitle>
-              <CardDescription>
-                Create, edit, and manage blog posts and content
-              </CardDescription>
-            </div>
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Post
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <CreatePostModal onSubmit={handleCreatePost} />
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={posts}
-            columns={columns}
-            loading={loading}
-            totalCount={pagination.total}
-            pageSize={pagination.limit}
-            currentPage={pagination.page}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            onSort={handleSort}
-            onSearch={handleSearch}
-            searchPlaceholder="Search posts by title, content, or author..."
-            emptyMessage="No posts found"
-            rowActions={getRowActions}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Edit Post Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          {selectedPost && (
-            <EditPostModal
-              post={selectedPost}
-              onSubmit={handleUpdatePost}
-              onClose={() => {
-                setIsEditModalOpen(false);
-                setSelectedPost(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* View Post Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          {selectedPost && (
-            <ViewPostModal
-              post={selectedPost}
-              onClose={() => {
-                setIsViewModalOpen(false);
-                setSelectedPost(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-// Create Post Modal
-function CreatePostModal({ onSubmit }: { onSubmit: (data: CreatePostFormData) => void }) {
-  const form = useForm<CreatePostFormData>({
-    resolver: zodResolver(createPostSchema),
-    defaultValues: {
-      title: '',
-      content: '',
-      excerpt: '',
-      status: PostStatus.DRAFT,
-      featuredImage: '',
-      tags: [],
-      categories: [],
-      publishedAt: '',
-    },
-  });
-
-  const [tagInput, setTagInput] = useState('');
-  const [categoryInput, setCategoryInput] = useState('');
-
-  const addTag = () => {
-    if (tagInput.trim()) {
-      const currentTags = form.getValues('tags') || [];
-      if (!currentTags.includes(tagInput.trim())) {
-        form.setValue('tags', [...currentTags, tagInput.trim()]);
-      }
-      setTagInput('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    const currentTags = form.getValues('tags') || [];
-    form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
-  };
-
-  const addCategory = () => {
-    if (categoryInput.trim()) {
-      const currentCategories = form.getValues('categories') || [];
-      if (!currentCategories.includes(categoryInput.trim())) {
-        form.setValue('categories', [...currentCategories, categoryInput.trim()]);
-      }
-      setCategoryInput('');
-    }
-  };
-
-  const removeCategory = (categoryToRemove: string) => {
-    const currentCategories = form.getValues('categories') || [];
-    form.setValue('categories', currentCategories.filter(cat => cat !== categoryToRemove));
-  };
-
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Create New Post</DialogTitle>
-      </DialogHeader>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="title">Title *</Label>
-          <Input
-            id="title"
-            {...form.register('title')}
-            className={form.formState.errors.title ? 'border-red-500' : ''}
-            placeholder="Enter post title"
-          />
-          {form.formState.errors.title && (
-            <p className="text-sm text-red-600">{form.formState.errors.title.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="excerpt">Excerpt</Label>
-          <Textarea
-            id="excerpt"
-            {...form.register('excerpt')}
-            className={form.formState.errors.excerpt ? 'border-red-500' : ''}
-            placeholder="Brief description of the post"
-            rows={3}
-          />
-          {form.formState.errors.excerpt && (
-            <p className="text-sm text-red-600">{form.formState.errors.excerpt.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="content">Content *</Label>
-          <Textarea
-            id="content"
-            {...form.register('content')}
-            className={form.formState.errors.content ? 'border-red-500' : ''}
-            placeholder="Write your post content here..."
-            rows={10}
-          />
-          {form.formState.errors.content && (
-            <p className="text-sm text-red-600">{form.formState.errors.content.message}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={form.watch('status')}
-              onValueChange={(value) => form.setValue('status', value as PostStatus)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
-                <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
-                <SelectItem value={PostStatus.ARCHIVED}>Archived</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="featuredImage">Featured Image URL</Label>
-            <Input
-              id="featuredImage"
-              {...form.register('featuredImage')}
-              className={form.formState.errors.featuredImage ? 'border-red-500' : ''}
-              placeholder="https://example.com/image.jpg"
-            />
-            {form.formState.errors.featuredImage && (
-              <p className="text-sm text-red-600">{form.formState.errors.featuredImage.message}</p>
-            )}
-          </div>
-        </div>
-
-        {form.watch('status') === PostStatus.PUBLISHED && (
-          <div className="space-y-2">
-            <Label htmlFor="publishedAt">Publish Date & Time</Label>
-            <Input
-              id="publishedAt"
-              type="datetime-local"
-              {...form.register('publishedAt')}
-              className={form.formState.errors.publishedAt ? 'border-red-500' : ''}
-            />
-            {form.formState.errors.publishedAt && (
-              <p className="text-sm text-red-600">{form.formState.errors.publishedAt.message}</p>
-            )}
-          </div>
-        )}
-
-        {/* Tags */}
-        <div className="space-y-2">
-          <Label>Tags</Label>
-          <div className="flex space-x-2">
-            <Input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              placeholder="Add a tag"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-            />
-            <Button type="button" onClick={addTag} variant="outline">
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(form.watch('tags') || []).map((tag, index) => (
-              <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                {tag} ×
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div className="space-y-2">
-          <Label>Categories</Label>
-          <div className="flex space-x-2">
-            <Input
-              value={categoryInput}
-              onChange={(e) => setCategoryInput(e.target.value)}
-              placeholder="Add a category"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCategory())}
-            />
-            <Button type="button" onClick={addCategory} variant="outline">
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(form.watch('categories') || []).map((category, index) => (
-              <Badge key={index} variant="outline" className="cursor-pointer" onClick={() => removeCategory(category)}>
-                {category} ×
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end space-x-2">
-          <Button type="submit">Create Post</Button>
-        </div>
-      </form>
-    </>
-  );
-}
-
-// Edit Post Modal
-function EditPostModal({
-  post,
-  onSubmit,
-  onClose,
-}: {
-  post: Post;
-  onSubmit: (data: UpdatePostFormData) => void;
-  onClose: () => void;
-}) {
-  const form = useForm<UpdatePostFormData>({
-    resolver: zodResolver(updatePostSchema),
-    defaultValues: {
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post);
+    setFormData({
       title: post.title,
       content: post.content,
-      excerpt: post.excerpt || '',
-      status: post.status,
-      featuredImage: post.featuredImage || '',
-      tags: post.tags,
-      categories: post.categories,
-      publishedAt: post.publishedAt ? new Date(post.publishedAt).toISOString().slice(0, 16) : '',
-    },
-  });
+      status: post.status
+    });
+  };
 
-  const [tagInput, setTagInput] = useState('');
-  const [categoryInput, setCategoryInput] = useState('');
+  const handleUpdatePost = () => {
+    if (!editingPost || !formData.title.trim() || !formData.content.trim()) {
+      alert('Please fill in all required fields');
+      return;
+    }
 
-  const addTag = () => {
-    if (tagInput.trim()) {
-      const currentTags = form.getValues('tags') || [];
-      if (!currentTags.includes(tagInput.trim())) {
-        form.setValue('tags', [...currentTags, tagInput.trim()]);
-      }
-      setTagInput('');
+    setPosts(prev => prev.map(post => 
+      post.id === editingPost.id 
+        ? { 
+            ...post, 
+            title: formData.title,
+            content: formData.content,
+            status: formData.status,
+            updated_at: new Date().toISOString()
+          }
+        : post
+    ));
+
+    setEditingPost(null);
+    setFormData({ title: '', content: '', status: 'draft' });
+  };
+
+  const handleDeletePost = (postId: string) => {
+    if (confirm('Are you sure you want to delete this post?')) {
+      setPosts(prev => prev.filter(post => post.id !== postId));
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    const currentTags = form.getValues('tags') || [];
-    form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
-  };
-
-  const addCategory = () => {
-    if (categoryInput.trim()) {
-      const currentCategories = form.getValues('categories') || [];
-      if (!currentCategories.includes(categoryInput.trim())) {
-        form.setValue('categories', [...currentCategories, categoryInput.trim()]);
-      }
-      setCategoryInput('');
-    }
-  };
-
-  const removeCategory = (categoryToRemove: string) => {
-    const currentCategories = form.getValues('categories') || [];
-    form.setValue('categories', currentCategories.filter(cat => cat !== categoryToRemove));
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Edit Post</DialogTitle>
-      </DialogHeader>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            {...form.register('title')}
-            className={form.formState.errors.title ? 'border-red-500' : ''}
-          />
-          {form.formState.errors.title && (
-            <p className="text-sm text-red-600">{form.formState.errors.title.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="excerpt">Excerpt</Label>
-          <Textarea
-            id="excerpt"
-            {...form.register('excerpt')}
-            className={form.formState.errors.excerpt ? 'border-red-500' : ''}
-            rows={3}
-          />
-          {form.formState.errors.excerpt && (
-            <p className="text-sm text-red-600">{form.formState.errors.excerpt.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="content">Content</Label>
-          <Textarea
-            id="content"
-            {...form.register('content')}
-            className={form.formState.errors.content ? 'border-red-500' : ''}
-            rows={10}
-          />
-          {form.formState.errors.content && (
-            <p className="text-sm text-red-600">{form.formState.errors.content.message}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={form.watch('status')}
-              onValueChange={(value) => form.setValue('status', value as PostStatus)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
-                <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
-                <SelectItem value={PostStatus.ARCHIVED}>Archived</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="featuredImage">Featured Image URL</Label>
-            <Input
-              id="featuredImage"
-              {...form.register('featuredImage')}
-              className={form.formState.errors.featuredImage ? 'border-red-500' : ''}
-            />
-            {form.formState.errors.featuredImage && (
-              <p className="text-sm text-red-600">{form.formState.errors.featuredImage.message}</p>
-            )}
-          </div>
-        </div>
-
-        {form.watch('status') === PostStatus.PUBLISHED && (
-          <div className="space-y-2">
-            <Label htmlFor="publishedAt">Publish Date & Time</Label>
-            <Input
-              id="publishedAt"
-              type="datetime-local"
-              {...form.register('publishedAt')}
-              className={form.formState.errors.publishedAt ? 'border-red-500' : ''}
-            />
-            {form.formState.errors.publishedAt && (
-              <p className="text-sm text-red-600">{form.formState.errors.publishedAt.message}</p>
-            )}
-          </div>
-        )}
-
-        {/* Tags */}
-        <div className="space-y-2">
-          <Label>Tags</Label>
-          <div className="flex space-x-2">
-            <Input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              placeholder="Add a tag"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-            />
-            <Button type="button" onClick={addTag} variant="outline">
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(form.watch('tags') || []).map((tag, index) => (
-              <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                {tag} ×
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Categories */}
-        <div className="space-y-2">
-          <Label>Categories</Label>
-          <div className="flex space-x-2">
-            <Input
-              value={categoryInput}
-              onChange={(e) => setCategoryInput(e.target.value)}
-              placeholder="Add a category"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCategory())}
-            />
-            <Button type="button" onClick={addCategory} variant="outline">
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(form.watch('categories') || []).map((category, index) => (
-              <Badge key={index} variant="outline" className="cursor-pointer" onClick={() => removeCategory(category)}>
-                {category} ×
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit">Update Post</Button>
-        </div>
-      </form>
-    </>
-  );
-}
-
-// View Post Modal
-function ViewPostModal({ post, onClose }: { post: Post; onClose: () => void }) {
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Post Details</DialogTitle>
-      </DialogHeader>
-      <div className="space-y-6">
-        {post.featuredImage && (
-          <div>
-            <img
-              src={post.featuredImage}
-              alt={post.title}
-              className="w-full h-48 object-cover rounded-lg"
-            />
-          </div>
-        )}
-
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {post.title}
-          </h1>
-          {post.excerpt && (
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-              {post.excerpt}
-            </p>
-          )}
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Posts Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your blog posts and content</p>
         </div>
+        <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Create Post
+        </Button>
+      </div>
 
-        <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-          <div className="flex items-center">
-            <UserIcon className="w-4 h-4 mr-1" />
-            {post.author.firstName} {post.author.lastName}
-          </div>
-          <div className="flex items-center">
-            <Calendar className="w-4 h-4 mr-1" />
-            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Not published'}
-          </div>
-          <div className="flex items-center">
-            <BarChart3 className="w-4 h-4 mr-1" />
-            {post.viewCount} views
-          </div>
-          <Badge variant={getStatusBadgeVariant(post.status)}>
-            {post.status}
-          </Badge>
-        </div>
-
-        {(post.tags.length > 0 || post.categories.length > 0) && (
-          <div className="space-y-2">
-            {post.tags.length > 0 && (
-              <div>
-                <Label className="text-sm font-medium text-gray-500">Tags</Label>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {post.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary">
-                      <Tag className="w-3 h-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            {post.categories.length > 0 && (
-              <div>
-                <Label className="text-sm font-medium text-gray-500">Categories</Label>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {post.categories.map((category, index) => (
-                    <Badge key={index} variant="outline">
-                      <Folder className="w-3 h-3 mr-1" />
-                      {category}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div>
-          <Label className="text-sm font-medium text-gray-500">Content</Label>
-          <div className="mt-2 prose dark:prose-invert max-w-none">
-            <div className="whitespace-pre-wrap">{post.content}</div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <FileText className="h-8 w-8 text-blue-500" />
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Posts</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{posts.length}</p>
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button onClick={onClose}>Close</Button>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <Eye className="h-8 w-8 text-green-500" />
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Published</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {posts.filter(p => p.status === 'published').length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <Edit className="h-8 w-8 text-orange-500" />
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Drafts</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {posts.filter(p => p.status === 'draft').length}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </>
-  );
-}
 
-// Helper function to get status badge variant
-function getStatusBadgeVariant(status: PostStatus) {
-  switch (status) {
-    case PostStatus.PUBLISHED:
-      return 'success' as const;
-    case PostStatus.DRAFT:
-      return 'secondary' as const;
-    case PostStatus.ARCHIVED:
-      return 'destructive' as const;
-    default:
-      return 'secondary' as const;
-  }
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Search posts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="sm:w-48">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Posts Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Post
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Author
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+              {filteredPosts.map((post) => (
+                <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4">
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-white">{post.title}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                        {post.content}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                    {post.author}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      post.status === 'published' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
+                    }`}>
+                      {post.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {formatDate(post.created_at)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditPost(post)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeletePost(post.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create/Edit Modal */}
+      {(isCreateModalOpen || editingPost) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              {editingPost ? 'Edit Post' : 'Create New Post'}
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter post title"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="content">Content *</Label>
+                <Textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="Enter post content"
+                  rows={6}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  value={formData.status}
+                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCreateModalOpen(false);
+                  setEditingPost(null);
+                  setFormData({ title: '', content: '', status: 'draft' });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={editingPost ? handleUpdatePost : handleCreatePost}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : (editingPost ? 'Update' : 'Create')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

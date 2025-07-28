@@ -19,7 +19,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useDashboardMetrics } from '@/hooks/useMetrics';
 import { apiService } from '@/services/apiService';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 
@@ -40,10 +39,10 @@ interface SystemMetrics {
 }
 
 export function MetricsOverview() {
-  const { data: metrics, isLoading: loading } = useDashboardMetrics();
   const [dashboardMetrics, setDashboardMetrics] = React.useState<any>(null);
   const [cacheMetrics, setCacheMetrics] = React.useState<any>(null);
   const [apiPerformance, setApiPerformance] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     loadMetrics();
@@ -51,6 +50,8 @@ export function MetricsOverview() {
 
   const loadMetrics = async () => {
     try {
+      setLoading(true);
+      
       // Load dashboard metrics
       const metricsResponse = await apiService.getDashboardMetrics();
       if (metricsResponse.success) {
@@ -70,10 +71,13 @@ export function MetricsOverview() {
       }
     } catch (error) {
       console.error('Failed to load metrics:', error);
+      // Set loading to false even on error to prevent infinite loading
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading || (!dashboardMetrics && !cacheMetrics)) {
+  if (loading) {
     return <MetricsOverviewSkeleton />;
   }
 
@@ -336,12 +340,12 @@ function MetricsOverviewSkeleton() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
-          <LoadingSkeleton key={i} variant="metric" />
+          <LoadingSkeleton key={i} variant="card" size="md" className="h-32" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[...Array(2)].map((_, i) => (
-          <LoadingSkeleton key={i} variant="card" className="h-64" />
+          <LoadingSkeleton key={i} variant="card" size="lg" className="h-64" />
         ))}
       </div>
     </div>

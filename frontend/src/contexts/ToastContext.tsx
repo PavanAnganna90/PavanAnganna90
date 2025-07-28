@@ -36,7 +36,7 @@ interface ToastProviderProps {
 export function ToastProvider({ children, maxToasts = 5 }: ToastProviderProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const generateId = () => Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const generateId = () => `toast-${crypto.randomUUID()}`;
 
   const addToast = (toastData: Omit<Toast, 'id'>) => {
     const toast: Toast = {

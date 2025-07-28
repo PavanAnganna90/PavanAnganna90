@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Plus,
   Edit,
@@ -17,658 +15,462 @@ import {
   Search,
   Filter,
 } from 'lucide-react';
-import { User, UserRole, CreateUserRequest, UpdateUserRequest, UserQueryParams } from '@/types/api';
-import { api } from '@/lib/api-client';
-import { useToast } from '@/components/ui/toast';
-import { useRoleAccess } from '@/contexts/DashboardAuthContext';
-import { createUserSchema, updateUserSchema, CreateUserFormData, UpdateUserFormData } from '@/lib/validations';
-import { DataTable, Column, RowActions } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select-shadcn';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface UserManagementProps {
-  className?: string;
+// Simplified types for demo
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'ADMIN' | 'USER' | 'MODERATOR';
+  is_active: boolean;
+  created_at: string;
+  last_login?: string;
 }
 
-export function UserManagement({ className }: UserManagementProps) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-  });
-  const [filters, setFilters] = useState<UserQueryParams>({});
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+// Demo data
+const demoUsers: User[] = [
+  {
+    id: '1',
+    email: 'admin@opssight.local',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'ADMIN',
+    is_active: true,
+    created_at: '2025-01-01T10:00:00Z',
+    last_login: '2025-01-28T08:30:00Z'
+  },
+  {
+    id: '2',
+    email: 'dev@opssight.local',
+    firstName: 'Dev',
+    lastName: 'User',
+    role: 'USER',
+    is_active: true,
+    created_at: '2025-01-02T14:30:00Z',
+    last_login: '2025-01-27T16:45:00Z'
+  },
+  {
+    id: '3',
+    email: 'moderator@opssight.local',
+    firstName: 'Mod',
+    lastName: 'User',
+    role: 'MODERATOR',
+    is_active: true,
+    created_at: '2025-01-03T09:15:00Z',
+    last_login: '2025-01-26T12:20:00Z'
+  },
+  {
+    id: '4',
+    email: 'inactive@opssight.local',
+    firstName: 'Inactive',
+    lastName: 'User',
+    role: 'USER',
+    is_active: false,
+    created_at: '2025-01-04T11:45:00Z'
+  }
+];
+
+export default function UserManagement() {
+  const [users, setUsers] = useState<User[]>(demoUsers);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'ADMIN' | 'USER' | 'MODERATOR'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
-  const { addToast } = useToast();
-  const { isAdmin, canAccess } = useRoleAccess('ADMIN');
+  // Form state
+  const [formData, setFormData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    role: 'USER' as 'ADMIN' | 'USER' | 'MODERATOR',
+    is_active: true
+  });
 
-  // Load users
-  const loadUsers = async (newFilters?: UserQueryParams) => {
-    try {
-      setLoading(true);
-      const params = { ...filters, ...newFilters };
-      const response = await api.users.getAll(params);
-      setUsers(response.data.data);
-      setPagination(response.data.pagination);
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to load users',
-        type: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.lastName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && user.is_active) ||
+                         (statusFilter === 'inactive' && !user.is_active);
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  // Table columns
-  const columns: Column<User>[] = [
-    {
-      key: 'avatar',
-      label: '',
-      width: '60px',
-      render: (_, user) => (
-        <div className="flex items-center justify-center">
-          {user.avatar ? (
-            <img
-              src={user.avatar}
-              alt={`${user.firstName} ${user.lastName}`}
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-              <UserIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'firstName',
-      label: 'Name',
-      sortable: true,
-      searchable: true,
-      render: (_, user) => (
-        <div>
-          <div className="font-medium text-gray-900 dark:text-white">
-            {user.firstName} {user.lastName}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            @{user.username}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'email',
-      label: 'Email',
-      sortable: true,
-      searchable: true,
-      render: (email) => (
-        <div className="flex items-center">
-          <Mail className="w-4 h-4 mr-2 text-gray-400" />
-          <span className="text-gray-900 dark:text-white">{email}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'role',
-      label: 'Role',
-      sortable: true,
-      filterable: true,
-      render: (role) => (
-        <Badge variant={role === UserRole.ADMIN ? 'default' : 'secondary'}>
-          <Shield className="w-3 h-3 mr-1" />
-          {role}
-        </Badge>
-      ),
-    },
-    {
-      key: 'isActive',
-      label: 'Status',
-      sortable: true,
-      filterable: true,
-      render: (isActive) => (
-        <Badge variant={isActive ? 'success' : 'destructive'}>
-          {isActive ? (
-            <>
-              <UserCheck className="w-3 h-3 mr-1" />
-              Active
-            </>
-          ) : (
-            <>
-              <UserX className="w-3 h-3 mr-1" />
-              Inactive
-            </>
-          )}
-        </Badge>
-      ),
-    },
-    {
-      key: 'createdAt',
-      label: 'Created',
-      sortable: true,
-      render: (createdAt) => (
-        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-          <Calendar className="w-4 h-4 mr-2" />
-          {new Date(createdAt).toLocaleDateString()}
-        </div>
-      ),
-    },
-    {
-      key: 'lastLoginAt',
-      label: 'Last Login',
-      sortable: true,
-      render: (lastLoginAt) => (
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {lastLoginAt ? new Date(lastLoginAt).toLocaleDateString() : 'Never'}
-        </div>
-      ),
-    },
-  ];
-
-  // Handle table actions
-  const handleSort = (key: keyof User, direction: 'asc' | 'desc') => {
-    const newFilters = { ...filters, sortBy: key as any, sortOrder: direction };
-    setFilters(newFilters);
-    loadUsers(newFilters);
-  };
-
-  const handleSearch = (query: string) => {
-    const newFilters = { ...filters, search: query, page: 1 };
-    setFilters(newFilters);
-    loadUsers(newFilters);
-  };
-
-  const handlePageChange = (page: number) => {
-    const newFilters = { ...filters, page };
-    setFilters(newFilters);
-    loadUsers(newFilters);
-  };
-
-  const handlePageSizeChange = (limit: number) => {
-    const newFilters = { ...filters, limit, page: 1 };
-    setFilters(newFilters);
-    loadUsers(newFilters);
-  };
-
-  // User actions
-  const handleCreateUser = async (data: CreateUserFormData) => {
-    try {
-      await api.users.create(data);
-      addToast({
-        title: 'Success',
-        message: 'User created successfully',
-        type: 'success',
-      });
-      setIsCreateModalOpen(false);
-      loadUsers();
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to create user',
-        type: 'error',
-      });
-    }
-  };
-
-  const handleUpdateUser = async (data: UpdateUserFormData) => {
-    if (!selectedUser) return;
-
-    try {
-      await api.users.update(selectedUser.id, data);
-      addToast({
-        title: 'Success',
-        message: 'User updated successfully',
-        type: 'success',
-      });
-      setIsEditModalOpen(false);
-      setSelectedUser(null);
-      loadUsers();
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to update user',
-        type: 'error',
-      });
-    }
-  };
-
-  const handleDeleteUser = async (user: User) => {
-    if (!confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) {
+  const handleCreateUser = () => {
+    if (!formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim()) {
+      alert('Please fill in all required fields');
       return;
     }
 
-    try {
-      await api.users.delete(user.id);
-      addToast({
-        title: 'Success',
-        message: 'User deleted successfully',
-        type: 'success',
-      });
-      loadUsers();
-    } catch (error: any) {
-      addToast({
-        title: 'Error',
-        message: error.message || 'Failed to delete user',
-        type: 'error',
-      });
-    }
+    const newUser: User = {
+      id: Date.now().toString(),
+      email: formData.email,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      role: formData.role,
+      is_active: formData.is_active,
+      created_at: new Date().toISOString()
+    };
+
+    setUsers(prev => [newUser, ...prev]);
+    setFormData({ email: '', firstName: '', lastName: '', role: 'USER', is_active: true });
+    setIsCreateModalOpen(false);
   };
 
-  // Row actions
-  const getRowActions = (user: User) => (
-    <RowActions
-      onView={() => {
-        setSelectedUser(user);
-        setIsViewModalOpen(true);
-      }}
-      onEdit={() => {
-        setSelectedUser(user);
-        setIsEditModalOpen(true);
-      }}
-      onDelete={() => handleDeleteUser(user)}
-      canEdit={isAdmin}
-      canDelete={isAdmin}
-    />
-  );
-
-  if (!canAccess()) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Access Denied
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            You don't have permission to access user management.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={className}>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl font-bold">User Management</CardTitle>
-              <CardDescription>
-                Manage users, roles, and permissions in your organization
-              </CardDescription>
-            </div>
-            {isAdmin && (
-              <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add User
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <CreateUserModal onSubmit={handleCreateUser} />
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={users}
-            columns={columns}
-            loading={loading}
-            totalCount={pagination.total}
-            pageSize={pagination.limit}
-            currentPage={pagination.page}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            onSort={handleSort}
-            onSearch={handleSearch}
-            searchPlaceholder="Search users by name, email, or username..."
-            emptyMessage="No users found"
-            rowActions={getRowActions}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Edit User Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md">
-          {selectedUser && (
-            <EditUserModal
-              user={selectedUser}
-              onSubmit={handleUpdateUser}
-              onClose={() => {
-                setIsEditModalOpen(false);
-                setSelectedUser(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* View User Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-lg">
-          {selectedUser && (
-            <ViewUserModal
-              user={selectedUser}
-              onClose={() => {
-                setIsViewModalOpen(false);
-                setSelectedUser(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-// Create User Modal
-function CreateUserModal({ onSubmit }: { onSubmit: (data: CreateUserFormData) => void }) {
-  const form = useForm<CreateUserFormData>({
-    resolver: zodResolver(createUserSchema),
-    defaultValues: {
-      email: '',
-      username: '',
-      firstName: '',
-      lastName: '',
-      password: '',
-      role: UserRole.USER,
-    },
-  });
-
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Create New User</DialogTitle>
-      </DialogHeader>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
-            <Input
-              id="firstName"
-              {...form.register('firstName')}
-              className={form.formState.errors.firstName ? 'border-red-500' : ''}
-            />
-            {form.formState.errors.firstName && (
-              <p className="text-sm text-red-600">{form.formState.errors.firstName.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              {...form.register('lastName')}
-              className={form.formState.errors.lastName ? 'border-red-500' : ''}
-            />
-            {form.formState.errors.lastName && (
-              <p className="text-sm text-red-600">{form.formState.errors.lastName.message}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            {...form.register('username')}
-            className={form.formState.errors.username ? 'border-red-500' : ''}
-          />
-          {form.formState.errors.username && (
-            <p className="text-sm text-red-600">{form.formState.errors.username.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            {...form.register('email')}
-            className={form.formState.errors.email ? 'border-red-500' : ''}
-          />
-          {form.formState.errors.email && (
-            <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            {...form.register('password')}
-            className={form.formState.errors.password ? 'border-red-500' : ''}
-          />
-          {form.formState.errors.password && (
-            <p className="text-sm text-red-600">{form.formState.errors.password.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
-          <Select
-            value={form.watch('role')}
-            onValueChange={(value) => form.setValue('role', value as UserRole)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={UserRole.USER}>User</SelectItem>
-              <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex justify-end space-x-2">
-          <Button type="submit">Create User</Button>
-        </div>
-      </form>
-    </>
-  );
-}
-
-// Edit User Modal
-function EditUserModal({
-  user,
-  onSubmit,
-  onClose,
-}: {
-  user: User;
-  onSubmit: (data: UpdateUserFormData) => void;
-  onClose: () => void;
-}) {
-  const form = useForm<UpdateUserFormData>({
-    resolver: zodResolver(updateUserSchema),
-    defaultValues: {
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setFormData({
       email: user.email,
-      username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-      isActive: user.isActive,
-    },
-  });
+      is_active: user.is_active
+    });
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser || !formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim()) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setUsers(prev => prev.map(user => 
+      user.id === editingUser.id 
+        ? { 
+            ...user, 
+            email: formData.email,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            role: formData.role,
+            is_active: formData.is_active
+          }
+        : user
+    ));
+
+    setEditingUser(null);
+    setFormData({ email: '', firstName: '', lastName: '', role: 'USER', is_active: true });
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    if (confirm('Are you sure you want to delete this user?')) {
+      setUsers(prev => prev.filter(user => user.id !== userId));
+    }
+  };
+
+  const handleToggleUserStatus = (userId: string) => {
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? { ...user, is_active: !user.is_active } : user
+    ));
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'ADMIN': return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100';
+      case 'MODERATOR': return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+    }
+  };
 
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Edit User</DialogTitle>
-      </DialogHeader>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
-            <Input
-              id="firstName"
-              {...form.register('firstName')}
-              className={form.formState.errors.firstName ? 'border-red-500' : ''}
-            />
-            {form.formState.errors.firstName && (
-              <p className="text-sm text-red-600">{form.formState.errors.firstName.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              {...form.register('lastName')}
-              className={form.formState.errors.lastName ? 'border-red-500' : ''}
-            />
-            {form.formState.errors.lastName && (
-              <p className="text-sm text-red-600">{form.formState.errors.lastName.message}</p>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage system users and their permissions</p>
         </div>
+        <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Add User
+        </Button>
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            {...form.register('username')}
-            className={form.formState.errors.username ? 'border-red-500' : ''}
-          />
-          {form.formState.errors.username && (
-            <p className="text-sm text-red-600">{form.formState.errors.username.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            {...form.register('email')}
-            className={form.formState.errors.email ? 'border-red-500' : ''}
-          />
-          {form.formState.errors.email && (
-            <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
-          <Select
-            value={form.watch('role')}
-            onValueChange={(value) => form.setValue('role', value as UserRole)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={UserRole.USER}>User</SelectItem>
-              <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="isActive"
-            {...form.register('isActive')}
-            className="rounded border-gray-300"
-          />
-          <Label htmlFor="isActive">Active User</Label>
-        </div>
-
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit">Update User</Button>
-        </div>
-      </form>
-    </>
-  );
-}
-
-// View User Modal
-function ViewUserModal({ user, onClose }: { user: User; onClose: () => void }) {
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>User Details</DialogTitle>
-      </DialogHeader>
-      <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          {user.avatar ? (
-            <img
-              src={user.avatar}
-              alt={`${user.firstName} ${user.lastName}`}
-              className="w-16 h-16 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-              <UserIcon className="w-8 h-8 text-gray-600 dark:text-gray-400" />
-            </div>
-          )}
-          <div>
-            <h3 className="text-xl font-semibold">
-              {user.firstName} {user.lastName}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">@{user.username}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-500">Email</Label>
-            <p className="mt-1">{user.email}</p>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-500">Role</Label>
-            <div className="mt-1">
-              <Badge variant={user.role === UserRole.ADMIN ? 'default' : 'secondary'}>
-                {user.role}
-              </Badge>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <UserIcon className="h-8 w-8 text-blue-500" />
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{users.length}</p>
             </div>
           </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-500">Status</Label>
-            <div className="mt-1">
-              <Badge variant={user.isActive ? 'success' : 'destructive'}>
-                {user.isActive ? 'Active' : 'Inactive'}
-              </Badge>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <UserCheck className="h-8 w-8 text-green-500" />
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Active Users</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {users.filter(u => u.is_active).length}
+              </p>
             </div>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-500">Created</Label>
-            <p className="mt-1">{new Date(user.createdAt).toLocaleDateString()}</p>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-500">Last Login</Label>
-            <p className="mt-1">
-              {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
-            </p>
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button onClick={onClose}>Close</Button>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <Shield className="h-8 w-8 text-red-500" />
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Admins</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {users.filter(u => u.role === 'ADMIN').length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <UserX className="h-8 w-8 text-orange-500" />
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {users.filter(u => !u.is_active).length}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="sm:w-48">
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Roles</option>
+              <option value="ADMIN">Admin</option>
+              <option value="MODERATOR">Moderator</option>
+              <option value="USER">User</option>
+            </select>
+          </div>
+          <div className="sm:w-48">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Last Login
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+              {filteredUsers.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                        <UserIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {user.firstName} {user.lastName}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      user.is_active 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                        : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                    }`}>
+                      {user.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {user.last_login ? formatDate(user.last_login) : 'Never'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {formatDate(user.created_at)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleUserStatus(user.id)}
+                        className={user.is_active ? 'text-orange-600' : 'text-green-600'}
+                      >
+                        {user.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create/Edit Modal */}
+      {(isCreateModalOpen || editingUser) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              {editingUser ? 'Edit User' : 'Create New User'}
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter email address"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="role">Role</Label>
+                <select
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as any }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="USER">User</option>
+                  <option value="MODERATOR">Moderator</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                  className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                />
+                <Label htmlFor="is_active">Active User</Label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCreateModalOpen(false);
+                  setEditingUser(null);
+                  setFormData({ email: '', firstName: '', lastName: '', role: 'USER', is_active: true });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={editingUser ? handleUpdateUser : handleCreateUser}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : (editingUser ? 'Update' : 'Create')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

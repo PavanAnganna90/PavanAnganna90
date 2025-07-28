@@ -12,6 +12,9 @@ import {
   Clock,
   Activity,
   BarChart3,
+  Edit,
+  Trash2,
+  Settings,
 } from 'lucide-react';
 import { DashboardStats, ActivityLog } from '@/types/api';
 import { api } from '@/lib/api-client';
@@ -53,7 +56,7 @@ export function DashboardOverview({ className }: DashboardOverviewProps) {
     } catch (error: any) {
       addToast({
         title: 'Error',
-        message: error.message || 'Failed to load dashboard data',
+        description: error.message || 'Failed to load dashboard data',
         type: 'error',
       });
     } finally {

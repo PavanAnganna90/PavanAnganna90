@@ -349,7 +349,7 @@ class ApiService {
    * Get comprehensive dashboard metrics
    */
   async getDashboardMetrics(): Promise<ApiResponse<DashboardMetrics>> {
-    return this.get<DashboardMetrics>('/metrics/dashboard', true, 60000); // Cache for 1 minute
+    return this.get<DashboardMetrics>('/dashboard/overview', true, 60000); // Cache for 1 minute
   }
 
   /**

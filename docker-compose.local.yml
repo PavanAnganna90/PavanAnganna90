@@ -1,502 +1,163 @@
 version: '3.8'
 
-# =============================================================================
-# OpsSight Platform - Local Development with Full DevOps Stack
-# =============================================================================
-# Complete local deployment including Kubernetes, Terraform, and monitoring
-# =============================================================================
-
-networks:
-  opssight-local:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/16
-
-volumes:
-  postgres_data_local:
-  redis_data_local:
-  prometheus_data_local:
-  grafana_data_local:
-  alertmanager_data_local:
-  jenkins_data_local:
-  nexus_data_local:
-  sonarqube_data_local:
-  vault_data_local:
-  consul_data_local:
-
+# Local development overrides with auth bypass
 services:
-  # =============================================================================
-  # Core Platform Services
-  # =============================================================================
-  
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: opssight-postgres-local
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: opssight_dev
-      POSTGRES_USER: opssight
-      POSTGRES_PASSWORD: opssight123
-      PGDATA: /var/lib/postgresql/data/pgdata
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data_local:/var/lib/postgresql/data
-      - ./scripts/sql:/docker-entrypoint-initdb.d
-    networks:
-      - opssight-local
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opssight -d opssight_dev"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: opssight-redis-local
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data_local:/data
-    networks:
-      - opssight-local
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Backend API
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
-    container_name: opssight-backend-local
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://opssight:opssight123@postgres:5432/opssight_dev
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET_KEY=local-development-secret-key-change-in-production
-      - PROMETHEUS_URL=http://prometheus:9090
-      - GRAFANA_URL=http://grafana:3000
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - ./backend/logs:/app/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - opssight-local
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Frontend Application
+  # Frontend with dev auth features
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
-    container_name: opssight-frontend-local
-    restart: unless-stopped
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_ENABLE_DEV_AUTH=true
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
-      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+      - NEXT_PUBLIC_ENABLE_DEV_AUTH=true
+      - NEXT_PUBLIC_ENABLE_DEMO_MODE=true
+      - NEXT_PUBLIC_DISABLE_SSO=true
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    command: ["npm", "run", "dev"]
     depends_on:
       - backend
-    networks:
-      - opssight-local
-
-  # =============================================================================
-  # Monitoring Stack
-  # =============================================================================
+      - api-module
   
-  # Prometheus
+  # Backend with auth bypass
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - DEBUG=True
+      - AUTH_BYPASS_ENABLED=true
+      - DEMO_MODE=true
+      - DISABLE_AUTH_CHECKS=true
+      - ALLOW_DEMO_LOGIN=true
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/opsight_dev
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - ./backend:/code
+    command: ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  
+  # API Module
+  api-module:
+    build:
+      context: ./api-module
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - AUTH_BYPASS=true
+      - DEMO_MODE=true
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/opsight_dev
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./api-module/src:/app/src
+    command: ["npm", "run", "dev"]
+    depends_on:
+      - db
+      - redis
+  
+  # Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=opsight_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/setup_database.py:/docker-entrypoint-initdb.d/setup.py
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  # Redis
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 20 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  # Monitoring stack remains the same
   prometheus:
-    image: prom/prometheus:latest
-    container_name: opssight-prometheus-local
-    restart: unless-stopped
+    image: prom/prometheus:v2.45.0
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.time=7d'
       - '--web.enable-lifecycle'
-      - '--web.enable-admin-api'
     ports:
       - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus:/etc/prometheus
-      - prometheus_data_local:/prometheus
     networks:
-      - opssight-local
-
-  # Grafana
+      - monitor-net
+  
   grafana:
-    image: grafana/grafana:latest
-    container_name: opssight-grafana-local
-    restart: unless-stopped
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-clock-panel,grafana-simple-json-datasource
-      - GF_FEATURE_TOGGLES_ENABLE=ngalert
-    ports:
-      - "3001:3000"
+    image: grafana/grafana:10.0.3
     volumes:
-      - grafana_data_local:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
-    networks:
-      - opssight-local
-    depends_on:
-      - prometheus
-
-  # Alertmanager
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: opssight-alertmanager-local
-    restart: unless-stopped
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-      - '--web.external-url=http://localhost:9093'
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     ports:
-      - "9093:9093"
-    volumes:
-      - ./monitoring/alertmanager:/etc/alertmanager
-      - alertmanager_data_local:/alertmanager
+      - "3002:3000"
     networks:
-      - opssight-local
-
-  # Node Exporter
+      - monitor-net
+  
+  # Node exporter for system metrics
   node-exporter:
-    image: prom/node-exporter:latest
-    container_name: opssight-node-exporter
-    restart: unless-stopped
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    ports:
-      - "9100:9100"
+    image: prom/node-exporter:v1.6.1
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
-    networks:
-      - opssight-local
-
-  # cAdvisor
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: opssight-cadvisor
-    restart: unless-stopped
-    privileged: true
-    devices:
-      - /dev/kmsg:/dev/kmsg
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports:
-      - "8080:8080"
-    networks:
-      - opssight-local
-
-  # =============================================================================
-  # DevOps Tools Stack
-  # =============================================================================
-  
-  # Jenkins CI/CD
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: opssight-jenkins
-    restart: unless-stopped
-    privileged: true
-    user: root
-    environment:
-      - DOCKER_HOST=unix:///var/run/docker.sock
-    ports:
-      - "8081:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_data_local:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./devops/jenkins:/var/jenkins_home/init.groovy.d
-    networks:
-      - opssight-local
-
-  # Nexus Repository Manager
-  nexus:
-    image: sonatype/nexus3:latest
-    container_name: opssight-nexus
-    restart: unless-stopped
-    ports:
-      - "8082:8081"
-    volumes:
-      - nexus_data_local:/nexus-data
-    environment:
-      - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx1g -XX:MaxDirectMemorySize=2g
-    networks:
-      - opssight-local
-
-  # SonarQube Code Quality
-  sonarqube:
-    image: sonarqube:community
-    container_name: opssight-sonarqube
-    restart: unless-stopped
-    environment:
-      - SONAR_JDBC_URL=jdbc:postgresql://postgres:5432/sonarqube
-      - SONAR_JDBC_USERNAME=sonarqube
-      - SONAR_JDBC_PASSWORD=sonarqube123
-    ports:
-      - "9000:9000"
-    volumes:
-      - sonarqube_data_local:/opt/sonarqube/data
-      - sonarqube_data_local:/opt/sonarqube/logs
-      - sonarqube_data_local:/opt/sonarqube/extensions
-    depends_on:
-      - postgres
-    networks:
-      - opssight-local
-
-  # =============================================================================
-  # Kubernetes Tools
-  # =============================================================================
-  
-  # Kubernetes Dashboard (if kind/minikube is running)
-  k8s-dashboard:
-    image: kubernetesui/dashboard:latest
-    container_name: opssight-k8s-dashboard
-    restart: unless-stopped
-    ports:
-      - "8443:8443"
     command:
-      - --auto-generate-certificates
-      - --namespace=kubernetes-dashboard
-    networks:
-      - opssight-local
-
-  # Helm Tiller (for Helm v2 compatibility)
-  tiller:
-    image: gcr.io/kubernetes-helm/tiller:latest
-    container_name: opssight-tiller
-    restart: unless-stopped
-    networks:
-      - opssight-local
-
-  # =============================================================================
-  # HashiCorp Stack
-  # =============================================================================
-  
-  # Vault (Secrets Management)
-  vault:
-    image: vault:latest
-    container_name: opssight-vault
-    restart: unless-stopped
-    cap_add:
-      - IPC_LOCK
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=dev-root-token
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     ports:
-      - "8200:8200"
-    volumes:
-      - vault_data_local:/vault/data
-      - ./devops/vault:/vault/config
-    command: vault server -dev -dev-listen-address=0.0.0.0:8200
+      - "9100:9100"
     networks:
-      - opssight-local
+      - monitor-net
 
-  # Consul (Service Discovery)
-  consul:
-    image: consul:latest
-    container_name: opssight-consul
-    restart: unless-stopped
-    environment:
-      - CONSUL_BIND_INTERFACE=eth0
-    ports:
-      - "8500:8500"
-      - "8600:8600/udp"
-    volumes:
-      - consul_data_local:/consul/data
-    command: consul agent -dev -client=0.0.0.0 -ui
-    networks:
-      - opssight-local
+networks:
+  frontend-net:
+  backend-net:
+  monitor-net:
+  database-net:
 
-  # Terraform Cloud Agent (local runner)
-  terraform-agent:
-    image: hashicorp/tfc-agent:latest
-    container_name: opssight-terraform-agent
-    restart: unless-stopped
-    environment:
-      - TFC_AGENT_TOKEN=${TFC_AGENT_TOKEN:-demo-token}
-      - TFC_AGENT_NAME=opssight-local-agent
-    volumes:
-      - ./terraform:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - opssight-local
-
-  # =============================================================================
-  # Additional DevOps Tools
-  # =============================================================================
-  
-  # Jaeger Tracing
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: opssight-jaeger
-    restart: unless-stopped
-    environment:
-      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
-    ports:
-      - "16686:16686"
-      - "14268:14268"
-      - "9411:9411"
-    networks:
-      - opssight-local
-
-  # Elasticsearch (for logs)
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: opssight-elasticsearch
-    restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    volumes:
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
-    networks:
-      - opssight-local
-
-  # Kibana (Log Visualization)
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.0
-    container_name: opssight-kibana
-    restart: unless-stopped
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - opssight-local
-
-  # Logstash (Log Processing)
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.11.0
-    container_name: opssight-logstash
-    restart: unless-stopped
-    volumes:
-      - ./devops/logstash/pipeline:/usr/share/logstash/pipeline
-      - ./devops/logstash/config:/usr/share/logstash/config
-    ports:
-      - "5044:5044"
-      - "9600:9600"
-    depends_on:
-      - elasticsearch
-    networks:
-      - opssight-local
-
-  # Portainer (Docker Management)
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: opssight-portainer
-    restart: unless-stopped
-    ports:
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/portainer:/data
-    networks:
-      - opssight-local
-
-  # MinIO (S3-compatible storage)
-  minio:
-    image: minio/minio:latest
-    container_name: opssight-minio
-    restart: unless-stopped
-    environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin123
-    ports:
-      - "9001:9001"
-      - "9002:9000"
-    volumes:
-      - ./data/minio:/data
-    command: server /data --console-address ":9001"
-    networks:
-      - opssight-local
-
-  # =============================================================================
-  # Development Tools
-  # =============================================================================
-  
-  # Mailhog (Email Testing)
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: opssight-mailhog
-    restart: unless-stopped
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    networks:
-      - opssight-local
-
-  # Redis Commander (Redis GUI)
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: opssight-redis-commander
-    restart: unless-stopped
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-    ports:
-      - "8084:8081"
-    depends_on:
-      - redis
-    networks:
-      - opssight-local
-
-  # pgAdmin (PostgreSQL GUI)
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: opssight-pgadmin
-    restart: unless-stopped
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@opssight.local
-      - PGADMIN_DEFAULT_PASSWORD=admin123
-    ports:
-      - "8083:80"
-    volumes:
-      - ./data/pgadmin:/var/lib/pgadmin
-    depends_on:
-      - postgres
-    networks:
-      - opssight-local
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  frontend_node_modules:
+  api_node_modules:

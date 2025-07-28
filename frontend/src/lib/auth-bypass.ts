@@ -21,7 +21,7 @@ export class AuthBypass {
   private apiUrl: string;
 
   private constructor() {
-    this.apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    this.apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   }
 
   public static getInstance(): AuthBypass {
