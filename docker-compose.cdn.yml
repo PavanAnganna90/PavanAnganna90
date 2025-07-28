@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  nginx-cdn:
+    image: nginx:alpine
+    container_name: opssight_cdn
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./frontend/public:/var/www/static:ro
+      - ./frontend/.next/static:/var/www/_next/static:ro
+    depends_on:
+      - frontend
+    networks:
+      - opssight_network
+    restart: unless-stopped
+
+  # Add this to your existing frontend service
+  frontend:
+    environment:
+      - CDN_URL=http://localhost:8080
+      - ASSETS_URL=http://localhost:8080/static
+    networks:
+      - opssight_network
+
+networks:
+  opssight_network:
+    external: true

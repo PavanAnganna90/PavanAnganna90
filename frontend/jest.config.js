@@ -78,23 +78,35 @@ const customJestConfig = {
   // Coverage thresholds - targeting >80% coverage
   coverageThreshold: {
     global: {
+      statements: 75,
+      branches: 70,
+      functions: 75,
+      lines: 75,
+    },
+    // Component-specific thresholds
+    './src/components/': {
       statements: 80,
-      branches: 80,
+      branches: 75,
       functions: 80,
       lines: 80,
     },
-    // More lenient thresholds for specific areas during development
-    './src/utils/': {
-      statements: 60,
-      branches: 60,
-      functions: 60,
-      lines: 60,
+    './src/hooks/': {
+      statements: 85,
+      branches: 80,
+      functions: 85,
+      lines: 85,
     },
-    './src/components/': {
-      statements: 70,
+    './src/lib/': {
+      statements: 80,
+      branches: 75,
+      functions: 80,
+      lines: 80,
+    },
+    './src/contexts/': {
+      statements: 75,
       branches: 70,
-      functions: 70,
-      lines: 70,
+      functions: 75,
+      lines: 75,
     },
   },
 

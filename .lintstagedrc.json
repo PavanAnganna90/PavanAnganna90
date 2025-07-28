@@ -1,0 +1,16 @@
+{
+  "frontend/**/*.{ts,tsx}": [
+    "npm run lint:fix --prefix frontend",
+    "npm run format --prefix frontend"
+  ],
+  "frontend/**/*.{json,md}": [
+    "npm run format --prefix frontend"
+  ],
+  "api-module/**/*.{ts,js}": [
+    "npm run lint:fix --prefix api-module",
+    "npm run format --prefix api-module"
+  ],
+  "api-module/**/*.{json,md}": [
+    "npm run format --prefix api-module"
+  ]
+}

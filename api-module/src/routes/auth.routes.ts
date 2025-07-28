@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getDevAuthToken } from '@/middleware/authBypass';
 import { authLimiter } from '@/middleware/rateLimiter';
+import { validateBody, validateQuery } from '@/middleware/validation';
 import { 
   initiateSSOLogin, 
   handleSSOCallback, 
@@ -8,6 +9,7 @@ import {
   getSSOConfig,
   requireSSOEnabled 
 } from '@/controllers/sso.controller';
+import { loginSchema, registerSchema, changePasswordSchema, refreshTokenSchema, oauthCallbackSchema } from '@/schemas/auth.schema';
 import config from '@/config/environment';
 
 const router = Router();
@@ -15,7 +17,7 @@ const router = Router();
 // SSO Authentication endpoints
 router.get('/sso/config', getSSOConfig);
 router.get('/sso/login', authLimiter, requireSSOEnabled, initiateSSOLogin);
-router.get('/sso/callback', authLimiter, requireSSOEnabled, handleSSOCallback);
+router.get('/sso/callback', authLimiter, requireSSOEnabled, validateQuery(oauthCallbackSchema), handleSSOCallback);
 router.post('/sso/logout', authLimiter, requireSSOEnabled, handleSSOLogout);
 
 // Alternative SSO routes (for compatibility)

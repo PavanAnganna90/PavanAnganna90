@@ -7,6 +7,12 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   
+  // Redis
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.string().regex(/^\d+$/).transform(Number).default('6379'),
+  REDIS_PASSWORD: z.string().optional().default(''),
+  REDIS_DB: z.string().regex(/^\d+$/).transform(Number).default('0'),
+  
   // Server Configuration
   PORT: z.string().regex(/^\d+$/).transform(Number).default('3001'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
