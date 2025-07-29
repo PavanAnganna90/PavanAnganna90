@@ -1,0 +1,26 @@
+# OpsSight Backend - Local Development with Auth Bypass
+DEBUG=True
+APP_NAME=OpsSight Development
+APP_ENV=development
+SECRET_KEY=dev-secret-key-change-in-production
+# Enable development auth bypass
+AUTH_BYPASS_ENABLED=true
+DEMO_MODE=true
+GITHUB_CLIENT_ID=demo-client-id
+GITHUB_CLIENT_SECRET=demo-client-secret
+GITHUB_CALLBACK_URL=http://localhost:8000/auth/callback
+JWT_SECRET_KEY=dev-jwt-secret-key-that-is-at-least-32-characters-long
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=480
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=30
+CSRF_SECRET=dev-csrf-secret
+ENVIRONMENT=development
+DATABASE_URL=postgresql://postgres:postgres@db:5432/opsight_dev
+REDIS_URL=redis://redis:6379/0
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:8080
+PROMETHEUS_MULTIPROC_DIR=/tmp/metrics
+PROMETHEUS_METRICS_PORT=8001
+WORKERS=1
+# Disable strict auth checks
+DISABLE_AUTH_CHECKS=true
+ALLOW_DEMO_LOGIN=true

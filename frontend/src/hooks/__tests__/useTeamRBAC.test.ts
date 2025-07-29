@@ -27,7 +27,7 @@ import {
 import { ReactNode } from 'react';
 
 // Mock toast hook
-vi.mock('@/components/ui/Toast', () => ({
+vi.mock('@/components/ui/toast', () => ({
   useToast: () => ({
     showToast: vi.fn(),
   }),

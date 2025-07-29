@@ -7,7 +7,7 @@ import { PermissionGuard } from '../../rbac/PermissionGuard';
 import { Button } from '../../ui/Button';
 import { ConfirmationModal } from '../../ui/Modal';
 import { StatusIndicator } from '../../ui/StatusIndicator';
-import { Toast } from '../../ui/Toast';
+import { Toast } from '../../ui/toast';
 import RoleEditorModal from './RoleEditorModal';
 import RoleTable from './RoleTable';
 

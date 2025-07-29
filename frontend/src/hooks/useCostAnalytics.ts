@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { CostData, CostBreakdown, OptimizationRecommendation, CostAnomaly, BudgetAlert } from '@/types/cost';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast';
 
 export function useCostAnalytics() {
   const [costData, setCostData] = useState<CostData | null>(null);

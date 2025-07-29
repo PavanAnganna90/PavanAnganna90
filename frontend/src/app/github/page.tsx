@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { GitHubDashboard, WebhookManager, GitHubIntegrationDashboard } from '@/components/github';
 import { Card } from '@/components/ui/card';
 import { Github, Webhook, BarChart3 } from 'lucide-react';

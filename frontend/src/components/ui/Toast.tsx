@@ -176,7 +176,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Limit maximum number of toasts to prevent alert storms
     const maxToasts = 3;
     
-    const id = `toast-${crypto.randomUUID()}`;
+    const id = Date.now().toString();
     const newToast = { ...toast, id };
     
     setToasts(prev => {

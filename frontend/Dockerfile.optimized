@@ -1,0 +1,76 @@
+# Optimized Next.js Dockerfile for OpsSight Frontend
+# Multi-stage build for smaller final image
+
+# Stage 1: Dependencies
+FROM node:20-alpine AS dependencies
+WORKDIR /app
+
+# Install system dependencies for building
+RUN apk add --no-cache libc6-compat curl
+
+# Copy package files first for better caching
+COPY package.json package-lock.json ./
+
+# Install all dependencies including dev dependencies
+RUN npm ci --legacy-peer-deps --prefer-offline --no-audit
+
+# Stage 2: Build
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Copy dependencies from previous stage
+COPY --from=dependencies /app/node_modules ./node_modules
+
+# Copy source code (only what's needed for build)
+COPY package.json package-lock.json ./
+COPY next.config.js ./
+COPY tsconfig.json ./
+COPY tailwind.config.ts ./
+COPY postcss.config.mjs ./
+COPY src/ ./src/
+COPY public/ ./public/
+
+# Set build environment variables
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Build the application
+RUN npm run build
+
+# Stage 3: Runner
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy only production dependencies
+COPY --from=dependencies --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Switch to non-root user
+USER nextjs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || curl -f http://localhost:3000 || exit 1
+
+# Expose port
+EXPOSE 3000
+
+# Start the application
+CMD ["npm", "start"]

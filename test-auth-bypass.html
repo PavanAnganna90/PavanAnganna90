@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Bypass Test</title>
+</head>
+<body>
+<h1>Testing Auth Bypass</h1>
+<div id="results"></div>
+
+<script>
+async function testAuthBypass() {
+    const results = document.getElementById('results');
+    
+    try {
+        console.log('Testing SSO status...');
+        const ssoResponse = await fetch('http://localhost:8000/api/auth/sso-status');
+        const ssoData = await ssoResponse.json();
+        results.innerHTML += `<p>SSO Status: ${JSON.stringify(ssoData)}</p>`;
+        
+        console.log('Testing dev token...');
+        const tokenResponse = await fetch('http://localhost:8000/api/auth/dev-token');
+        const tokenData = await tokenResponse.json();
+        results.innerHTML += `<p>Dev Token: ${JSON.stringify(tokenData)}</p>`;
+        
+        if (tokenData.success && tokenData.data?.token) {
+            localStorage.setItem('auth_token', tokenData.data.token);
+            localStorage.setItem('auth_bypass', 'true');
+            results.innerHTML += `<p style="color: green;">✅ Auth bypass successful! Token stored.</p>`;
+        }
+        
+    } catch (error) {
+        results.innerHTML += `<p style="color: red;">❌ Error: ${error.message}</p>`;
+    }
+}
+
+testAuthBypass();
+</script>
+</body>
+</html>

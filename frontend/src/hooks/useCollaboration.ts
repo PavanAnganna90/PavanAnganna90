@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChatMessage, ChatChannel, OnlineUser, Notification, CollaborationContext } from '@/types/collaboration';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast';
 
 export function useCollaboration() {
   const [channels, setChannels] = useState<ChatChannel[]>([]);
@@ -80,7 +80,7 @@ export function useCollaboration() {
         name: 'general',
         description: 'General team discussions',
         type: 'public',
-        topic: 'Welcome to OpsSight! =€ Keep discussions productive and helpful.',
+        topic: 'Welcome to OpsSight! =ï¿½ Keep discussions productive and helpful.',
         members: mockUsers.map(user => ({
           userId: user.id,
           role: 'member' as const,
@@ -116,7 +116,7 @@ export function useCollaboration() {
         name: 'incidents',
         description: 'Incident response coordination',
         type: 'public',
-        topic: '=¨ Current incidents: Payment API latency spike',
+        topic: '=ï¿½ Current incidents: Payment API latency spike',
         members: mockUsers.slice(0, 3).map(user => ({
           userId: user.id,
           role: user.id === 'user1' ? 'admin' as const : 'member' as const,
@@ -240,14 +240,14 @@ export function useCollaboration() {
         'Has anyone seen the latest metrics from the payment service?',
         'The deployment went smoothly, no issues detected so far',
         'I\'m investigating a potential memory leak in the API gateway',
-        'Great job on resolving that incident quickly! <‰',
+        'Great job on resolving that incident quickly! <ï¿½',
         'Can we schedule a post-mortem for tomorrow?',
         'The new monitoring dashboard looks fantastic',
         'Alert: High CPU usage detected on production servers',
         'Rolling back the deployment due to increased error rates',
         'Database migration completed successfully',
         'Code review needed for PR #1234',
-        'Our uptime is looking solid this month! =Ê',
+        'Our uptime is looking solid this month! =ï¿½',
         'Need assistance with Kubernetes configuration',
         'Security scan completed - all clear ',
         'Performance optimization deployed, seeing 20% improvement'
@@ -288,7 +288,7 @@ export function useCollaboration() {
           timestamp: timestamp.toISOString(),
           reactions: Math.random() < 0.3 ? [
             {
-              emoji: ['=M', '<‰', 'd', '=€'][Math.floor(Math.random() * 4)],
+              emoji: ['=M', '<ï¿½', 'd', '=ï¿½'][Math.floor(Math.random() * 4)],
               users: [mockUsers[Math.floor(Math.random() * mockUsers.length)].id],
               count: 1
             }

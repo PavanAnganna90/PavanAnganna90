@@ -1,0 +1,163 @@
+# AlertManager Working Configuration
+# This file provides working examples for Slack and Email notifications
+
+global:
+  resolve_timeout: 5m
+  # Slack API URL - Replace with your actual webhook
+  slack_api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+  
+  # SMTP configuration for email notifications
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'opsight-alerts@yourdomain.com'
+  smtp_auth_username: 'opsight-alerts@yourdomain.com'
+  smtp_auth_password: 'your-app-password'  # Use app password for Gmail
+  smtp_require_tls: true
+
+# Routing configuration
+route:
+  receiver: 'default-notifications'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  
+  routes:
+    # Critical alerts - PagerDuty + Slack
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 1h
+      
+    # Warning alerts - Slack only
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      repeat_interval: 8h
+      
+    # Database alerts - Email + Slack
+    - match_re:
+        service: ^(postgres|redis|database)$
+      receiver: 'database-team'
+      group_by: ['alertname', 'instance']
+      
+    # Infrastructure alerts - Email
+    - match_re:
+        service: ^(node-exporter|prometheus|grafana)$
+      receiver: 'infrastructure-team'
+
+# Notification receivers
+receivers:
+  # Default receiver - Slack general channel
+  - name: 'default-notifications'
+    slack_configs:
+      - channel: '#general'
+        title: '🚨 OpsSight Alert'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Severity:* {{ .CommonLabels.severity }}
+          *Summary:* {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}
+          *Description:* {{ range .Alerts }}{{ .Annotations.description }}{{ end }}
+        send_resolved: true
+        footer: 'OpsSight Monitoring System'
+        
+  # Critical alerts - Multiple channels
+  - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#critical-alerts'
+        title: '🔥 CRITICAL ALERT'
+        text: |
+          *CRITICAL ISSUE DETECTED*
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Instance:* {{ .CommonLabels.instance }}
+          *Summary:* {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}
+          *Time:* {{ range .Alerts }}{{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+        send_resolved: true
+        color: 'danger'
+    
+    # Also send to email for critical alerts
+    email_configs:
+      - to: 'devops-oncall@yourdomain.com'
+        subject: '🔥 CRITICAL: {{ .GroupLabels.alertname }}'
+        body: |
+          Critical alert detected in OpsSight monitoring:
+          
+          Alert: {{ .GroupLabels.alertname }}
+          Severity: {{ .CommonLabels.severity }}
+          Instance: {{ .CommonLabels.instance }}
+          
+          {{ range .Alerts }}
+          Summary: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Started: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+          
+          View in Grafana: http://localhost:3001
+          View in Prometheus: http://localhost:9090
+        
+  # Warning alerts - Slack only
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#monitoring'
+        title: '⚠️ Warning Alert'
+        text: |
+          *Warning:* {{ .GroupLabels.alertname }}
+          *Instance:* {{ .CommonLabels.instance }}
+          *Summary:* {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}
+        send_resolved: true
+        color: 'warning'
+        
+  # Database team notifications
+  - name: 'database-team'
+    email_configs:
+      - to: 'database-team@yourdomain.com'
+        subject: 'Database Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Database alert detected:
+          
+          Service: {{ .CommonLabels.service }}
+          Alert: {{ .GroupLabels.alertname }}
+          Instance: {{ .CommonLabels.instance }}
+          
+          {{ range .Alerts }}
+          Summary: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          {{ end }}
+    
+    slack_configs:
+      - channel: '#database-alerts'
+        title: '💾 Database Alert'
+        text: |
+          *Database Issue:* {{ .GroupLabels.alertname }}
+          *Service:* {{ .CommonLabels.service }}
+          *Instance:* {{ .CommonLabels.instance }}
+          {{ range .Alerts }}*Summary:* {{ .Annotations.summary }}{{ end }}
+        
+  # Infrastructure team notifications
+  - name: 'infrastructure-team'
+    email_configs:
+      - to: 'infrastructure@yourdomain.com'
+        subject: 'Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Infrastructure alert from OpsSight:
+          
+          Service: {{ .CommonLabels.service }}
+          Alert: {{ .GroupLabels.alertname }}
+          Instance: {{ .CommonLabels.instance }}
+          Severity: {{ .CommonLabels.severity }}
+          
+          {{ range .Alerts }}
+          Summary: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Started: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+          
+          Monitoring Dashboard: http://localhost:3001
+
+# Inhibition rules - prevent alert spam
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

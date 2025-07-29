@@ -11,11 +11,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import AlertManagementPage from '../../../pages/AlertManagement';
 import { usePerformanceMonitoring } from '@/hooks/useMonitoring';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast';
 
 // Mock dependencies
 jest.mock('@/hooks/useMonitoring');
-jest.mock('@/components/ui/Toast');
+jest.mock('@/components/ui/toast');
 
 const mockTrackUserInteraction = jest.fn();
 const mockTrackPageView = jest.fn();

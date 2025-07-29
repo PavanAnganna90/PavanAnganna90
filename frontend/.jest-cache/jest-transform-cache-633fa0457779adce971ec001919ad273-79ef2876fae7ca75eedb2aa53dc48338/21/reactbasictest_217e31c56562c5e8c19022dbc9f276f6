@@ -1,0 +1,40 @@
+3091494b70ed603264a167cf7ff6b4a0
+/**
+ * Basic React Test - Debug React environment
+ */ "use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _react = /*#__PURE__*/ _interop_require_default(require("react"));
+const _react1 = require("@testing-library/react");
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
+// Very simple component to test React
+const SimpleComponent = ()=>{
+    return /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+        children: "Hello React"
+    });
+};
+describe('React Environment Test', ()=>{
+    test('should render a simple React component', ()=>{
+        (0, _react1.render)(/*#__PURE__*/ (0, _jsxruntime.jsx)(SimpleComponent, {}));
+        expect(_react1.screen.getByText('Hello React')).toBeInTheDocument();
+    });
+    test('should have React available', ()=>{
+        expect(_react.default).toBeDefined();
+        expect(_react.default.createElement).toBeInstanceOf(Function);
+    });
+    test('should support JSX', ()=>{
+        const element = /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+            children: "JSX works"
+        });
+        expect(element).toBeDefined();
+        expect(element.type).toBe('div');
+    });
+});
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9wYXZhbi9EZXNrdG9wL0Rldm9wcy1hcHAtZGV2LWN1cnNvci9mcm9udGVuZC9zcmMvX190ZXN0c19fL3JlYWN0LWJhc2ljLnRlc3QudHN4Il0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogQmFzaWMgUmVhY3QgVGVzdCAtIERlYnVnIFJlYWN0IGVudmlyb25tZW50XG4gKi9cbmltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyByZW5kZXIsIHNjcmVlbiB9IGZyb20gJ0B0ZXN0aW5nLWxpYnJhcnkvcmVhY3QnO1xuXG4vLyBWZXJ5IHNpbXBsZSBjb21wb25lbnQgdG8gdGVzdCBSZWFjdFxuY29uc3QgU2ltcGxlQ29tcG9uZW50ID0gKCkgPT4ge1xuICByZXR1cm4gPGRpdj5IZWxsbyBSZWFjdDwvZGl2Pjtcbn07XG5cbmRlc2NyaWJlKCdSZWFjdCBFbnZpcm9ubWVudCBUZXN0JywgKCkgPT4ge1xuICB0ZXN0KCdzaG91bGQgcmVuZGVyIGEgc2ltcGxlIFJlYWN0IGNvbXBvbmVudCcsICgpID0+IHtcbiAgICByZW5kZXIoPFNpbXBsZUNvbXBvbmVudCAvPik7XG4gICAgZXhwZWN0KHNjcmVlbi5nZXRCeVRleHQoJ0hlbGxvIFJlYWN0JykpLnRvQmVJblRoZURvY3VtZW50KCk7XG4gIH0pO1xuXG4gIHRlc3QoJ3Nob3VsZCBoYXZlIFJlYWN0IGF2YWlsYWJsZScsICgpID0+IHtcbiAgICBleHBlY3QoUmVhY3QpLnRvQmVEZWZpbmVkKCk7XG4gICAgZXhwZWN0KFJlYWN0LmNyZWF0ZUVsZW1lbnQpLnRvQmVJbnN0YW5jZU9mKEZ1bmN0aW9uKTtcbiAgfSk7XG5cbiAgdGVzdCgnc2hvdWxkIHN1cHBvcnQgSlNYJywgKCkgPT4ge1xuICAgIGNvbnN0IGVsZW1lbnQgPSA8ZGl2PkpTWCB3b3JrczwvZGl2PjtcbiAgICBleHBlY3QoZWxlbWVudCkudG9CZURlZmluZWQoKTtcbiAgICBleHBlY3QoZWxlbWVudC50eXBlKS50b0JlKCdkaXYnKTtcbiAgfSk7XG59KTsiXSwibmFtZXMiOlsiU2ltcGxlQ29tcG9uZW50IiwiZGl2IiwiZGVzY3JpYmUiLCJ0ZXN0IiwicmVuZGVyIiwiZXhwZWN0Iiwic2NyZWVuIiwiZ2V0QnlUZXh0IiwidG9CZUluVGhlRG9jdW1lbnQiLCJSZWFjdCIsInRvQmVEZWZpbmVkIiwiY3JlYXRlRWxlbWVudCIsInRvQmVJbnN0YW5jZU9mIiwiRnVuY3Rpb24iLCJlbGVtZW50IiwidHlwZSIsInRvQmUiXSwibWFwcGluZ3MiOiJBQUFBOztDQUVDOzs7Ozs4REFDaUI7d0JBQ2E7Ozs7OztBQUUvQixzQ0FBc0M7QUFDdEMsTUFBTUEsa0JBQWtCO0lBQ3RCLHFCQUFPLHFCQUFDQztrQkFBSTs7QUFDZDtBQUVBQyxTQUFTLDBCQUEwQjtJQUNqQ0MsS0FBSywwQ0FBMEM7UUFDN0NDLElBQUFBLGNBQU0sZ0JBQUMscUJBQUNKO1FBQ1JLLE9BQU9DLGNBQU0sQ0FBQ0MsU0FBUyxDQUFDLGdCQUFnQkMsaUJBQWlCO0lBQzNEO0lBRUFMLEtBQUssK0JBQStCO1FBQ2xDRSxPQUFPSSxjQUFLLEVBQUVDLFdBQVc7UUFDekJMLE9BQU9JLGNBQUssQ0FBQ0UsYUFBYSxFQUFFQyxjQUFjLENBQUNDO0lBQzdDO0lBRUFWLEtBQUssc0JBQXNCO1FBQ3pCLE1BQU1XLHdCQUFVLHFCQUFDYjtzQkFBSTs7UUFDckJJLE9BQU9TLFNBQVNKLFdBQVc7UUFDM0JMLE9BQU9TLFFBQVFDLElBQUksRUFBRUMsSUFBSSxDQUFDO0lBQzVCO0FBQ0YifQ==

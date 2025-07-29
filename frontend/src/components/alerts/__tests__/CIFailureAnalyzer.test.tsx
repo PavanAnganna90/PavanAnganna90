@@ -63,7 +63,7 @@ jest.mock('@/components/ui/Modal', () => ({
     ) : null,
 }));
 
-jest.mock('@/components/ui/Toast', () => ({
+jest.mock('@/components/ui/toast', () => ({
   useToast: () => ({
     showToast: jest.fn(),
   }),

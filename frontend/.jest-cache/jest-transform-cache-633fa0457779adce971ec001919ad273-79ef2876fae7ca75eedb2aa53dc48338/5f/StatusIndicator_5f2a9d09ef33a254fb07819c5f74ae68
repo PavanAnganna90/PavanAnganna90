@@ -1,0 +1,237 @@
+e54b2c8fb4c0cc1b8520814a3c67cac8
+"use strict";
+
+/* istanbul ignore next */
+function cov_9ml6z8g1l() {
+  var path = "/Users/pavan/Desktop/Devops-app-dev-cursor/frontend/src/components/orbit/StatusIndicator.tsx";
+  var hash = "65cf916a03207f93e1c1b31aa61d4dcc0040e2ff";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/pavan/Desktop/Devops-app-dev-cursor/frontend/src/components/orbit/StatusIndicator.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 4,
+          column: 3
+        }
+      },
+      "1": {
+        start: {
+          line: 5,
+          column: 0
+        },
+        end: {
+          line: 10,
+          column: 3
+        }
+      },
+      "2": {
+        start: {
+          line: 8,
+          column: 8
+        },
+        end: {
+          line: 8,
+          column: 31
+        }
+      },
+      "3": {
+        start: {
+          line: 11,
+          column: 20
+        },
+        end: {
+          line: 11,
+          column: 48
+        }
+      },
+      "4": {
+        start: {
+          line: 12,
+          column: 15
+        },
+        end: {
+          line: 12,
+          column: 41
+        }
+      },
+      "5": {
+        start: {
+          line: 13,
+          column: 21
+        },
+        end: {
+          line: 13,
+          column: 44
+        }
+      },
+      "6": {
+        start: {
+          line: 15,
+          column: 17
+        },
+        end: {
+          line: 19,
+          column: 13
+        }
+      },
+      "7": {
+        start: {
+          line: 20,
+          column: 4
+        },
+        end: {
+          line: 34,
+          column: 7
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 7,
+            column: 9
+          },
+          end: {
+            line: 7,
+            column: 10
+          }
+        },
+        loc: {
+          start: {
+            line: 7,
+            column: 20
+          },
+          end: {
+            line: 9,
+            column: 5
+          }
+        },
+        line: 7
+      },
+      "1": {
+        name: "StatusIndicator",
+        decl: {
+          start: {
+            line: 14,
+            column: 9
+          },
+          end: {
+            line: 14,
+            column: 24
+          }
+        },
+        loc: {
+          start: {
+            line: 14,
+            column: 55
+          },
+          end: {
+            line: 35,
+            column: 1
+          }
+        },
+        line: 14
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {},
+    inputSourceMap: {
+      version: 3,
+      sources: ["/Users/pavan/Desktop/Devops-app-dev-cursor/frontend/src/components/orbit/StatusIndicator.tsx"],
+      sourcesContent: ["import { cn } from \"@/lib/utils\";\nimport { CheckCircle, AlertTriangle, XCircle } from \"lucide-react\";\n\ninterface StatusIndicatorProps {\n  status: 'healthy' | 'warning' | 'error';\n  label: string;\n  className?: string;\n}\n\nexport function StatusIndicator({ status, label, className }: StatusIndicatorProps) {\n  const Icon = {\n    healthy: CheckCircle,\n    warning: AlertTriangle,\n    error: XCircle,\n  }[status];\n\n  return (\n    <div className={cn(\n      \"status-indicator\",\n      {\n        \"status-healthy\": status === 'healthy',\n        \"status-warning\": status === 'warning',\n        \"status-error\": status === 'error',\n      },\n      className\n    )}>\n      <Icon className=\"h-4 w-4\" />\n      <span>{label}</span>\n    </div>\n  );\n}"],
+      names: ["StatusIndicator", "status", "label", "className", "Icon", "healthy", "CheckCircle", "warning", "AlertTriangle", "error", "XCircle", "div", "cn", "span"],
+      mappings: ";;;;+BASgBA;;;eAAAA;;;;uBATG;6BACiC;AAQ7C,SAASA,gBAAgB,EAAEC,MAAM,EAAEC,KAAK,EAAEC,SAAS,EAAwB;IAChF,MAAMC,OAAO;QACXC,SAASC,wBAAW;QACpBC,SAASC,0BAAa;QACtBC,OAAOC,oBAAO;IAChB,CAAC,CAACT,OAAO;IAET,qBACE,sBAACU;QAAIR,WAAWS,IAAAA,SAAE,EAChB,oBACA;YACE,kBAAkBX,WAAW;YAC7B,kBAAkBA,WAAW;YAC7B,gBAAgBA,WAAW;QAC7B,GACAE;;0BAEA,qBAACC;gBAAKD,WAAU;;0BAChB,qBAACU;0BAAMX;;;;AAGb"
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "65cf916a03207f93e1c1b31aa61d4dcc0040e2ff"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_9ml6z8g1l = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_9ml6z8g1l();
+cov_9ml6z8g1l().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_9ml6z8g1l().s[1]++;
+Object.defineProperty(exports, "StatusIndicator", {
+  enumerable: true,
+  get: function () {
+    /* istanbul ignore next */
+    cov_9ml6z8g1l().f[0]++;
+    cov_9ml6z8g1l().s[2]++;
+    return StatusIndicator;
+  }
+});
+const _jsxruntime =
+/* istanbul ignore next */
+(cov_9ml6z8g1l().s[3]++, require("react/jsx-runtime"));
+const _utils =
+/* istanbul ignore next */
+(cov_9ml6z8g1l().s[4]++, require("../../lib/utils"));
+const _lucidereact =
+/* istanbul ignore next */
+(cov_9ml6z8g1l().s[5]++, require("lucide-react"));
+function StatusIndicator({
+  status,
+  label,
+  className
+}) {
+  /* istanbul ignore next */
+  cov_9ml6z8g1l().f[1]++;
+  const Icon =
+  /* istanbul ignore next */
+  (cov_9ml6z8g1l().s[6]++, {
+    healthy: _lucidereact.CheckCircle,
+    warning: _lucidereact.AlertTriangle,
+    error: _lucidereact.XCircle
+  }[status]);
+  /* istanbul ignore next */
+  cov_9ml6z8g1l().s[7]++;
+  return /*#__PURE__*/(0, _jsxruntime.jsxs)("div", {
+    className: (0, _utils.cn)("status-indicator", {
+      "status-healthy": status === 'healthy',
+      "status-warning": status === 'warning',
+      "status-error": status === 'error'
+    }, className),
+    children: [/*#__PURE__*/(0, _jsxruntime.jsx)(Icon, {
+      className: "h-4 w-4"
+    }), /*#__PURE__*/(0, _jsxruntime.jsx)("span", {
+      children: label
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfOW1sNno4ZzFsIiwiYWN0dWFsQ292ZXJhZ2UiLCJzIiwiU3RhdHVzSW5kaWNhdG9yIiwic3RhdHVzIiwibGFiZWwiLCJjbGFzc05hbWUiLCJmIiwiSWNvbiIsImhlYWx0aHkiLCJfbHVjaWRlcmVhY3QiLCJDaGVja0NpcmNsZSIsIndhcm5pbmciLCJBbGVydFRyaWFuZ2xlIiwiZXJyb3IiLCJYQ2lyY2xlIiwiX2pzeHJ1bnRpbWUiLCJqc3hzIiwiX3V0aWxzIiwiY24iLCJqc3giXSwic291cmNlcyI6WyIvVXNlcnMvcGF2YW4vRGVza3RvcC9EZXZvcHMtYXBwLWRldi1jdXJzb3IvZnJvbnRlbmQvc3JjL2NvbXBvbmVudHMvb3JiaXQvU3RhdHVzSW5kaWNhdG9yLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBjbiB9IGZyb20gXCJAL2xpYi91dGlsc1wiO1xuaW1wb3J0IHsgQ2hlY2tDaXJjbGUsIEFsZXJ0VHJpYW5nbGUsIFhDaXJjbGUgfSBmcm9tIFwibHVjaWRlLXJlYWN0XCI7XG5cbmludGVyZmFjZSBTdGF0dXNJbmRpY2F0b3JQcm9wcyB7XG4gIHN0YXR1czogJ2hlYWx0aHknIHwgJ3dhcm5pbmcnIHwgJ2Vycm9yJztcbiAgbGFiZWw6IHN0cmluZztcbiAgY2xhc3NOYW1lPzogc3RyaW5nO1xufVxuXG5leHBvcnQgZnVuY3Rpb24gU3RhdHVzSW5kaWNhdG9yKHsgc3RhdHVzLCBsYWJlbCwgY2xhc3NOYW1lIH06IFN0YXR1c0luZGljYXRvclByb3BzKSB7XG4gIGNvbnN0IEljb24gPSB7XG4gICAgaGVhbHRoeTogQ2hlY2tDaXJjbGUsXG4gICAgd2FybmluZzogQWxlcnRUcmlhbmdsZSxcbiAgICBlcnJvcjogWENpcmNsZSxcbiAgfVtzdGF0dXNdO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9e2NuKFxuICAgICAgXCJzdGF0dXMtaW5kaWNhdG9yXCIsXG4gICAgICB7XG4gICAgICAgIFwic3RhdHVzLWhlYWx0aHlcIjogc3RhdHVzID09PSAnaGVhbHRoeScsXG4gICAgICAgIFwic3RhdHVzLXdhcm5pbmdcIjogc3RhdHVzID09PSAnd2FybmluZycsXG4gICAgICAgIFwic3RhdHVzLWVycm9yXCI6IHN0YXR1cyA9PT0gJ2Vycm9yJyxcbiAgICAgIH0sXG4gICAgICBjbGFzc05hbWVcbiAgICApfT5cbiAgICAgIDxJY29uIGNsYXNzTmFtZT1cImgtNCB3LTRcIiAvPlxuICAgICAgPHNwYW4+e2xhYmVsfTwvc3Bhbj5cbiAgICA8L2Rpdj5cbiAgKTtcbn0iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztJQVdJO0lBQUFBLGFBQUEsWUFBQUEsQ0FBQTtNQUFBLE9BQUFDLGNBQUE7SUFBQTtFQUFBO0VBQUEsT0FBQUEsY0FBQTtBQUFBO0FBQUFELGFBQUE7QUFBQUEsYUFBQSxHQUFBRSxDQUFBOzs7Ozs7K0JBRlk7Ozs7OztXQUFBQyxlQUFBOzs7Ozs7OztpQ0FURzs7O2lDQUNpQztBQVE3QyxTQUFTQSxnQkFBZ0I7RUFBRUMsTUFBTTtFQUFFQyxLQUFLO0VBQUVDO0FBQVMsQ0FBd0I7RUFBQTtFQUFBTixhQUFBLEdBQUFPLENBQUE7RUFDaEYsTUFBTUMsSUFBQTtFQUFBO0VBQUEsQ0FBQVIsYUFBQSxHQUFBRSxDQUFBLE9BQU87SUFDWE8sT0FBQSxFQUFTQyxZQUFBLENBQUFDLFdBQVc7SUFDcEJDLE9BQUEsRUFBU0YsWUFBQSxDQUFBRyxhQUFhO0lBQ3RCQyxLQUFBLEVBQU9KLFlBQUEsQ0FBQUs7RUFDVCxDQUFDLENBQUNYLE1BQUEsQ0FBTztFQUFBO0VBQUFKLGFBQUEsR0FBQUUsQ0FBQTtFQUVULG9CQUNFLElBQUFjLFdBQUEsQ0FBQUMsSUFBQSxFQUFDO0lBQUlYLFNBQUEsRUFBVyxJQUFBWSxNQUFBLENBQUFDLEVBQUUsRUFDaEIsb0JBQ0E7TUFDRSxrQkFBa0JmLE1BQUEsS0FBVztNQUM3QixrQkFBa0JBLE1BQUEsS0FBVztNQUM3QixnQkFBZ0JBLE1BQUEsS0FBVztJQUM3QixHQUNBRSxTQUFBOzRCQUVBLElBQUFVLFdBQUEsQ0FBQUksR0FBQSxFQUFDWixJQUFBO01BQUtGLFNBQUEsRUFBVTtxQkFDaEIsSUFBQVUsV0FBQSxDQUFBSSxHQUFBLEVBQUM7Z0JBQU1mOzs7QUFHYiIsImlnbm9yZUxpc3QiOltdfQ==

@@ -1,25 +1,14 @@
 'use client';
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic';
+
 import React from 'react';
-import { LineChart } from '@/components/charts/LineChart';
-import { BarChart } from '@/components/charts/BarChart';
-import { useChartTheme } from '@/hooks/useChartTheme';
 
 /**
  * UI Testing Page - Validate Invary Design Implementation
  */
 export default function TestUIPage() {
-  const { colors, getColor } = useChartTheme();
-  
-  // Sample data for testing
-  const lineData = [65, 78, 66, 44, 56, 67, 75, 82, 70, 85];
-  const barData = [
-    { label: 'Jan', value: 65 },
-    { label: 'Feb', value: 78 },
-    { label: 'Mar', value: 66 },
-    { label: 'Apr', value: 44 },
-    { label: 'May', value: 85 }
-  ];
 
   return (
     <div className="min-h-screen bg-white dark:bg-invary-primary p-8">
@@ -88,32 +77,13 @@ export default function TestUIPage() {
           </div>
         </section>
 
-        {/* Chart Tests */}
+        {/* Chart Tests - Temporarily disabled for containerization */}
         <section className="space-y-6">
           <h2 className="text-2xl font-bold text-invary-primary dark:text-white">Chart Components</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-invary-primary dark:text-white">Line Chart</h3>
-              <div className="bg-white dark:bg-invary-secondary/10 p-6 rounded-xl border border-gray-200 dark:border-invary-secondary/20">
-                <LineChart 
-                  data={lineData} 
-                  height={80} 
-                  colorIndex={0}
-                  showDots={true}
-                />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-invary-primary dark:text-white">Bar Chart</h3>
-              <div className="bg-white dark:bg-invary-secondary/10 p-6 rounded-xl border border-gray-200 dark:border-invary-secondary/20">
-                <BarChart 
-                  data={barData}
-                  height={120}
-                  showLabels={true}
-                  showValues={true}
-                />
-              </div>
-            </div>
+          <div className="bg-white dark:bg-invary-secondary/10 p-6 rounded-xl border border-gray-200 dark:border-invary-secondary/20">
+            <p className="text-invary-neutral dark:text-gray-300">
+              Chart components will be available after containerization is complete.
+            </p>
           </div>
         </section>
 
@@ -156,21 +126,13 @@ export default function TestUIPage() {
           </div>
         </section>
 
-        {/* Theme Colors Reference */}
+        {/* Theme Colors Reference - Temporarily disabled */}
         <section className="space-y-6">
           <h2 className="text-2xl font-bold text-invary-primary dark:text-white">Chart Theme Colors</h2>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-            {colors.map((color, index) => (
-              <div key={index} className="space-y-2">
-                <div 
-                  className="w-full h-16 rounded-lg"
-                  style={{ backgroundColor: color }}
-                ></div>
-                <p className="text-xs text-invary-neutral dark:text-gray-400 text-center">
-                  Chart {index + 1}
-                </p>
-              </div>
-            ))}
+          <div className="bg-white dark:bg-invary-secondary/10 p-6 rounded-xl border border-gray-200 dark:border-invary-secondary/20">
+            <p className="text-invary-neutral dark:text-gray-300">
+              Theme colors will be displayed after containerization is complete.
+            </p>
           </div>
         </section>
 

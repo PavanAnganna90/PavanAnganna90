@@ -16,7 +16,7 @@ vi.mock('@/hooks/useMonitoring', () => ({
   }),
 }));
 
-vi.mock('@/components/ui/Toast', () => ({
+vi.mock('@/components/ui/toast', () => ({
   useToast: () => ({
     showToast: vi.fn(),
   }),

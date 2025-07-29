@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Test</title>
+</head>
+<body>
+<h1>Testing Auth Bypass</h1>
+<div id="results"></div>
+<button onclick="testAuth()">Test Auth</button>
+
+<script>
+async function testAuth() {
+    const results = document.getElementById('results');
+    results.innerHTML = '<p>Testing...</p>';
+    
+    try {
+        console.log('Testing dev token endpoint...');
+        
+        const response = await fetch('http://localhost:8000/api/auth/dev-token', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        results.innerHTML = `<p style="color: green;">✅ Success: ${JSON.stringify(data, null, 2)}</p>`;
+        
+        if (data.success && data.data?.token) {
+            localStorage.setItem('auth_token', data.data.token);
+            localStorage.setItem('auth_bypass', 'true');
+            results.innerHTML += '<p style="color: green;">Token stored in localStorage</p>';
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        results.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+    }
+}
+</script>
+</body>
+</html>

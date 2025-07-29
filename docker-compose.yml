@@ -20,8 +20,8 @@ services:
   # Reason: User interface container with production-ready configuration
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         - BUILDKIT_INLINE_CACHE=1
     ports:

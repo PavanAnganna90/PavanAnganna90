@@ -1,0 +1,347 @@
+# =============================================================================
+# Enhanced Alertmanager Configuration for OpsSight Platform
+# =============================================================================
+# Comprehensive alert routing, grouping, and notification configuration
+# =============================================================================
+
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@opssight.dev'
+  smtp_auth_username: 'alerts@opssight.dev'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+  slack_api_url: '${SLACK_API_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Alert routing configuration
+route:
+  group_by: ['alertname', 'category', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'web.hook'
+  
+  routes:
+    # Critical alerts - immediate notification via multiple channels
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      group_interval: 5s
+      repeat_interval: 5m
+      continue: true
+    
+    # Infrastructure alerts
+    - match:
+        category: infrastructure
+      receiver: 'infrastructure-team'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+    
+    # Application alerts
+    - match:
+        category: application
+      receiver: 'application-team'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+    
+    # Database alerts
+    - match:
+        category: database
+      receiver: 'database-team'
+      group_wait: 20s
+      group_interval: 3m
+      repeat_interval: 1h
+    
+    # Security alerts
+    - match:
+        category: security
+      receiver: 'security-team'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 30m
+      continue: true
+    
+    # Container alerts
+    - match:
+        category: container
+      receiver: 'devops-team'
+      group_wait: 1m
+      group_interval: 10m
+      repeat_interval: 6h
+    
+    # External monitoring alerts
+    - match:
+        category: external
+      receiver: 'external-monitoring'
+      group_wait: 2m
+      group_interval: 10m
+      repeat_interval: 4h
+
+# Inhibition rules to suppress duplicate alerts
+inhibit_rules:
+  # Suppress warning alerts if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+  
+  # Suppress instance-specific alerts if instance is down
+  - source_match:
+      alertname: 'InstanceDown'
+    target_match_re:
+      service: '.*'
+    equal: ['instance']
+  
+  # Suppress application alerts if backend is down
+  - source_match:
+      alertname: 'BackendAPIDown'
+    target_match:
+      category: 'application'
+    equal: ['instance']
+
+# Notification receivers
+receivers:
+  # Default webhook receiver
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+  
+  # Critical alerts - multiple notification channels
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'oncall@opssight.dev'
+        subject: '🚨 CRITICAL ALERT: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Severity:** {{ .Labels.severity }}
+          **Service:** {{ .Labels.service }}
+          **Instance:** {{ .Labels.instance }}
+          **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          **Runbook:** {{ .Annotations.runbook_url }}
+          {{ end }}
+        headers:
+          Subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+    
+    slack_configs:
+      - api_url: '${SLACK_CRITICAL_WEBHOOK}'
+        channel: '#critical-alerts'
+        title: '🚨 Critical Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Alert:** {{ .Annotations.summary }}
+          **Service:** {{ .Labels.service }}
+          **Instance:** {{ .Labels.instance }}
+          **Severity:** {{ .Labels.severity }}
+          **Description:** {{ .Annotations.description }}
+          {{ if .Annotations.runbook_url }}**Runbook:** {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+    
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_CRITICAL_KEY}'
+        description: '{{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        details:
+          summary: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+          service: '{{ .GroupLabels.service }}'
+          severity: '{{ .GroupLabels.severity }}'
+        links:
+          - href: 'http://grafana.opssight.dev/d/opssight-app/opssight-application-dashboard'
+            text: 'View Dashboard'
+  
+  # Infrastructure team notifications
+  - name: 'infrastructure-team'
+    email_configs:
+      - to: 'infrastructure@opssight.dev'
+        subject: '⚠️ Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Instance:** {{ .Labels.instance }}
+          **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_INFRASTRUCTURE_WEBHOOK}'
+        channel: '#infrastructure'
+        title: '⚠️ Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Instance:** {{ .Labels.instance }}
+          **Issue:** {{ .Annotations.summary }}
+          **Details:** {{ .Annotations.description }}
+          {{ end }}
+        color: 'warning'
+  
+  # Application team notifications
+  - name: 'application-team'
+    email_configs:
+      - to: 'backend@opssight.dev'
+        subject: '🔧 Application Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          **Service:** {{ .Labels.service }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_APPLICATION_WEBHOOK}'
+        channel: '#backend-alerts'
+        title: '🔧 Application Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Service:** {{ .Labels.service }}
+          **Issue:** {{ .Annotations.summary }}
+          **Impact:** {{ .Annotations.description }}
+          {{ end }}
+        color: 'warning'
+  
+  # Database team notifications
+  - name: 'database-team'
+    email_configs:
+      - to: 'database@opssight.dev'
+        subject: '🗄️ Database Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          **Database:** {{ .Labels.service }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Instance:** {{ .Labels.instance }}
+          **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_DATABASE_WEBHOOK}'
+        channel: '#database'
+        title: '🗄️ Database Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Database:** {{ .Labels.service }}
+          **Issue:** {{ .Annotations.summary }}
+          **Details:** {{ .Annotations.description }}
+          {{ end }}
+        color: 'warning'
+    
+    webhook_configs:
+      - url: 'http://database-monitoring:8080/alerts'
+        send_resolved: true
+  
+  # Security team notifications
+  - name: 'security-team'
+    email_configs:
+      - to: 'security@opssight.dev'
+        subject: '🔒 Security Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          **Security Event:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Source:** {{ .Labels.instance }}
+          **Time:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          **Severity:** {{ .Labels.severity }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_SECURITY_WEBHOOK}'
+        channel: '#security-alerts'
+        title: '🔒 Security Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Security Event:** {{ .Annotations.summary }}
+          **Source:** {{ .Labels.instance }}
+          **Severity:** {{ .Labels.severity }}
+          **Details:** {{ .Annotations.description }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+  
+  # DevOps team notifications
+  - name: 'devops-team'
+    email_configs:
+      - to: 'devops@opssight.dev'
+        subject: '🐳 Container Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          **Container:** {{ .Labels.name }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Host:** {{ .Labels.instance }}
+          **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_DEVOPS_WEBHOOK}'
+        channel: '#devops'
+        title: '🐳 Container Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Container:** {{ .Labels.name }}
+          **Issue:** {{ .Annotations.summary }}
+          **Host:** {{ .Labels.instance }}
+          {{ end }}
+        color: 'warning'
+  
+  # External monitoring notifications
+  - name: 'external-monitoring'
+    email_configs:
+      - to: 'monitoring@opssight.dev'
+        subject: '🌐 External Service Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          **Service:** {{ .Labels.instance }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '${SLACK_MONITORING_WEBHOOK}'
+        channel: '#external-monitoring'
+        title: '🌐 External Service Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Service:** {{ .Labels.instance }}
+          **Status:** {{ .Annotations.summary }}
+          **Details:** {{ .Annotations.description }}
+          {{ end }}
+        color: 'warning'
+
+# Time-based silencing for maintenance windows
+time_intervals:
+  - name: 'maintenance-window'
+    time_intervals:
+      - weekdays: ['saturday', 'sunday']
+        times:
+          - start_time: '02:00'
+            end_time: '06:00'
+        location: 'UTC'
+  
+  - name: 'business-hours'
+    time_intervals:
+      - weekdays: ['monday:friday']
+        times:
+          - start_time: '09:00'
+            end_time: '17:00'
+        location: 'America/New_York'
+  
+  - name: 'off-hours'
+    time_intervals:
+      - weekdays: ['monday:friday']
+        times:
+          - start_time: '17:00'
+            end_time: '09:00'
+        location: 'America/New_York'
+      - weekdays: ['saturday', 'sunday']

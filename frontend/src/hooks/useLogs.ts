@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { LogEntry, LogQuery, LogSearchResult, LogInsight, SavedQuery } from '@/types/logs';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/toast';
 
 export function useLogs() {
   const [searchResult, setSearchResult] = useState<LogSearchResult | null>(null);
