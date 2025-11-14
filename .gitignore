@@ -33,11 +33,22 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 
-# Editor/IDE
+# Editor/IDE - All editor configurations
 .idea/
 .vscode/
+.cursor/
+.roo/
+.claude/
+.kilocode/
+.windsurf/
+.qoder/
+.augment/
+.kiro/
+.clinerules/
 *.swp
 *.swo
+*.sublime-*
+*.code-workspace
 .DS_Store
 *.pem
 
@@ -162,3 +173,65 @@ helm/*/requirements.lock
 # Large backup files
 backups/
 *.tar.gz
+*.backup
+*.bak
+*.old
+
+# Editor rule files (all variants)
+.clinerules/
+.kilocode/
+.roo/
+.windsurf/
+.cursor/
+.kiro/
+.qoder/
+.augment/
+*.rules.md
+*.rules.mdc
+
+# Internal development files
+# Session/context files
+*-this-session-is-being-continued-from-a-previous-co.txt
+context_*
+*_session*.txt
+*_context*.txt
+
+# Internal status/report files (keep only essential ones)
+*_STATUS.md
+*_STATUS_REPORT.md
+LOCAL_DEPLOYMENT_SUCCESS.md
+DEMO_STATUS.md
+DEPLOYMENT_STATUS.md
+PLATFORM_STATUS_REPORT.md
+DEVELOPMENT_COMPLETION_SUMMARY.md
+FEATURE_COMPLETION_REPORT.md
+PRODUCTION_READINESS_SUMMARY.md
+IMPLEMENTATION_VERIFICATION.md
+VALIDATION_REPORT.md
+REFACTORING_REPORT.md
+performance-optimization-report.md
+CI_CD_PIPELINE_SUMMARY.md
+
+# Internal notes/documentation
+AGENTS.md
+CLAUDE.md
+DASHBOARD_BUILDER_TESTING.md
+DEMO_READY.md
+DEVELOPMENT.md
+FEATURE_ROADMAP.md
+INTEGRATION_GUIDE.md
+PLATFORM_ACCESS_GUIDE.md
+
+# Process files
+*.pid
+backend.pid
+frontend.pid
+
+# Temporary/scratch files
+tmp/
+temp/
+scratch/
+junk/
+playground/
+notes/
+old/

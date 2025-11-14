@@ -1,11 +1,14 @@
-# OpsSight DevOps Visibility Platform
+<div align="center">
+
+# 🚀 OpsSight DevOps Visibility Platform
+
+**Enterprise-grade DevOps monitoring and visibility platform with real-time insights, advanced theming, and comprehensive infrastructure monitoring.**
 
 [![CI/CD Pipeline](https://github.com/pavan-official/Devops-app-dev-cursor/actions/workflows/enhanced-ci-cd.yml/badge.svg)](https://github.com/pavan-official/Devops-app-dev-cursor/actions/workflows/enhanced-ci-cd.yml)
 [![Security Scan](https://github.com/pavan-official/Devops-app-dev-cursor/actions/workflows/security-scan.yml/badge.svg)](https://github.com/pavan-official/Devops-app-dev-cursor/actions/workflows/security-scan.yml)
 [![Coverage](https://codecov.io/gh/pavan-official/Devops-app-dev-cursor/branch/main/graph/badge.svg)](https://codecov.io/gh/pavan-official/Devops-app-dev-cursor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?color=7289da&label=Discord&logo=discord)](https://discord.gg/opssight)
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://reactjs.org/)
@@ -14,39 +17,110 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-blue?logo=kubernetes)](https://kubernetes.io/)
 
-A comprehensive DevOps visibility platform that provides real-time insights into CI/CD pipelines, infrastructure health, and development workflows. OpsSight combines a modern, accessible theme system with powerful monitoring capabilities to create a unified dashboard for DevOps teams.
+[⭐ Star us on GitHub](https://github.com/pavan-official/Devops-app-dev-cursor) • [📖 Documentation](docs/) • [🐛 Report Bug](https://github.com/pavan-official/Devops-app-dev-cursor/issues) • [💡 Request Feature](https://github.com/pavan-official/Devops-app-dev-cursor/issues) • [💬 Discord](https://discord.gg/opssight)
 
-## ⭐ Star History
+</div>
 
-[![Star History Chart](https://api.star-history.com/svg?repos=pavan-official/Devops-app-dev-cursor&type=Date)](https://star-history.com/#pavan-official/Devops-app-dev-cursor&Date)
+---
 
-## 🚀 Features
+## 📋 Table of Contents
 
-### Core Platform
-- 🔐 **GitHub OAuth Authentication** - Secure authentication with GitHub integration
-- 📊 **Real-time Monitoring** - Live metrics from CI/CD pipelines and infrastructure
-- 🎯 **Kubernetes Cluster Monitoring** - Comprehensive cluster health and resource tracking
-- 🤖 **Ansible Automation Tracking** - Monitor automation coverage and execution
-- 📈 **Performance Analytics** - Detailed insights into system performance and trends
-- 🔔 **Alert Integration** - Slack and webhook notifications for critical events
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [Quick Start](#-quick-start)
+- [Demo](#-demo)
+- [Documentation](#-documentation)
+- [Contributing](#-contributing)
+- [Security](#-security)
+- [License](#-license)
 
-### Advanced Theme System
-- 🎨 **7 Theme Variants** - Minimal, neo-brutalist, glassmorphic, cyberpunk, editorial, accessible, dynamic
-- 🌓 **4 Color Modes** - Light, dark, high-contrast, and system preference
-- 🎯 **Contextual Themes** - Default, focus, relax, and energize modes for different workflows
-- ♿ **WCAG 2.1 AA Compliant** - Full accessibility support with screen reader compatibility
-- 🚀 **Performance Optimized** - Smooth transitions and efficient rendering
-- 📱 **Responsive Design** - Mobile-first approach with adaptive layouts
-- 💾 **Persistent Preferences** - User settings saved across sessions
+## 🎯 Overview
 
-### Developer Experience
-- 📚 **Comprehensive Documentation** - Storybook integration with interactive component docs
-- 🧪 **Extensive Testing** - Unit, integration, and accessibility testing
-- 🔧 **TypeScript Support** - Full type safety with comprehensive TSDoc comments
-- 🎨 **Design System** - Consistent design tokens and reusable components
-- 🔄 **Hot Reload** - Fast development with instant feedback
+**OpsSight** is a comprehensive DevOps visibility platform that provides real-time insights into CI/CD pipelines, infrastructure health, and development workflows. Built with modern technologies and best practices, OpsSight combines powerful monitoring capabilities with an advanced, accessible theme system to create a unified dashboard experience for DevOps teams.
+
+### Why OpsSight?
+
+- 🔍 **Unified Visibility** - Single pane of glass for all your DevOps metrics
+- ⚡ **Real-time Monitoring** - Live updates from CI/CD pipelines and infrastructure
+- 🎨 **Advanced Theming** - 7 theme variants with WCAG 2.1 AA accessibility compliance
+- 🚀 **Production Ready** - Enterprise-grade architecture with Kubernetes support
+- 🔒 **Security First** - Built with security best practices and compliance in mind
+- 📱 **Fully Responsive** - Mobile-first design that works everywhere
+- 🧩 **Extensible** - Plugin architecture for custom integrations
+
+## ✨ Key Features
+
+### 🔐 Core Platform Capabilities
+
+| Feature | Description |
+|---------|-------------|
+| **🔐 GitHub OAuth** | Secure authentication with GitHub integration |
+| **📊 Real-time Monitoring** | Live metrics from CI/CD pipelines and infrastructure |
+| **☸️ Kubernetes Monitoring** | Comprehensive cluster health and resource tracking |
+| **🤖 Ansible Tracking** | Monitor automation coverage and execution |
+| **📈 Performance Analytics** | Detailed insights into system performance and trends |
+| **🔔 Alert Integration** | Slack and webhook notifications for critical events |
+
+### 🎨 Advanced Theme System
+
+- **7 Theme Variants**: Minimal, neo-brutalist, glassmorphic, cyberpunk, editorial, accessible, dynamic
+- **4 Color Modes**: Light, dark, high-contrast, and system preference
+- **Contextual Themes**: Default, focus, relax, and energize modes for different workflows
+- **WCAG 2.1 AA Compliant**: Full accessibility support with screen reader compatibility
+- **Performance Optimized**: Smooth transitions and efficient rendering
+- **Persistent Preferences**: User settings saved across sessions
+
+### 🛠️ Developer Experience
+
+- **📚 Comprehensive Documentation**: Storybook integration with interactive component docs
+- **🧪 Extensive Testing**: Unit, integration, and accessibility testing with >80% coverage
+- **🔧 TypeScript Support**: Full type safety with comprehensive TSDoc comments
+- **🎨 Design System**: Consistent design tokens and reusable components
+- **🔄 Hot Reload**: Fast development with instant feedback
 
 ## 🏗️ Architecture
+
+### System Architecture
+
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[Next.js 15 + React 19] --> B[Tailwind CSS 4]
+        A --> C[TanStack Query]
+        A --> D[Storybook]
+    end
+    
+    subgraph "Backend Layer"
+        E[FastAPI] --> F[PostgreSQL]
+        E --> G[Redis Cache]
+        E --> H[JWT Auth]
+    end
+    
+    subgraph "Infrastructure Layer"
+        I[Kubernetes] --> J[AWS Services]
+        I --> K[Prometheus]
+        I --> L[Grafana]
+    end
+    
+    subgraph "Integrations"
+        M[GitHub API]
+        N[Kubernetes API]
+        O[Ansible]
+        P[Slack Webhooks]
+    end
+    
+    A --> E
+    E --> M
+    E --> N
+    E --> O
+    E --> P
+    E --> I
+    
+    style A fill:#0070f3
+    style E fill:#009688
+    style I fill:#326ce5
+```
 
 ### Technology Stack
 
@@ -54,45 +128,25 @@ A comprehensive DevOps visibility platform that provides real-time insights into
 - **Framework**: Next.js 15 with React 19 and TypeScript 5
 - **Styling**: Tailwind CSS 4 with design tokens
 - **State Management**: React Context + TanStack Query
-- **Testing**: Jest + React Testing Library + Vitest
+- **Testing**: Jest + React Testing Library + Vitest + Playwright
 - **Documentation**: Storybook 9 with accessibility addon
 - **Build Tool**: Vite with Turbopack
 
 #### Backend
-- **Framework**: FastAPI (Python)
-- **Database**: PostgreSQL
+- **Framework**: FastAPI (Python 3.11+)
+- **Database**: PostgreSQL with asyncpg
+- **Cache**: Redis
 - **Authentication**: GitHub OAuth + JWT
 - **API Integration**: GitHub API, Kubernetes API, Ansible
 - **Containerization**: Docker + Docker Compose
 
 #### Infrastructure
 - **Cloud Provider**: AWS
-- **Container Orchestration**: Kubernetes
-- **Monitoring**: Prometheus + Grafana
+- **Container Orchestration**: Kubernetes (EKS)
+- **Monitoring**: Prometheus + Grafana + AlertManager
 - **CI/CD**: GitHub Actions
 - **Infrastructure as Code**: Terraform
-
-## 🎯 Live Demo
-
-**🌐 Primary Demo URL**: [http://localhost:3000](http://localhost:3000)
-
-Experience the complete OpsSight platform with realistic mock data:
-
-```bash
-# Launch full demo environment (recommended)
-./scripts/demo-setup.sh
-```
-
-### 🎮 Demo Features
-- **7 Theme Variants** - Test all visual themes and color modes
-- **Complete DevOps Dashboard** - Real-time metrics with mock CI/CD data  
-- **Interactive Components** - Full Storybook with 50+ components
-- **Monitoring Stack** - Grafana, Prometheus, AlertManager
-- **Notification System** - Email/Slack preferences and digest management
-- **Responsive Design** - Mobile, tablet, desktop optimized
-- **Accessibility** - WCAG 2.1 AA compliant with screen reader support
-
-📖 **[Full Demo Guide](docs/demo-environment-guide.md)** - Complete testing scenarios and URLs
+- **Helm Charts**: Production-ready Helm charts included
 
 ## 🚀 Quick Start
 
@@ -100,15 +154,15 @@ Experience the complete OpsSight platform with realistic mock data:
 
 - Node.js 18+ and npm 8+
 - Docker and Docker Compose
-- Python 3.9+ (for backend development)
+- Python 3.11+ (for backend development)
 - Git
 
 ### Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-org/opsight-devops-platform.git
-   cd opsight-devops-platform
+   git clone https://github.com/pavan-official/Devops-app-dev-cursor.git
+   cd Devops-app-dev-cursor
    ```
 
 2. **Set up environment variables:**
@@ -118,7 +172,7 @@ Experience the complete OpsSight platform with realistic mock data:
    cp frontend/.env.local.example frontend/.env.local
    
    # Configure your GitHub OAuth app credentials
-   # See docs/setup-guide.md for detailed instructions
+   # See docs/getting-started/setup-guide.md for detailed instructions
    ```
 
 3. **Start with Docker Compose (Recommended):**
@@ -128,34 +182,38 @@ Experience the complete OpsSight platform with realistic mock data:
 
 4. **Or run locally:**
    ```bash
-   # Install frontend dependencies
-   cd frontend
+   # Install dependencies
    npm install
+   npm run setup
    
    # Start frontend development server
-   npm run dev
+   cd frontend && npm run dev
    
    # In another terminal, start backend
-   cd ../backend
+   cd backend
    pip install -r requirements.txt
    uvicorn app.main:app --reload
    ```
 
-5. **Launch the complete demo environment:**
-   ```bash
-   # Full demo with mock data (recommended)
-   ./scripts/demo-setup.sh
-   
-   # Or quick start with Docker only
-   ./scripts/quick-demo.sh
-   ```
+5. **Access the application:**
+   - **🎯 Main Application**: [http://localhost:3000](http://localhost:3000)
+   - **📚 Component Library**: [http://localhost:6006](http://localhost:6006) - Storybook
+   - **🛠️ API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs) - FastAPI Swagger
+   - **📊 Monitoring**: [http://localhost:3001](http://localhost:3001) - Grafana (admin/admin)
 
-6. **Access the application:**
-   - **🎯 Primary Demo**: [http://localhost:3000](http://localhost:3000) - **Main application interface**
-   - **📚 Component Library**: [http://localhost:6006](http://localhost:6006) - **Interactive Storybook**
-   - **🛠️ API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs) - FastAPI docs
-   - **📊 Monitoring**: [http://localhost:3001](http://localhost:3001) - Grafana dashboards (admin/admin)
-   - **🔍 API Health**: [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health) - Service status
+### Quick Demo
+
+Launch the complete demo environment with realistic mock data:
+
+```bash
+# Full demo with mock data (recommended)
+./scripts/demo-setup.sh
+
+# Or quick start with Docker only
+./scripts/quick-demo.sh
+```
+
+📖 **[Full Demo Guide](docs/demo-environment-guide.md)** - Complete testing scenarios and URLs
 
 ## 📁 Project Structure
 
@@ -164,7 +222,7 @@ opsight-devops-platform/
 ├── frontend/                    # Next.js React application
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
-│   │   │   ├── ui/            # Core UI components (Button, MetricCard, etc.)
+│   │   │   ├── ui/            # Core UI components
 │   │   │   ├── auth/          # Authentication components
 │   │   │   ├── dashboard/     # Dashboard-specific components
 │   │   │   └── charts/        # Data visualization components
@@ -184,29 +242,15 @@ opsight-devops-platform/
 │   │   ├── services/          # Business logic and external integrations
 │   │   └── tests/             # Backend test files
 │   └── requirements.txt       # Python dependencies
+├── api-module/                 # Shared API client module
 ├── infrastructure/            # Terraform and deployment configs
-├── monitoring/               # Prometheus, Grafana configurations
-├── docs/                     # Additional documentation
-├── scripts/                  # Utility scripts
-└── docker-compose.yml        # Local development environment
+├── k8s/                       # Kubernetes manifests
+├── helm/                      # Helm charts
+├── monitoring/                # Prometheus, Grafana configurations
+├── docs/                      # Additional documentation
+├── scripts/                   # Utility scripts
+└── docker-compose.yml         # Local development environment
 ```
-
-## 🎨 Component Documentation
-
-Our UI components are fully documented with interactive examples:
-
-### Core Components
-- **[Button](frontend/src/components/ui/Button/README.md)** - Flexible button component with multiple variants and states
-- **[MetricCard](frontend/src/components/ui/MetricCard/README.md)** - Display key metrics with trends and contextual information
-- **[StatusIndicator](frontend/src/components/ui/StatusIndicator/README.md)** - Visual status indicators with accessibility support
-
-### Component Library
-- **[UI Components Overview](frontend/src/components/ui/README.md)** - Complete component library documentation
-- **[Storybook](http://localhost:6006)** - Interactive component playground (run `npm run storybook`)
-
-### Theme System
-- **[Theme Documentation](docs/theme-system.md)** - Comprehensive theme system guide
-- **[Design Tokens](frontend/src/styles/tokens/)** - Design token definitions and usage
 
 ## 🧪 Development
 
@@ -217,7 +261,7 @@ Our UI components are fully documented with interactive examples:
 cd frontend
 
 # Development
-npm run dev              # Start development server with Turbopack
+npm run dev              # Start development server
 npm run build           # Build for production
 npm run start           # Start production server
 
@@ -225,7 +269,7 @@ npm run start           # Start production server
 npm run test            # Run Jest tests
 npm run test:watch      # Run tests in watch mode
 npm run test:coverage   # Generate coverage report
-npm run coverage:ci     # CI-optimized coverage
+npm run test:e2e        # Run Playwright E2E tests
 
 # Code Quality
 npm run lint            # Run ESLint
@@ -237,10 +281,6 @@ npm run validate        # Run all quality checks
 # Documentation
 npm run storybook       # Start Storybook
 npm run build-storybook # Build Storybook
-
-# Performance
-npm run lighthouse:audit # Run Lighthouse audit
-npm run analyze         # Bundle analysis
 ```
 
 #### Backend
@@ -263,6 +303,7 @@ mypy .                          # Type checking
 
 - **Unit Tests**: Jest + React Testing Library for components
 - **Integration Tests**: API endpoint testing with FastAPI TestClient
+- **E2E Tests**: Playwright for end-to-end testing
 - **Accessibility Tests**: Automated a11y testing with axe-core
 - **Visual Tests**: Storybook visual regression testing
 - **Performance Tests**: Lighthouse CI for performance monitoring
@@ -275,54 +316,17 @@ mypy .                          # Type checking
 - **Husky**: Pre-commit hooks for quality gates
 - **TSDoc**: Comprehensive documentation for all TypeScript code
 
-## 🔧 Configuration
-
-### Environment Variables
-
-#### Frontend (.env.local)
-```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_GITHUB_CLIENT_ID=your_github_client_id
-```
-
-#### Backend (.env)
-```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/opsight
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-JWT_SECRET_KEY=your_jwt_secret
-```
-
-### Theme Customization
-
-The theme system supports extensive customization through design tokens:
-
-```typescript
-// Example: Custom theme configuration
-const customTheme = {
-  colors: {
-    primary: '#your-brand-color',
-    secondary: '#your-secondary-color',
-  },
-  spacing: {
-    // Custom spacing scale
-  },
-  typography: {
-    // Custom font configuration
-  }
-};
-```
-
-See [Theme Customization Guide](docs/theme-system.md#customization) for detailed instructions.
-
 ## 📚 Documentation
 
-- **[Setup Guide](docs/setup-guide.md)** - Detailed setup and configuration
+- **[Setup Guide](docs/getting-started/setup-guide.md)** - Detailed setup and configuration
+- **[Architecture Guide](docs/architecture-guide.md)** - System architecture and design decisions
+- **[API Documentation](docs/api-documentation.md)** - Complete API reference
 - **[Theme System](docs/theme-system.md)** - Complete theme system documentation
 - **[Testing Guide](docs/testing-and-validation.md)** - Testing strategies and best practices
+- **[Deployment Guide](docs/deployment-guide.md)** - Production deployment instructions
 - **[Monitoring Setup](docs/monitoring-setup.md)** - Infrastructure monitoring configuration
-- **[Security Guide](docs/secrets-management.md)** - Security best practices and secrets management
-- **[API Documentation](http://localhost:8000/docs)** - Interactive API documentation (when backend is running)
+- **[Security Guide](SECURITY.md)** - Security policy and best practices
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
 
 ## 🤝 Contributing
 
@@ -335,16 +339,6 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 3. **📖 Read our [Contributing Guide](CONTRIBUTING.md)** for detailed guidelines
 4. **🏷️ Check [Good First Issues](https://github.com/pavan-official/Devops-app-dev-cursor/labels/good%20first%20issue)** for beginner-friendly tasks
 5. **💬 Join our [Discord](https://discord.gg/opssight)** to discuss ideas and get help
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes with tests
-4. Run quality checks: `npm run validate`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
 
 ### Ways to Contribute
 
@@ -364,6 +358,16 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 - Follow the established file structure and naming conventions
 - Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
 
+## 🔒 Security
+
+We take security seriously. Please review our [Security Policy](SECURITY.md) before reporting security vulnerabilities.
+
+**⚠️ Please do not report security vulnerabilities through public GitHub issues.**
+
+Instead, please report them via:
+- **Email**: security@opssight.dev
+- **GitHub Security Advisory**: [Create a security advisory](https://github.com/pavan-official/Devops-app-dev-cursor/security/advisories/new)
+
 ## 🏆 Contributors
 
 Thanks to all our amazing contributors! 🎉
@@ -378,7 +382,7 @@ Thanks to all our amazing contributors! 🎉
 - 💬 **GitHub Discussions**: [Ask questions and share ideas](https://github.com/pavan-official/Devops-app-dev-cursor/discussions)
 - 🐛 **Bug Reports**: [Report issues using our templates](https://github.com/pavan-official/Devops-app-dev-cursor/issues)
 - 💬 **Discord**: [Join our community chat](https://discord.gg/opssight)
-- 📧 **Email**: [contact@opssight.dev](mailto:contact@opssight.dev)
+- 📧 **Email**: contact@opssight.dev
 
 ### 🌐 Community Channels
 
@@ -386,7 +390,6 @@ Thanks to all our amazing contributors! 🎉
 - **GitHub Discussions**: Longer-form discussions and Q&A
 - **Twitter**: [@OpsSightDev](https://twitter.com/OpsSightDev) - Updates and announcements
 - **LinkedIn**: [OpsSight Platform](https://linkedin.com/company/opssight) - Professional updates
-- **YouTube**: [OpsSight Channel](https://youtube.com/@opssight) - Tutorials and demos
 
 ### 🔔 Stay Updated
 
@@ -394,6 +397,31 @@ Thanks to all our amazing contributors! 🎉
 - 👀 **Watch releases** for new version notifications
 - 📧 **Subscribe to our newsletter** at [opssight.dev/newsletter](https://opssight.dev/newsletter)
 - 🐦 **Follow us on Twitter** [@OpsSightDev](https://twitter.com/OpsSightDev)
+
+## 📊 Project Stats
+
+![GitHub stars](https://img.shields.io/github/stars/pavan-official/Devops-app-dev-cursor?style=social)
+![GitHub forks](https://img.shields.io/github/forks/pavan-official/Devops-app-dev-cursor?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/pavan-official/Devops-app-dev-cursor?style=social)
+
+![GitHub issues](https://img.shields.io/github/issues/pavan-official/Devops-app-dev-cursor)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/pavan-official/Devops-app-dev-cursor)
+![GitHub last commit](https://img.shields.io/github/last-commit/pavan-official/Devops-app-dev-cursor)
+![GitHub contributors](https://img.shields.io/github/contributors/pavan-official/Devops-app-dev-cursor)
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=pavan-official/Devops-app-dev-cursor&type=Date)](https://star-history.com/#pavan-official/Devops-app-dev-cursor&Date)
+
+## 🔗 Related Projects
+
+Check out these related projects in the DevOps ecosystem:
+
+- **[Backstage](https://backstage.io/)** - Open platform for building developer portals
+- **[Grafana](https://grafana.com/)** - Open source analytics & monitoring solution
+- **[Prometheus](https://prometheus.io/)** - Monitoring system & time series database
+- **[ArgoCD](https://argoproj.github.io/cd/)** - Declarative GitOps continuous delivery tool
+- **[Tekton](https://tekton.dev/)** - Cloud native solution for building CI/CD systems
 
 ## 📄 License
 
@@ -454,28 +482,6 @@ We extend our gratitude to the amazing open-source community and the following p
 - **Beta Testers**: Early adopters who help us improve the platform
 - **Open Source**: The entire open-source ecosystem that makes projects like this possible
 
-## 📊 Project Stats
-
-<!-- GitHub Stats -->
-![GitHub stars](https://img.shields.io/github/stars/pavan-official/Devops-app-dev-cursor?style=social)
-![GitHub forks](https://img.shields.io/github/forks/pavan-official/Devops-app-dev-cursor?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/pavan-official/Devops-app-dev-cursor?style=social)
-
-![GitHub issues](https://img.shields.io/github/issues/pavan-official/Devops-app-dev-cursor)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/pavan-official/Devops-app-dev-cursor)
-![GitHub last commit](https://img.shields.io/github/last-commit/pavan-official/Devops-app-dev-cursor)
-![GitHub contributors](https://img.shields.io/github/contributors/pavan-official/Devops-app-dev-cursor)
-
-## 🔗 Related Projects
-
-Check out these related projects in the DevOps ecosystem:
-
-- **[Backstage](https://backstage.io/)** - Open platform for building developer portals
-- **[Grafana](https://grafana.com/)** - Open source analytics & monitoring solution
-- **[Prometheus](https://prometheus.io/)** - Monitoring system & time series database
-- **[ArgoCD](https://argoproj.github.io/cd/)** - Declarative GitOps continuous delivery tool
-- **[Tekton](https://tekton.dev/)** - Cloud native solution for building CI/CD systems
-
 ---
 
 <div align="center">
@@ -488,4 +494,4 @@ Check out these related projects in the DevOps ecosystem:
 
 ⭐ **Star us on GitHub** — it motivates us a lot!
 
-</div> 
+</div>

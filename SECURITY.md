@@ -1,225 +1,232 @@
 # Security Policy
 
-## 🔐 OpsSight Security Commitment
+## 🔒 Supported Versions
 
-The OpsSight DevOps Visibility Platform takes security seriously. We are committed to ensuring the security and privacy of our users' data and infrastructure monitoring information.
+We actively support security updates for the following versions:
 
-## 📋 Supported Versions
+| Version | Supported          |
+| ------- | ------------------ |
+| 2.1.x   | :white_check_mark: |
+| 2.0.x   | :white_check_mark: |
+| 1.x.x   | :x:                |
+| < 1.0   | :x:                |
 
-We provide security updates for the following versions of OpsSight:
+## 🛡️ Reporting a Vulnerability
 
-| Version | Supported          | End of Support |
-| ------- | ------------------ | -------------- |
-| 2.x.x   | ✅ **Supported**   | TBD            |
-| 1.3.x   | ✅ **Supported**   | 2024-12-31     |
-| 1.2.x   | ⚠️ **Limited**     | 2024-06-30     |
-| < 1.2   | ❌ **Unsupported** | 2024-01-31     |
+We take the security of OpsSight seriously. If you discover a security vulnerability, please follow these steps:
 
-## 🚨 Reporting Security Vulnerabilities
+### 📧 How to Report
 
-We encourage responsible disclosure of security vulnerabilities. If you discover a security issue, please follow these steps:
+**Please do not report security vulnerabilities through public GitHub issues.**
 
-### 🔒 Private Reporting (Preferred)
+Instead, please report them via one of the following methods:
 
-**DO NOT** create a public GitHub issue for security vulnerabilities.
-
-1. **GitHub Security Advisories** (Recommended)
-   - Go to the [Security Advisories](https://github.com/pavan-official/Devops-app-dev-cursor/security/advisories/new) page
-   - Click "Report a vulnerability"
-   - Provide detailed information about the vulnerability
-
-2. **Email Reporting**
-   - Email: security@opssight.dev
-   - Subject: `[SECURITY] OpsSight Vulnerability Report`
-   - Include: Detailed description, steps to reproduce, impact assessment
-
-3. **Encrypted Communication**
-   - PGP Key: [Download our PGP key](https://keybase.io/opssight)
-   - Keybase: @opssight
+1. **Email (Preferred)**: security@opssight.dev
+2. **GitHub Security Advisory**: Use the [GitHub Security Advisory](https://github.com/pavan-official/Devops-app-dev-cursor/security/advisories/new) feature
+3. **Private Message**: Contact @pavan-official on GitHub
 
 ### 📝 What to Include
 
 When reporting a vulnerability, please include:
 
-- **Description**: Clear description of the vulnerability
-- **Impact**: Potential impact and affected components
-- **Reproduction**: Step-by-step instructions to reproduce
-- **Environment**: Version, configuration, deployment method
-- **Evidence**: Screenshots, logs, or proof-of-concept (if safe)
-- **Suggested Fix**: Any ideas for remediation (optional)
+- **Type of vulnerability** (e.g., XSS, SQL injection, authentication bypass)
+- **Component affected** (frontend, backend, API, infrastructure)
+- **Steps to reproduce** (detailed steps to demonstrate the vulnerability)
+- **Potential impact** (what could an attacker achieve)
+- **Suggested fix** (if you have ideas on how to fix it)
+- **Proof of concept** (if applicable, but please be responsible)
 
 ### ⏱️ Response Timeline
 
-| Timeline | Action |
-|----------|--------|
-| **24 hours** | Initial acknowledgment of your report |
-| **72 hours** | Initial assessment and severity classification |
-| **7 days** | Detailed response with remediation plan |
-| **30 days** | Target resolution for critical vulnerabilities |
-| **90 days** | Public disclosure (coordinated with reporter) |
+- **Acknowledgment**: Within 24 hours
+- **Initial Assessment**: Within 72 hours
+- **Status Update**: Within 7 days
+- **Resolution**: Depends on severity (see below)
 
-## 🏷️ Severity Classification
+### 🎯 Severity Levels
 
-We use the following severity levels based on CVSS 3.1:
+We use the [CVSS v3.1](https://www.first.org/cvss/v3.1/user-guide) scoring system to assess vulnerabilities:
 
-### 🔴 Critical (9.0-10.0)
+#### Critical (9.0 - 10.0)
 - Remote code execution
-- Full system compromise
-- Mass data exposure
-
-### 🟠 High (7.0-8.9)
-- Privilege escalation
 - Authentication bypass
-- Significant data exposure
+- Privilege escalation
+- Data breach potential
 
-### 🟡 Medium (4.0-6.9)
-- Cross-site scripting (XSS)
+**Response Time**: Immediate (within 24 hours)
+
+#### High (7.0 - 8.9)
 - SQL injection
-- Limited data exposure
+- Cross-site scripting (XSS)
+- Server-side request forgery (SSRF)
+- Insecure deserialization
 
-### 🟢 Low (0.1-3.9)
+**Response Time**: Within 48 hours
+
+#### Medium (4.0 - 6.9)
 - Information disclosure
-- Minor security misconfigurations
-- Low-impact denial of service
+- Cross-site request forgery (CSRF)
+- Insecure direct object references
+- Security misconfiguration
 
-## 🛡️ Security Best Practices
+**Response Time**: Within 7 days
+
+#### Low (0.1 - 3.9)
+- Best practice violations
+- Information leakage (non-sensitive)
+- Missing security headers
+
+**Response Time**: Within 30 days
+
+## 🔐 Security Best Practices
 
 ### For Users
 
-#### 🔧 Deployment Security
-- **Use HTTPS**: Always deploy with TLS/SSL certificates
-- **Secure Headers**: Enable security headers (CSP, HSTS, X-Frame-Options)
-- **Network Isolation**: Deploy in isolated network segments
-- **Firewall Rules**: Restrict access to necessary ports only
-- **Regular Updates**: Keep OpsSight updated to latest versions
-
-#### 🔑 Authentication & Authorization
-- **Strong Passwords**: Use complex passwords for all accounts
-- **Multi-Factor Authentication**: Enable MFA where available
-- **Least Privilege**: Grant minimum necessary permissions
-- **Regular Audits**: Review user access regularly
-- **Session Management**: Configure appropriate session timeouts
-
-#### 📊 Data Protection
-- **Encrypt at Rest**: Use database encryption
-- **Encrypt in Transit**: Use TLS for all communications
-- **Backup Security**: Secure and encrypt backups
-- **Access Logging**: Enable comprehensive audit logging
-- **Data Retention**: Implement appropriate data retention policies
+1. **Keep Updated**: Always use the latest supported version
+2. **Environment Variables**: Never commit secrets or API keys
+3. **Network Security**: Use HTTPS in production
+4. **Access Control**: Implement proper RBAC
+5. **Monitoring**: Enable security monitoring and alerts
+6. **Backups**: Regular backups of critical data
 
 ### For Developers
 
-#### 🔒 Secure Development
-- **Input Validation**: Validate all user inputs
-- **Output Encoding**: Properly encode all outputs
-- **SQL Injection Prevention**: Use parameterized queries
-- **XSS Prevention**: Implement Content Security Policy
-- **CSRF Protection**: Use anti-CSRF tokens
+1. **Dependencies**: Keep dependencies up to date
+2. **Code Review**: All code changes require security review
+3. **Testing**: Include security tests in CI/CD
+4. **Secrets Management**: Use proper secrets management (e.g., AWS Secrets Manager, HashiCorp Vault)
+5. **Input Validation**: Always validate and sanitize user input
+6. **Authentication**: Use strong authentication mechanisms
+7. **Authorization**: Implement proper authorization checks
+8. **Logging**: Log security events (but not sensitive data)
 
-#### 🧪 Security Testing
-- **Static Analysis**: Use SAST tools in CI/CD
-- **Dynamic Analysis**: Regular DAST scans
-- **Dependency Scanning**: Monitor third-party dependencies
-- **Container Scanning**: Scan Docker images for vulnerabilities
-- **Penetration Testing**: Regular security assessments
+## 🔍 Security Scanning
 
-## 🚧 Known Security Considerations
+We use automated security scanning tools:
 
-### Development Mode
-- **Dev Authentication Bypass**: Only use in development environments
-- **Debug Information**: Disable debug modes in production
-- **Test Data**: Never use production data in development
+- **Dependency Scanning**: Dependabot + Snyk
+- **Code Scanning**: CodeQL + SonarQube
+- **Container Scanning**: Trivy + Docker Scout
+- **Infrastructure Scanning**: Checkov for Terraform
+- **SAST/DAST**: Integrated into CI/CD pipeline
 
-### Infrastructure Components
-- **Database Security**: PostgreSQL security hardening
-- **Redis Security**: Secure Redis configuration
-- **Kubernetes Security**: Pod security policies and network policies
-- **Docker Security**: Use official base images and security scanning
+### Running Security Scans Locally
 
-### Third-Party Dependencies
-- **Regular Updates**: Automated dependency updates via Dependabot
-- **Vulnerability Monitoring**: GitHub Security Advisories
-- **License Compliance**: Regular license audits
+```bash
+# Frontend security scan
+cd frontend
+npm audit
+npm run security:scan
 
-## 🔍 Security Monitoring
+# Backend security scan
+cd backend
+safety check
+bandit -r app/
 
-### Automated Security Measures
-- **CI/CD Security Scans**: Trivy, CodeQL, dependency checks
-- **Runtime Protection**: Container security monitoring
-- **Network Monitoring**: Intrusion detection systems
-- **Log Analysis**: Security event monitoring
-- **Vulnerability Management**: Automated scanning and reporting
+# Container scan
+trivy image opssight:latest
 
-### Security Metrics
-- **Mean Time to Detection (MTTD)**: < 15 minutes
-- **Mean Time to Response (MTTR)**: < 4 hours
-- **Security Scan Coverage**: > 95%
-- **Dependency Update Frequency**: Weekly
-- **Security Training**: Quarterly for all developers
+# Infrastructure scan
+checkov -d infrastructure/
+```
 
-## 🆔 Security Features
+## 🚨 Security Updates
 
-### Built-in Security Controls
-- **JWT Authentication**: Secure token-based authentication
-- **Role-Based Access Control (RBAC)**: Granular permissions
-- **API Rate Limiting**: DDoS protection
-- **Input Sanitization**: XSS and injection prevention
-- **Secure Headers**: Comprehensive security headers
-- **Audit Logging**: Complete activity trails
+Security updates are released as:
 
-### Security Integrations
-- **GitHub OAuth**: Secure authentication flow
-- **Slack Integration**: Secure webhook configurations
-- **Kubernetes RBAC**: Cluster-level security
-- **Prometheus Security**: Secure metrics collection
-- **Grafana Security**: Dashboard access controls
+- **Critical**: Immediate patch release
+- **High**: Patch release within 48 hours
+- **Medium**: Included in next scheduled release
+- **Low**: Included in next minor release
 
-## 📞 Security Contacts
+### Security Advisories
 
-### Security Team
-- **Primary**: security@opssight.dev
-- **Emergency**: security-emergency@opssight.dev (24/7)
-- **General**: info@opssight.dev
+All security advisories are published at:
+- [GitHub Security Advisories](https://github.com/pavan-official/Devops-app-dev-cursor/security/advisories)
+- [Security Changelog](SECURITY_CHANGELOG.md)
 
-### Community Security
-- **GitHub Discussions**: [Security Category](https://github.com/pavan-official/Devops-app-dev-cursor/discussions/categories/security)
-- **Discord**: [#security channel](https://discord.gg/opssight)
+## 🔐 Security Features
 
-## 🏆 Recognition
+### Current Security Features
 
-We believe in recognizing security researchers who help make OpsSight more secure:
+- ✅ GitHub OAuth authentication
+- ✅ JWT token-based authorization
+- ✅ Role-based access control (RBAC)
+- ✅ HTTPS enforcement
+- ✅ CORS protection
+- ✅ Input validation and sanitization
+- ✅ SQL injection prevention (parameterized queries)
+- ✅ XSS protection (Content Security Policy)
+- ✅ CSRF protection
+- ✅ Rate limiting
+- ✅ Security headers (HSTS, CSP, X-Frame-Options)
+- ✅ Secrets management
+- ✅ Audit logging
 
-### Hall of Fame
-*Contributors who have responsibly disclosed security vulnerabilities*
+### Planned Security Enhancements
 
-- Your name could be here! 🌟
+- 🔄 Multi-factor authentication (MFA)
+- 🔄 OAuth 2.0 / OIDC support
+- 🔄 SAML 2.0 support
+- 🔄 API key management
+- 🔄 Advanced threat detection
+- 🔄 Security event correlation
+- 🔄 Automated security testing
 
-### Bounty Program
-While we don't currently offer monetary rewards, we provide:
-- Public recognition (with permission)
-- OpsSight swag and merchandise
-- Direct communication with our security team
-- Invitation to preview new security features
+## 📚 Security Resources
 
-## 📚 Additional Resources
+### Documentation
 
-### Security Documentation
-- [Security Implementation Guide](docs/security-implementation.md)
-- [Deployment Security Checklist](docs/deployment-security-checklist.md)
-- [Incident Response Plan](docs/incident-response.md)
-- [Security Architecture Overview](docs/security-architecture.md)
+- [Security Best Practices Guide](docs/security/)
+- [Deployment Security](docs/deployment/security.md)
+- [Secrets Management](docs/secrets-management.md)
+- [Production Security Setup](docs/production-security-setup.md)
 
 ### External Resources
+
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [CWE Top 25](https://cwe.mitre.org/top25/)
 - [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
-- [CIS Controls](https://www.cisecurity.org/controls/)
-- [SANS Security Guidelines](https://www.sans.org/white-papers/)
+- [GitHub Security Best Practices](https://docs.github.com/en/code-security)
+
+## 🏆 Security Acknowledgments
+
+We appreciate security researchers who responsibly disclose vulnerabilities. Contributors will be:
+
+- Listed in our security acknowledgments (if desired)
+- Given credit in release notes
+- Eligible for our security bounty program (coming soon)
+
+## 📞 Contact
+
+For security-related questions or concerns:
+
+- **Security Email**: security@opssight.dev
+- **GitHub**: @pavan-official
+- **Discord**: #security channel (private)
+
+## 📄 Disclosure Policy
+
+### Responsible Disclosure
+
+We follow responsible disclosure practices:
+
+1. **Report Privately**: Report vulnerabilities privately first
+2. **Allow Time**: Give us reasonable time to fix the issue
+3. **No Exploitation**: Do not exploit the vulnerability
+4. **Cooperation**: Work with us to resolve the issue
+5. **Public Disclosure**: Wait for our approval before public disclosure
+
+### Public Disclosure Timeline
+
+- **Critical**: Public disclosure after patch release (minimum 7 days)
+- **High**: Public disclosure after patch release (minimum 14 days)
+- **Medium/Low**: Public disclosure in next release notes
+
+## 🔄 Security Updates
+
+This security policy is reviewed and updated quarterly. Last updated: January 2025.
 
 ---
 
-**Last Updated**: January 2025  
-**Next Review**: April 2025
-
-For questions about this security policy, please contact security@opssight.dev or create a [discussion thread](https://github.com/pavan-official/Devops-app-dev-cursor/discussions).
-
-*The OpsSight team is committed to maintaining the highest security standards and continuously improving our security posture.*
+**Thank you for helping keep OpsSight and our users safe!** 🛡️
