@@ -191,7 +191,7 @@ class TestURLValidator:
     def test_slack_webhook_url_validation(self):
         """Test Slack webhook URL validation."""
         # Valid Slack webhook URL
-        valid_slack_url = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+        valid_slack_url = "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN"
         result = URLValidator.validate_slack_webhook_url(valid_slack_url)
         assert result.is_valid
 

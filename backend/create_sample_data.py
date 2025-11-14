@@ -374,7 +374,7 @@ class ComprehensiveSeedDataGenerator:
                     "notification_channels": ["slack", "email"],
                     "default_environment": "production",
                     "auto_approval_threshold": "medium",
-                    "slack_webhook": "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+                    "slack_webhook": "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN"
                 }
             },
             {
@@ -386,7 +386,7 @@ class ComprehensiveSeedDataGenerator:
                     "notification_channels": ["slack"],
                     "default_environment": "staging",
                     "auto_approval_threshold": "high",
-                    "slack_webhook": "https://hooks.slack.com/services/T11111111/B11111111/YYYYYYYYYYYYYYYYYYYYYYYY"
+                    "slack_webhook": "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN"
                 }
             },
             {
@@ -465,7 +465,7 @@ class ComprehensiveSeedDataGenerator:
                 "settings": {
                     "environments": ["development", "staging", "production"],
                     "notification_settings": {
-                        "slack_webhook": "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+                        "slack_webhook": "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN",
                         "email_notifications": True,
                         "alert_threshold": "medium"
                     },
@@ -495,7 +495,7 @@ class ComprehensiveSeedDataGenerator:
                 "settings": {
                     "environments": ["development", "production"],
                     "notification_settings": {
-                        "slack_webhook": "https://hooks.slack.com/services/T11111111/B11111111/YYYYYYYYYYYYYYYYYYYYYYYY",
+                        "slack_webhook": "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN",
                         "email_notifications": False,
                         "alert_threshold": "high"
                     },

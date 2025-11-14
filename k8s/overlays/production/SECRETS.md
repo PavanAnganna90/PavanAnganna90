@@ -54,7 +54,7 @@ Create the following secrets in AWS Secrets Manager in the `us-west-2` region:
 #### External Services (`opssight/production/external-services`)
 ```json
 {
-  "slack_webhook_url": "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+  "slack_webhook_url": "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN",
   "github_token": "ghp_XXXXXXXXXXXXXXXXXXXXXXXXX",
   "smtp_password": "SECURE_SMTP_PASSWORD",
   "smtp_username": "opssight@company.com",

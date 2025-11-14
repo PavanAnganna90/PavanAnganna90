@@ -174,7 +174,7 @@ class SeedDataGenerator:
                 "settings": {
                     "environments": ["development", "staging", "production"],
                     "notification_settings": {
-                        "slack_webhook": "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+                        "slack_webhook": "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN",
                         "email_notifications": True,
                         "alert_threshold": "medium",
                     },
@@ -194,7 +194,7 @@ class SeedDataGenerator:
                 "settings": {
                     "environments": ["development", "production"],
                     "notification_settings": {
-                        "slack_webhook": "https://hooks.slack.com/services/T11111111/B11111111/YYYYYYYYYYYYYYYYYYYYYYYY",
+                        "slack_webhook": "https://hooks.slack.com/services/EXAMPLE/TEAM/TOKEN",
                         "email_notifications": False,
                         "alert_threshold": "high",
                     },
